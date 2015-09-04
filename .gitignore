@@ -1,1 +1,7 @@
-data/
+/data/*
+
+/WASP/*
+
+Anaconda-2.2.0-Linux-x86_64.sh
+
+/anaconda/*
