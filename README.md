@@ -10,7 +10,7 @@ following WASP
     * `/group/ober-resources/resources/Hutterites/RNAseq_500HT/raw_data/`
     
 2. Identify reads with mapping bias
-    * find_intersecting_snps.by <.bam> < SNP file directory>
+    * find_intersecting_snps.py <.bam> < SNP file directory>
         * chr<#?.snps.txt.gz
         * position refallele altallele
         * `awk -F"\t" '$4=="chr1" { print }' <file> > newfile`
