@@ -13,4 +13,4 @@ export TEMP=$WORKDIR
 
 module load python
 
-python ../../bin/asescripts/WASP-master/mapping/find_intersecting_snps.py input.bam SNP_files/
+python /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/WASP-master/mapping/find_intersecting_snps.py /lustre/beagle2/ober/users/smozaffari/ASE/data/bamfiles/lane*.bam /lustre/beagle2/ober/users/smozaffari/ASE/data/SNP_files

@@ -1,0 +1,16 @@
+#!/bin/bash
+#PBS -A CI-MCB000155
+#PBS -N ase_map
+#PBS -l walltime=2:00:00:00
+#PBS -l mppnppn=1
+#PBS -e ase_map.err
+#PBS -o ase_map.log
+#PBS -M smozaffari@uchicago.edu
+
+export TMPDIR=$WORKDIR
+cd $PBS_O_WORKDIR
+export TEMP=$WORKDIR
+
+module load python
+
+aprun -N 1 -n 1 -d 1 ./python /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/WASP-master/mapping/find_intersecting_snps.py /lustre/beagle2/ober/users/smozaffari/ASE/data/bamfiles/lane*.bam /lustre/beagle2/ober/users/smozaffari/ASE/data/SNP_files
