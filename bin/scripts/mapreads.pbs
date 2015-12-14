@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -A CI-MCB000155
 #PBS -N ase_map
-#PBS -l walltime=2:00:00:00
+#PBS -l walltime=0:00:30:00
 #PBS -l mppnppn=1
 #PBS -e ase_map.err
 #PBS -o ase_map.log
@@ -15,7 +15,6 @@ module swap PrgEnv-cray PrgEnv-gnu
 
 export PATH=/lustre/beagle2/lpBuild/python/Python-2.7.10-inst/bin:$PATH
 export LD_LIBRARY_PATH=/lustre/beagle2/lpBuild/python/Python-2.7.10-inst/lib:$LD_LIBRARY_PATH
-#export PYTHONPATH=$PYTHONPATH: /lustre/beagle2/lpBuild/python/Python-2.7.10-inst/lib/python2.7:/lustre/beagle2/lpBuild/python/Python-2.7.10-inst/lib/python2.7/site-packages
 
 aprun -N 1 -n 1 -d 1 python /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/WASP/mapping/find_intersecting_snps.py /lustre/beagle2/ober/users/smozaffari/ASE/data/bamfiles_lane_3_4_106272/lane_4.index_8.saved.quality.sort.bam /lustre/beagle2/ober/users/smozaffari/ASE/data/bamfiles_lane_3_4_106272/SNP_files
 
