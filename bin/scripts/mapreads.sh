@@ -11,6 +11,6 @@ export TMPDIR=$WORKDIR
 cd $PBS_O_WORKDIR
 export TEMP=$WORKDIR
 
-module load python
+export PATH="/lustre/beagle2/ober/users/smozaffari/anaconda/bin:$PATH"
 
-python /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/WASP-master/mapping/find_intersecting_snps.py /lustre/beagle2/ober/users/smozaffari/ASE/data/bamfiles/lane*.bam /lustre/beagle2/ober/users/smozaffari/ASE/data/SNP_files
+python /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/WASP/WASP-master/mapping/find_intersecting_snps.py /lustre/beagle2/ober/users/smozaffari/ASE/data/bamfiles/lane*.bam /lustre/beagle2/ober/users/smozaffari/ASE/data/SNP_files
