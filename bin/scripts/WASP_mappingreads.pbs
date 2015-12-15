@@ -1,0 +1,56 @@
+#!/bin/bash
+#PBS -A CI-MCB000155
+#PBS -N ase_map
+#PBS -l walltime=0:05:00:00
+#PBS -l mppnppn=1
+#PBS -e ase_map.err
+#PBS -o ase_map.log
+#PBS -M smozaffari@uchicago.edu
+
+export TMPDIR=$WORKDIR
+cd $PBS_O_WORKDIR
+export TEMP=$WORKDIR
+
+module swap PrgEnv-cray PrgEnv-gnu
+
+export PATH=/lustre/beagle2/lpBuild/python/Python-2.7.10-inst/bin:$PATH
+export LD_LIBRARY_PATH=/lustre/beagle2/lpBuild/python/Python-2.7.10-inst/lib:$LD_LIBRARY_PATH
+
+# Set these environment vars to point to
+# your local installation of WASP
+HOME=/lustre/beagle2/ober/users/smozaffari/ASE
+WASP=$HOME/bin/scripts/WASP
+DATA_DIR=$HOME/data/bamfiles
+SNP_DIR=$HOME/data/SNP_files
+
+# These environment vars point to the reference genome and bowtie2.
+# in the examples below, the reference genome is assumed
+# to be indexed for use with bowtie2
+#INDEX=/data/external_public/reference_genomes/hg19/hg19
+#BOWTIE=$HOME/bowtie2-2.2.5
+
+
+# First make files containing lists of SNPs. Each file should be
+# named chr<#>.snps.txt.gz  (e.g. chr22.snps.txt.gz) and contain 3 columns:
+# position, ref allele, alt allele.
+#
+# Here is an example of creating SNP files from impute2 output files:
+# mkdir -p $SNP_DIR
+# for FILE in /data/internal/Yoruba/IMPUTE/CEU/hg19/*impute2.gz; do
+#     echo $FILE >&2
+#     CHR=`echo $FILE | sed -n 's/^.*\(chr[0-9A-Z]*\).*.impute2.gz$/\1/p'`
+#     echo $CHR >&2
+#     OUTPUT_FILE=$SNP_DIR/$CHR.snps.txt.gz
+#     gunzip -c $FILE | awk '{print $3,$4,$5}' | gzip > $OUTPUT_FILE
+# done
+
+
+# Map reads using bowtie2 (or another mapping tool of your choice)
+#$BOWTIE/bowtie2 -x $INDEX -1 $DATA_DIR/sim_pe_reads1.fastq.gz \
+#		   -2 $DATA_DIR/sim_pe_reads2.fastq.gz \
+#    | samtools view -S -b -q 10 - > $DATA_DIR/sim_pe_reads.bam
+
+# Pull out reads that need to be remapped to check for bias
+# Use the -p option for paired-end reads.
+
+aprun -N 1 -n 1 -d 1 python $WASP/mapping/find_intersecting_snps.py -p $DATA_DIR/lane_5.index_6.saved.quality.sort.bam  $SNP_DIR
