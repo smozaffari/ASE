@@ -53,4 +53,10 @@ SNP_DIR=$HOME/data/SNP_files
 # Pull out reads that need to be remapped to check for bias
 # Use the -p option for paired-end reads.
 
-aprun -N 1 -n 1 -d 1 python $WASP/mapping/find_intersecting_snps.py -p $DATA_DIR/lane_5.index_6.saved.quality.sort.bam  $SNP_DIR
+
+FLOWC1=$DATA_DIR/Flowcell1/
+FLOWC2=$DATA_DIR/Flowcell2/
+
+aprun -N 1 -n 1 -d 1 python $WASP/mapping/find_intersecting_snps.py -p $FLOWC1/*/*.saved.quality.sort.bam  $SNP_DIR
+
+aprun -N 1 -n 1 -d 1 python $WASP/mapping/find_intersecting_snps.py -p $FLOWC2/*/*.saved.quality.sort.bam  $SNP_DIR
