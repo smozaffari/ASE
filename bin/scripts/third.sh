@@ -3,16 +3,31 @@
 bamFiles=$1
 jobsPerNode=$2
 scriptDir=$3
-SNP_DIR=$4
-WASP=$scriptDir/WASP
+export SNP_DIR=$4
+export inputDir=$5
+num=$6
+export WASP=$scriptDir/WASP
 
-plog=$scriptDir/third.log
+scriptName=$(basename ${0})
+echo $scriptName
+scriptName=${scriptName%\.sh}
+echo $scriptName
+
+#timeTag=$(date "+%y_%m_%d_%H_%M_%S")
+
+plog=$PWD/${scriptName}_${LOGNAME}_${num}.log
+echo $plog
+echo "RUNNING $scriptName as " $(readlink -f $0 ) " on " `date`  | tee  $plog
+#plog=$inputDir/python_WASP_$num
+
+echo scriptDir $scriptDir
+bamFiles=$(echo $bamFiles | sed 's/::/\ /g')
 
 # functions to be used in the call to parallels
-BAM_RUN() {
-    python $WASP/mapping/find_intersecting_snps.py -p $1 $SNP_DIR & 
+FIND_SNPS() {
+    python $WASP/mapping/find_intersecting_snps.py -p $inputDir/$1 $SNP_DIR
 }
-export -f BAM_RUN
+export -f FIND_SNPS
 
 echo $bamFiles
 
@@ -21,6 +36,6 @@ echo $bamFiles
 # NOTE: WHOAMI is exported from calling pbs script
 #top -b -d 3600.00 -n 20 -u $WHOAMI >> ${destdir}/topLog.${runStamp} 2>&1 &
 
-parallel -j $jobsPerNode  BAM_RUN ::: $($bamFiles) >>$plog 2>&1 
+parallel -j $jobsPerNode  FIND_SNPS ::: $bamFiles  >>$plog 2>&1 
 
 

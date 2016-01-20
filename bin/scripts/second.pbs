@@ -1,0 +1,37 @@
+#!/bin/bash
+#PBS -l mppwidth=32
+#PBS -l walltime=10:00:00
+#PBS -j oe 
+## Beagle specific
+##PBS -A CI-MCB000155
+
+cd $PBS_O_WORKDIR
+echo $PBS_O_WORKDIR
+. /opt/modules/default/init/bash
+if [ ! $(module list -t 2>&1 | grep PrgEnv-gnu) ]; then
+ module swap PrgEnv-cray PrgEnv-gnu
+fi
+
+export PATH=/lustre/beagle2/lpBuild/python/Python-2.7.10-inst/bin:$PATH
+export LD_LIBRARY_PATH=/lustre/beagle2/lpBuild/python/Python-2.7.10-inst/lib:$LD_LIBRARY_PATH
+
+module load bwa
+
+umask 022
+
+echo "%%% Begin at " $(date)
+export WHOAMI=$(whoami)
+echo "Submitted as:" $WHOAMI
+echo "running jobs in "$PWD
+echo "$SCRIPTDIR"
+echo "$BAMFILES"
+echo "$JOBSPERNODE"
+echo "$INPUTDIR"
+
+
+
+# -b is useful because the scripts are accessible to the compute nodes and don't need to be transferred to spool
+aprun -n1 -N1 -d32 -b $SCRIPTDIR/third.sh $BAMFILES $JOBSPERNODE $SCRIPTDIR $SNPDIR $INPUTDIR $NUM
+echo "aprun -n1 -N1 -d32 -b $SCRIPTDIR/third.sh $BAMFILES $JOBSPERNODE $SCRIPTDIR $SNPDIR $INPUTDIR $NUM"
+
+echo "%%% Ending at "$(date)
