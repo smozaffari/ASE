@@ -18,7 +18,7 @@ following WASP
 
 3. to run WASP on all the reads (including remapping reads step) and put into output Directory : 
   
- `Masterscript.sh <inputDir> <#jobspernode> <#Nodes> <outDir> <SNPDir>`
+   * `Masterscript.sh <inputDir> <#jobspernode> <#Nodes> <outDir> <SNPDir>`
 
 
    
