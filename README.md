@@ -13,10 +13,8 @@ following WASP
         * chr<#?.snps.txt.gz
         * position refallele altallele
         * `awk -F"\t" '$4=="chr1" { print }' <file> > newfile`
-        
 
-to run WASP on all the reads (including remapping reads step) and put into output Directory :
-
-`Masterscript.sh <inputDir> <#jobspernode> <#Nodes> <outDir> <SNPDir>`
+3. to run WASP on all the reads (including remapping reads step) and put into output Directory :
+   `Masterscript.sh <inputDir> <#jobspernode> <#Nodes> <outDir> <SNPDir>`
 
    
