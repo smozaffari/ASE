@@ -10,6 +10,7 @@ following WASP
     * `/group/ober-resources/resources/Hutterites/RNAseq_500HT/raw_data/`
     
 2. SNPs in SNP directory
+
         * chr<#?.snps.txt.gz
         * position refallele altallele
          
