@@ -12,6 +12,7 @@ following WASP
 2. SNPs in SNP directory
         * chr<#?.snps.txt.gz
         * position refallele altallele
+         
         * `awk -F"\t" '$4=="chr1" { print }' <file> > newfile` 
 
 
