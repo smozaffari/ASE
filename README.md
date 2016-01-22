@@ -11,10 +11,9 @@ following WASP
     
 2. SNPs in SNP directory
 
-        * chr<#?.snps.txt.gz
-        * position refallele altallele
-         
-        * `awk -F"\t" '$4=="chr1" { print }' <file> > newfile` 
+    * chr<#?.snps.txt.gz
+    * position refallele altallele
+    * `awk -F"\t" '$4=="chr1" { print }' <file> > newfile` 
 
 
 3. to run WASP on all the reads (including remapping reads step) and put into output Directory : 
