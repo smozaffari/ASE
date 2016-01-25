@@ -16,7 +16,7 @@ module load plink
 ##PO data
 
 #get PO genotypes
-plink --bfile /group/ober-resources/resources/Hutterites/PRIMAL/imputed-override3/imputed_cgi.po --keep PO_ids --missing --out phasedPO_AD_gexppl --recode 12 --transpose
+plink --bfile /group/ober-resources/resources/Hutterites/PRIMAL/imputed-override3/imputed_cgi.po --keep PO_ids --missing --out phasedPO_AD_gexppl --recode --transpose
 
 #separate by chromosome
 for snp in `seq 1 22` 
@@ -26,6 +26,10 @@ done
 
 #translate to impute2 haplotype format
 perl phased2imputehaps.pl
+
+
+##regular impute data
+#plink --bfile /group/ober-resources/resources/Hutterites/PRIMAL/data-sets/qc/qc --out allnotPOgtype --recode 12 --transpose
 
 
 
