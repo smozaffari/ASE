@@ -22,7 +22,7 @@ while (my $line = <RAW>) {
 	my $snp = $line[0];
 	my $loc = $line[1];
 	if ($ref{$snp}) {
-	    print IMP ("--- $rs{$snp} $snp $loc $ref{$snp} $alt{$snp} ");
+	    print IMP ("$snp $rs{$snp} $snp $loc $ref{$snp} $alt{$snp} ");
 	}
     foreach my $snp (6 .. $#line) {
 	if ($snp = 2) {
@@ -30,7 +30,7 @@ while (my $line = <RAW>) {
 	} elsif ($snp = 1) {
 	    print IMP ("0 1 0 ");
 	} elsif ($snp = 0) {
-	    print IMP ("0 0 2 0");
+	    print IMP ("0 0 1");
 	}
     }
     print IMP ("\n");
