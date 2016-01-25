@@ -23,3 +23,7 @@ for snp in `seq 1 22`
 do
   awk -v snp=$snp -F" " '$1 == "'"$snp"'" {print}' phasedPO_AD_gexppl.tped | awk '{for(i=2;i<=NF;i=i+2){printf "%s ", $i}{printf "%s", RS}}' > 'chr'$snp'_phased'
 done
+
+perl phased2imputehaps.pl
+
+
