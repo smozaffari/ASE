@@ -28,7 +28,7 @@ for (my $i=1; $i<=22; $i++) {
 	my $snp = $line[0];
 	my $loc = $line[1];
 	if ($ref{$snp}) {
-	    print OUT ("$rs{$snp} $snp $loc $ref{$snp} $alt{$snp} ");
+	    print OUT ("--- $rs{$snp} $snp $loc $ref{$snp} $alt{$snp} ");
 	    for (my $j=2; $j <= $length; $j++) {
 		if ($line[$j]) {
 		    if ($line[$j] eq $ref{$snp}) {
