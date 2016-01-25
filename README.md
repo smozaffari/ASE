@@ -1,6 +1,7 @@
 # ASE
 
 following WASP
+##Mapping reads
 
 1. Map reads --> bam files (done by Darren) 
 [RNAseq 500HT Project](https://oberlab-tk.uchicago.edu/wiki/Hutterites/RNAseq%20500HT%20Project)
@@ -19,6 +20,6 @@ following WASP
 3. to run WASP on all the reads (including remapping reads step) and put into output Directory : 
   
    * `Masterscript.sh <inputDir> <#jobspernode> <#Nodes> <outDir> <SNPDir>`
-
+###creating impute2 files
 
    
