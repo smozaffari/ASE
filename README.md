@@ -3,7 +3,7 @@
 following WASP
 ##Mapping reads
 
-1. Map reads --> bam files (done by Darren) 
+1. Intial mapping of reads --> bam files (done by Darren) 
 [RNAseq 500HT Project](https://oberlab-tk.uchicago.edu/wiki/Hutterites/RNAseq%20500HT%20Project)
     * single end
     * hg19 (excluding 'random' chr)
@@ -22,7 +22,7 @@ following WASP
    * `Masterscript.sh <inputDir> <#jobspernode> <#Nodes> <outDir> <SNPDir>`
    
 
-###creating impute2 files
+###Creating IMPUTE2 files from PRIMAL(plink) output
 
 1. impute2 haplotype file
    * `phased2imputehaps.sh`
