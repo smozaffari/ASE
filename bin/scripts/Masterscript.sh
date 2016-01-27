@@ -1,4 +1,6 @@
 #!/bin/bash
+# Author: SVM 
+# Purpose: copy over RNAseq data and run WASP mapping pipeline
 # USAGE: MasterScript.sh <variables> 
 
 inputDir=$(readlink -f $1)
