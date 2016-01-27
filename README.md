@@ -25,4 +25,6 @@ following WASP
 ###Creating IMPUTE2 files from PRIMAL(plink) output
 
 1. impute2 haplotype file
+   * `awk '{ print $52 " " $4 " " $5 " " $15 }'   /group/ober-resources/users/rlee/hutt_annotation/annotation_data/all12_imputed_cgi.annovar_plink_annotations.hg19_multianno.txt | tail -n+2 > testrecode.txt`
+
    * `phased2imputehaps.sh`
