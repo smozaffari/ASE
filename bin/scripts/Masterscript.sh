@@ -58,7 +58,7 @@ for dir in $inputDirs;do
   for file in $(echo "$inputFiles"| grep $dir); do
       fileName=$dir/$(basename $file)
 #create softlink for input files
-#     ln -s $file "$outDir/$dir"  
+     ln -s $file "$outDir/$dir"  
      nJobsInRun=$(($nJobsInRun+1))
      nTotSubJobs=$(($nTotSubJobs+1))
      if [ "$subFileList" ]; then
