@@ -6,6 +6,8 @@ bin/scripts/WASP/master/*
 /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/WASP/*
 /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/WASP/master/
 
+results/
+
 Anaconda-2.2.0-Linux-x86_64.sh
 
 /anaconda/*
