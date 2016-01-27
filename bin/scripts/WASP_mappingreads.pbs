@@ -1,10 +1,10 @@
 #!/bin/bash
 #PBS -A CI-MCB000155
-#PBS -N ase_map
+#PBS -N ase_map_3
 #PBS -l walltime=2:00:00:00
 #PBS -l mppwidth=240
-#PBS -e ase_map.err
-#PBS -o ase_map.log
+#PBS -e ase_map_3.err
+#PBS -o ase_map_3.log
 #PBS -M smozaffari@uchicago.edu
 
 export TMPDIR=$WORKDIR
@@ -29,10 +29,17 @@ SNP_DIR=$HOME/data/SNP_files
 # Reads mapped using BWA (by Darren)
 # Reads sorted by Flowcell and then Individual
 
-find $DATA_DIR -iname '*.saved.quality.sort.bam' | while read bam;
+find $DATA_DIR/Flowcell1/ -iname '*.saved.quality.sort.bam' | while read bam;
 do 
     echo "Found: $bam";
     aprun -N 1 -n 1 -d 1 python $WASP/mapping/find_intersecting_snps.py -p $bam $SNP_DIR & 
+    wait
+done;
+
+find $DATA_DIR/Flowcell2/ -iname '*.saved.quality.sort.bam' | while read bam;
+do
+    echo "Found: $bam";
+    aprun -N 1 -n 1 -d 1 python $WASP/mapping/find_intersecting_snps.py -p $bam $SNP_DIR &
     wait
 done;
 wait
