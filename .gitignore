@@ -1,5 +1,8 @@
 /lustre/beagle2/ober/users/smozaffari/ASE/data/*
+/data/*
 
+bin/scripts/WASP/*
+bin/scripts/WASP/master/*
 /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/WASP/*
 /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/WASP/master/
 
