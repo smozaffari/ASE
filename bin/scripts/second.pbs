@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l mppwidth=32
-#PBS -l walltime=10:00:00
+#PBS -l walltime=05:00:00
 #PBS -j oe 
 ## Beagle specific
 ##PBS -A CI-MCB000155
@@ -16,6 +16,7 @@ export PATH=/lustre/beagle2/lpBuild/python/Python-2.7.10-inst/bin:$PATH
 export LD_LIBRARY_PATH=/lustre/beagle2/lpBuild/python/Python-2.7.10-inst/lib:$LD_LIBRARY_PATH
 
 module load bwa
+module load samtools
 
 umask 022
 
