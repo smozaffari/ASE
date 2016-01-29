@@ -18,7 +18,7 @@ while (my $line = <COD>) {
     $snpnum++;
 }
 
-for (my $i=11; $i<=22; $i++) {
+for (my $i=1; $i<=22; $i++) {
     my $chr = join "", "chr", $i, "_gtype";
     open (APED, "/group/ober-resources/users/smozaffari/POeQTL/data/ASE/phased_2_impute/$chr") || die "nope: $!";
     my $out = join "", "chr", $i, "_impute";
