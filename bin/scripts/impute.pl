@@ -7,7 +7,10 @@ my %ref;
 my %alt;
 my %rs;
 
-open (COD, "/group/ober-resources/users/smozaffari/POeQTL/data/ASE/testrecode.txt") || die "nope: $!";
+#for CRI:
+#open (COD, "/group/ober-resources/users/smozaffari/POeQTL/data/ASE/testrecode.txt") || die "nope: $!";
+#for Beagle2:
+open (COD, "/lustre/beagle2/ober/users/smozaffari/ASE/data/testrecode.txt") || die "nope: $!";
 my $snpnum = 1;
 while (my $line = <COD>) {
     my @line = split " ", $line;
@@ -20,7 +23,10 @@ while (my $line = <COD>) {
 
 for (my $i=1; $i<=22; $i++) {
     my $chr = join "", "chr", $i, "_gtype";
-    open (APED, "/group/ober-resources/users/smozaffari/POeQTL/data/ASE/phased_2_impute/$chr") || die "nope: $!";
+#   for CRI
+#   open (APED, "/group/ober-resources/users/smozaffari/POeQTL/data/ASE/phased_2_impute/$chr") || die "nope: $!";
+#   for Beagle2
+    open (APED, "/lustre/beagle2/ober/users/smozaffari/ASE/data/Impute2/genotypes/$chr")|| die "nope: $!";
     my $out = join "", "chr", $i, "_impute";
     open (IMP, ">$out") || die "nope: $!";
     open (ERR, ">>missing_impute") || die "nope: $!";
@@ -30,11 +36,9 @@ for (my $i=1; $i<=22; $i++) {
 	my $length = $#line;
 	my $snp = $line[0];
 	my $loc = $line[1];
-#	print "$ref{$snp} $snp $rs{$snp} $loc $ref{$snp} $alt{$snp}\n ";
 	print IMP ("$snp $rs{$snp} $snp $loc $ref{$snp} $alt{$snp} ");
 	for (my $j=2; $j <= $length; $j+=2) {
 	    my $k = $j+1;
-#	    print ("$line[$j] $line[$k] $ref{$snp} $alt{$snp}\t");
 	    if ($line[$j] eq $ref{$snp}) {
 		if ( $line[$j] eq $line[$k]) {
 		    print IMP "1 0 0 ";
@@ -49,7 +53,6 @@ for (my $i=1; $i<=22; $i++) {
 		}
 	    } else {
 		$missing ++;
-#		print ("$line[$j] $line[$k] $ref{$snp} $alt{$snp}\t"); 
 		print IMP "1 0 0 ";
 	    }
 	}

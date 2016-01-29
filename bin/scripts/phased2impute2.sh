@@ -19,7 +19,7 @@ do
 done
 
 #translate to impute2 haplotype format
-perl phased2imputehaps.pl
+perl /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/phased2imputehaps.pl
 
 ##regular impute data
 #done on CRI
@@ -30,7 +30,7 @@ do
   awk -v chr=$chr -F" " '$1 == "'"$chr"'" {print}' /lustre/beagle2/ober/users/smozaffari/allnotPOgtype.tped > 'chr'$chr'_gtype'
 done
 
-perl impute.pl
+perl /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/impute.pl
 
 
 
