@@ -29,5 +29,5 @@ do
   awk -v chr=$chr -F" " '$1 == "'"$chr"'" {print}' allnotPOgtype.tped > 'chr'$chr'_gtype'
 done
 
-perl phased2impute.pl
+perl impute.pl
 
