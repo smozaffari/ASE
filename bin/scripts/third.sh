@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 # Script that will be executed on the compute nodes
 bamFiles=$1
 jobsPerNode=$2
@@ -26,63 +26,41 @@ echo "RUNNING $scriptName as " $(readlink -f $0 ) " on " `date`  | tee  $plog
 echo scriptDir $scriptDir
 bamFiles=$(echo $bamFiles | sed 's/::/\ /g')
 
+# make the script verbose
+set -x
+
 # functions to be used in the call to parallels
 FIND_SNPS() {
+    set -x
     #first part of WASP:
     python $WASP/mapping/find_intersecting_snps.py $inputDir/$1 $SNP_DIR
     
+    base=$(echo "$1" | sed 's/\.bam//g')
     #remap files:
-    toRemapfqFiles=$( echo "$1" | sed 's/bam/remap.fq.gz/g' )
-    echo $toRemapfqFiles
-    saiFile=$(echo "$1" | sed 's/bam/sai/g')
-    echo $saiFile
-    samFile=$(echo "$1" | sed 's/bam/sam/g')
-    echo $samFile
-    remappedBamFile=$(echo "$1" | sed 's/bam/remap\.bam/g')
-    echo $remappedBamFile
-    echo "remappedfiles filenames made"
-    bwa aln -n 2 -N /lustre/beagle2/ReferenceSequences/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa $inputDir/$toRemapfqFiles > $inputDir/$saiFile
-    bwa samse -n 1 /lustre/beagle2/ReferenceSequences/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa $inputDir/$saiFile $inputDir/$toRemapfqFiles > $inputDir/$samFile
-    samtools view -S -b -q 10 $inputDir/$samFile >  $inputDir/$remappedBamFile
-    echo "bwa aln -n 2 -N /lustre/beagle2/ReferenceSequences/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa $inputDir/$toRemapFiles > $inputDir/$saiFile"
-    echo "bwa samse -n 1 /lustre/beagle2/ReferenceSequences/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa $inputDir/$toRemapFiles > $inputDir/$saiFile"
-    echo "samtools view -S -b -q 10 $inputDir/$samFile  >  $inputDir/$remappedBamFile"
-   
-    echo "all the bwa stuff worked"
+    bwa aln -n 2 -N /lustre/beagle2/ReferenceSequences/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa $inputDir/${base}.remap.fq.gz > $inputDir/${base}.sai              
+    bwa samse -n 1 /lustre/beagle2/ReferenceSequences/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa $inputDir/${base}.sam $inputDir/${base}.remap.fq.gz > $inputDir/${base}.sam    
+    samtools view -S -b -q 10 $inputDir/${base}.sam >  $inputDir/${base}.remap.bam
+#    echo "bwa aln -n 2 -N /lustre/beagle2/ReferenceSequences/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa $inputDir/${base}.remap.fq.gz > $inputDir/${base}.sai"
+#    echo "bwa samse -n 1 /lustre/beagle2/ReferenceSequences/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa $inputDir/${base}.sam $inputDir/${base}.remap.fq.gz > $inputDir/${base}.sam"
+#    echo "samtools view -S -b -q 10 $inputDir/${base}.sam >  $inputDir/${base}.remap.bam"
+    
+
     #WASP:
-    toRemapBam=$(echo "$1" | sed 's/bam/to\.remap\.bam/g')
-    echo $toRemapBam
-    remapkeepBam=$(echo "$1" | sed 's/bam/remap\.keep\.bam/g')
-    echo $keepBam
-    toremapNum=$(echo "$1" | sed 's/bam/to\.remap\.num\.gz/g')
-    echo $toremapNum
-    echo "wasp files made"
-    python $WASP/mapping/filter_remapped_reads.py $inputDir/$toRemapBam $inputDir/$remappedBamFile $inputDir/$remapkeepBam $inputDir/$toremapNum
-    echo "filter remapped reads worked"
+#    python $WASP/mapping/filter_remapped_reads.py $inputDir/${base}.to.remap.bam $inputDir/${base}.remap.bam $inputDir/${base}.remap.keep.bam $inputDir/${base}.to.remap.num.gz
+#    echo "python $WASP/mapping/filter_remapped_reads.py $inputDir/${base}.to.remap.bam $inputDir/${base}.remap.bam $inputDir/${base}.remap.keep.bam $inputDir/${base}.to.remap.num.gz"
 
     #merged bamfile:
-    keepmergeBam=$(echo "$1" | sed 's/bam/keep\.merged\.bam/g')
-    echo $keepmergeBam
-    keepBam=$(echo "$1" | sed 's/bam/keep\.bam/g')
-    echo $keepBam
-    samtools merge $inputDir/$keepmergeBam $inputDir/$keepBam $inputDir/$remapkeepBam
-    echo "samtools merge $inputDir/$keepmergeBam $inputDir/$keepBam $inputDir/$remapkeepBam"
-
-    mergedSorted= $(echo "$1" | sed 's/bam/keep\.merged\.sorted/g')
-    echo $mergedSorted
-    samtools sort $inputDir/$mergeBam $inputDir/$mergedSorted
-    echo "samtools sort $inputDir/$keepmergeBam $inputDir/$mergedSorted"
-
-    mergedSortedBam= $(echo "$1" | sed 's/bam/keep\.merged\.sorted\.bam/g')
-    echo $mergedSortedBam
-    echo "make merged bam files"
-    samtools index $inputDir/$mergedSortedBam
-    echo "samtools index $inputDir/$mergedSortedBam"
+#    samtools merge $inputDir/${base}.keep.merged.bam $inputDir/${base}.keep.bam $inputDir/${base}.remap.keep.bam
+#    samtools sort $inputDir/${base}.keep.merged.bam $inputDir/${base}.keep.merged.sorted
+#    samtools index $inputDir/${base}.keep.merged.sorted.bam
+#    echo "samtools merge $inputDir/${base}.keep.merged.bam $inputDir/${base}.keep.bam $inputDir/${base}.remap.keep.bam"
+#    echo "samtools sort $inputDir/${base}.keep.merged.bam $inputDir/${base}.keep.merged.sorted"
+#    echo "samtools index $inputDir/${base}.keep.merged.sorted.bam"
 
     #WASP:
-    rmdupBam= $(echo "$1" | sed 's/bam/keep\.rmdup\.merged\.sorted\.bam/g')
-    echo $rmdupBam
-    python $WASP/mapping/rmdup.py $inputDir/$mergedSortedBam $inputDir/$rmdupBam
+#    python $WASP/mapping/rmdup.py $inputDir/${base}.keep.merged.sorted.bam $inputDir/${base}.keep.rmdup.merged.sorted.bam
+#    rmdupBam= $(echo "$1" | sed 's/bam/keep\.rmdup\.merged\.sorted\.bam/g')
+#    python $WASP/mapping/rmdup.py $inputDir/$mergedSortedBam $inputDir/$rmdupBam
     
 }
 
