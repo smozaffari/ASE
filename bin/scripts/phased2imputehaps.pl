@@ -7,7 +7,10 @@ my %ref;
 my %alt;
 my %rs;
 
-open (COD, "/group/ober-resources/users/smozaffari/POeQTL/data/ASE/recodealt.txt") || die "nope: $!";
+#for CRI
+#open (COD, "/group/ober-resources/users/smozaffari/POeQTL/data/ASE/recodealt.txt") || die "nope: $!";
+#for Beagle2
+open (COD, "/lustre/beagle2/ober/users/smozaffari/ASE/data/recodealt.txt") || die "nope: $!;
 while (my $line = <COD>) {
     my @line = split " ", $line;
     my $snp = $line[0];
@@ -18,10 +21,12 @@ while (my $line = <COD>) {
 
 for (my $i=1; $i<=2; $i++) {
     my $chr = join "", "chr", $i, "_phased";
-    open (APED, "/group/ober-resources/users/smozaffari/POeQTL/data/ASE/phased_2_impute/$chr") || die "nope: $!";
+#   for CRI:
+#   open (APED, "/group/ober-resources/users/smozaffari/POeQTL/data/ASE/phased_2_impute/$chr") || die "nope: $!";
+#   for Beagle:
+    open (APED, "/lustre/beagle2/ober/users/smozaffari/ASE/data/Impute2/haplotypes/$chr") || die "nope: $!;
     my $out = join "", "chr", $i, "_imputehaps";
     open (OUT, ">$out") || die "nope: $!";
-#    my $line1 = <APED>;
     while (my $line = <APED>) {
 	my @line = split " ", $line;
 	my $length = $#line;
