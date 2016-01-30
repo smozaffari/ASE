@@ -37,13 +37,17 @@ FIND_SNPS() {
     
     base=$(echo "$1" | sed 's/\.bam//g')
     #remap files:
-    bwa aln -n 2 -N /lustre/beagle2/ReferenceSequences/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa $inputDir/${base}.remap.fq.gz > $inputDir/${base}.sai              
-    bwa aln -n 2 -N /lustre/beagle2/ober/users/smozaffari/files_from_Darren/all_junctions.50.ens.eedb $inputDir/${base}.remap.fq.gz > $inputDir/${base}.exjunct.sai
+    bwa aln -n 2 -t 3 /lustre/beagle2/ReferenceSequences/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa $inputDir/${base}.remap.fq.gz > $inputDir/${base}.sai              
     bwa samse -n 1 /lustre/beagle2/ReferenceSequences/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa $inputDir/${base}.sai $inputDir/${base}.remap.fq.gz > $inputDir/${base}.sam    
-    bwa samse -n 1 /lustre/beagle2/ober/users/smozaffari/files_from_Darren/all_junctions.50.ens.eedb $inputDir/${base}.exjunct.sai $inputDir/${base}.remap.fq.gz > $inputDir/${base}.exjunct.sam
-    samtools view -S -b -q 10 $inputDir/${base}.sam >  $inputDir/${base}.remap.bam
-    samtools view -S -b -q 10 $inputDir/${base}.exjunct.sam >  $inputDir/${base}.exjunct.remap.bam
-
+    samtools view -S -b -h -q 10 $inputDir/${base}.sam >  $inputDir/${base}.remap.bam
+    samtools view -S -h -f 4 -b $inputDir/${base}.sam > $inputDir /${base}.unremap.bam
+    rm $inputDir/${base}.sai 
+    
+    bwa aln -n 1 -t 3 /lustre/beagle2/ober/users/smozaffari/files_from_Darren/all_junctions.50.ens.eedb -b0 $inputDir/${base}.unremap.bam > $inputDir/${base}.junction.ref.sai
+    bwa samse -n 1 /lustre/beagle2/ober/users/smozaffari/files_from_Darren/all_junctions.50.ens.eedb $inputDir/${base}.junction.ref.sai $inputDir/${base}.unremap.bam > $inputDir/${base}.junction.ref.sam
+    rm $inputDir/${base}.junction.ref.sai
+    samtools view -S -h -q 10 -b $inputDir/${base}.junction.ref.sam > $inputDir/${base}.junction.quality.bam
+    samtools sort $inputDir/${base}.junction.quality.bam $inputDir/${base}.junction.quality.sort
 
 #    echo "bwa aln -n 2 -N /lustre/beagle2/ReferenceSequences/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa $inputDir/${base}.remap.fq.gz > $inputDir/${base}.sai"
 #    echo "bwa samse -n 1 /lustre/beagle2/ReferenceSequences/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa $inputDir/${base}.sam $inputDir/${base}.remap.fq.gz > $inputDir/${base}.sam"
