@@ -1,0 +1,31 @@
+#!/bin/bash
+#PBS -l mppwidth=32
+#PBS -l walltime=05:00:00
+#PBS -j oe 
+
+cd $PBS_O_WORKDIR
+echo $PBS_O_WORKDIR
+
+module load bwa
+module load samtools
+
+umask 022
+
+echo "%%% Begin at " $(date)
+export WHOAMI=$(whoami)
+echo "Submitted as:" $WHOAMI
+echo "running jobs in "$PWD
+echo "$SCRIPTDIR"
+echo "$BAMFILES"
+echo "$JOBSPERNODE"
+echo "$INPUTDIR"
+
+
+
+# -b is useful because the scripts are accessible to the compute nodes and don't need to be transferred to spool
+#aprun -n1 -N1 -d32 -b $SCRIPTDIR/third.sh $BAMFILES $JOBSPERNODE $SCRIPTDIR $SNPDIR $INPUTDIR $NUM
+#qsub -v  
+$SCRIPTDIR/third.sh $BAMFILES $JOBSPERNODE $SCRIPTDIR $SNPDIR $INPUTDIR $NUM
+echo "aprun -n1 -N1 -d32 -b $SCRIPTDIR/third.sh $BAMFILES $JOBSPERNODE $SCRIPTDIR $SNPDIR $INPUTDIR $NUM"
+
+echo "%%% Ending at "$(date)
