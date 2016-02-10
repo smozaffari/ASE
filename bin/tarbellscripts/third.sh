@@ -6,7 +6,7 @@ scriptDir=$3
 export SNP_DIR=$4
 export inputDir=$5
 num=$6
-export WASP=$scriptDir/WASP
+export WASP=/group/ober-resources/users/smozaffari/ASE/bin/scripts/WASP
 
 scriptName=$(basename ${0})
 echo $scriptName
