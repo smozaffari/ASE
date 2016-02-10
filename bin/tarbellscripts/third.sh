@@ -37,8 +37,8 @@ FIND_SNPS() {
     
     base=$(echo "$1" | sed 's/\.bam//g')
     #remap files:
-    bwa aln -n 2 -N /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBWAIndex/ $inputDir/${base}.remap.fq.gz > $inputDir/${base}.sai              
-    bwa samse -n 1 /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBWAIndex/ $inputDir/${base}.sai $inputDir/${base}.remap.fq.gz > $inputDir/${base}.sam    
+    bwa aln -n 2 -N /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBWAIndex/genome.fa $inputDir/${base}.remap.fq.gz > $inputDir/${base}.sai              
+    bwa samse -n 1 /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBWAIndex/genome.fa $inputDir/${base}.sai $inputDir/${base}.remap.fq.gz > $inputDir/${base}.sam    
     samtools view -S -b -h -q 10 $inputDir/${base}.sam >  $inputDir/${base}.remap.bam
     samtools view -S -h -f 4 -b $inputDir/${base}.sam > $inputDir /${base}.unremap.bam
 #    bwa aln -n 1 /lustre/beagle2/ober/users/smozaffari/files_from_Darren/all_junctions.50.ens.eedb -b0 $inputDir/${base}.unremap.bam > $inputDir/${base}.junction.ref.sai
