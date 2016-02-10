@@ -8,6 +8,7 @@ echo $PBS_O_WORKDIR
 
 module load bwa
 module load samtools
+module load parallel
 
 umask 022
 
