@@ -8,4 +8,4 @@ while read LINE; do
   cat "HUTTERITES ${LINE}1" > ${LINE}1.txt
 	echo "qsub -v FINDIV=$LINE geno.pbs"
 	# qsub -v FINDIV=$LINE geno.pbs
-done < /group/ober-resources/users/smozaffari/findivlist
+done < /group/ober-resources/users/smozaffari/ASE/data/findivlist
