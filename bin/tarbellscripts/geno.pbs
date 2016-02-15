@@ -1,0 +1,15 @@
+#PBS -S /bin/bash
+#PBS -N geno.pbs
+#PBS -l walltime=2:00:00:00
+#PBS -l nodes=1:ppn=1
+#PBS -l mem=15gb
+#PBS -e geno.err
+#PBS -o geno.log
+#PBS -M smozaffari@uchicago.edu
+
+module load plink
+
+echo "$FINDIV:", $FINDIV
+
+echo "plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_paternal --keep ${FINDIV}1.txt --geno 0 --recode transpose --out ${FINDIV}1_paternal_geno"
+echo "plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_maternal --keep ${FINDIV}2.txt --geno 0 --recode transpose --out ${FINDIV}2_maternal_geno"
