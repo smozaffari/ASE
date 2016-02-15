@@ -1,5 +1,7 @@
 #!/bin/bash -x
 # Script that will be executed on the compute nodes
+module load parallel
+
 bamFiles=$1
 jobsPerNode=$2
 scriptDir=$3

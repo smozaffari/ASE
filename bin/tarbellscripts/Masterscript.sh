@@ -72,8 +72,8 @@ for dir in $inputDirs;do
      if [ "$nJobsInRun" -eq "$filesPerNode" ] || [ "$nTotSubJobs" -eq "$NInputFiles" ]; then
          echo $nJobsInRun $nTotSubJobs $subFileList
 #Uncomment the following and jobs will be sent to the scheduler
-	 qsub -v BAMFILES="$subFileList",JOBSPERNODE=$jobsPerNode,SCRIPTDIR=$scriptDir,SNPDIR=$snpDir,INPUTDIR=$outDir,NUM=$nJobsInRun -N $nJobsInRun $scriptDir/second.pbs 2>&1
-	 echo -e "qsub -v BAMFILES=$subFileList,JOBSPERNODE=\"$jobsPerNode\",SCRIPTDIR=\"$scriptDir\",SNPDIR=\"$snpDir\" -N \"$nJobsInRun\" $scriptDir/second.pbs" | tee -a $setup_log
+	 qsub -v BAMFILES="$subFileList",JOBSPERNODE=$jobsPerNode,SCRIPTDIR=$scriptDir,SNPDIR=$snpDir,INPUTDIR=$outDir,NUM=$nJobsInRun -N $nJobsInRun $scriptDir/second.sh 2>&1
+	 echo -e "qsub -v BAMFILES=$subFileList,JOBSPERNODE=\"$jobsPerNode\",SCRIPTDIR=\"$scriptDir\",SNPDIR=\"$snpDir\" -N \"$nJobsInRun\" $scriptDir/second.sh" | tee -a $setup_log
          nJobsInRun=0
          subFileList=""
 	 exit
