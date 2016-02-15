@@ -35,7 +35,7 @@ FIND_SNPS() {
     
     #map reads
     base=$(echo "$1" | sed 's/\saved.sequence.txt.gz//g')
-    bowtie2 -p 4 --very-fast --phred33 -x /lustre/beagle2/ReferenceSequences/Homo_sapiens/UCSC/hg19/Sequence... -U $inputDir/$1 -S $inputDir/${base}.sam
+    bowtie2 -p 1 --very-fast --phred33 -x /lustre/beagle2/ReferenceSequences/Homo_sapiens/UCSC/hg19/Sequence... -U $inputDir/$1 -S $inputDir/${base}.sam
     samtools view -S -h -q 10 $inputDir/${base}.sam >  $inputDir/${base}.bam
     
     #first part of WASP:
