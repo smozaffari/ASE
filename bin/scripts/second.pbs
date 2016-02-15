@@ -15,7 +15,7 @@ fi
 export PATH=/lustre/beagle2/lpBuild/python/Python-2.7.10-inst/bin:$PATH
 export LD_LIBRARY_PATH=/lustre/beagle2/lpBuild/python/Python-2.7.10-inst/lib:$LD_LIBRARY_PATH
 
-module load bwa
+module load bowtie2
 module load samtools
 
 umask 022
@@ -25,14 +25,14 @@ export WHOAMI=$(whoami)
 echo "Submitted as:" $WHOAMI
 echo "running jobs in "$PWD
 echo "$SCRIPTDIR"
-echo "$BAMFILES"
+echo "$SEQFILES"
 echo "$JOBSPERNODE"
 echo "$INPUTDIR"
 
 
 
 # -b is useful because the scripts are accessible to the compute nodes and don't need to be transferred to spool
-aprun -n1 -N1 -d32 -b $SCRIPTDIR/third.sh $BAMFILES $JOBSPERNODE $SCRIPTDIR $SNPDIR $INPUTDIR $NUM
-echo "aprun -n1 -N1 -d32 -b $SCRIPTDIR/third.sh $BAMFILES $JOBSPERNODE $SCRIPTDIR $SNPDIR $INPUTDIR $NUM"
+aprun -n1 -N1 -d32 -b $SCRIPTDIR/third.sh $SEQFILES $JOBSPERNODE $SCRIPTDIR $SNPDIR $INPUTDIR $NUM
+echo "aprun -n1 -N1 -d32 -b $SCRIPTDIR/third.sh $SEQFILES $JOBSPERNODE $SCRIPTDIR $SNPDIR $INPUTDIR $NUM"
 
 echo "%%% Ending at "$(date)
