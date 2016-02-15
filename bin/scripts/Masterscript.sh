@@ -36,7 +36,7 @@ echo "Total number of python jobs per node will be " $jobsPerNode | tee -a $setu
 
 
 #list of input files
-inputFiles=$(find $inputDir -name \*.saved.quality.sort.bam | sort)
+inputFiles=$(find $inputDir -name \*.saved.sequence.txt.gz | sort)
 #want to grab directory and subdirectory of input files 
 inputDirs=$( echo "$inputFiles" |              awk -F"/" '{print $(NF-2)"/"$(NF-1)}' | sort | uniq ) 
 #grap root directory of input files
@@ -44,9 +44,9 @@ inputRoot=$( echo "$inputFiles" | head -n 1 |  awk -F"/" '{$(NF-2)=$(NF-1)=$NF="
 
 #Number of input files
 NInputFiles=$(wc -w <<< "$inputFiles" )
-echo "Running all " $NInputFiles " bam files in $inputDir:" | tee -a $setup_log
+echo "Running all " $NInputFiles " sequence files in $inputDir:" | tee -a $setup_log
 filesPerNode=$(( ($NInputFiles+$NNodes-1)/$NNodes))
-echo "Running  $filesPerNode bam files per compute node for a total of " $(($filesPerNode*$NNodes))  | tee -a $setup_log
+echo "Running  $filesPerNode sequence files per compute node for a total of " $(($filesPerNode*$NNodes))  | tee -a $setup_log
 echo root of input files $inputRoot
 
 #loop through directories to create directory structure and softlinks of input data in output directory
@@ -72,8 +72,8 @@ for dir in $inputDirs;do
      if [ "$nJobsInRun" -eq "$filesPerNode" ] || [ "$nTotSubJobs" -eq "$NInputFiles" ]; then
          echo $nJobsInRun $nTotSubJobs $subFileList
 #Uncomment the following and jobs will be sent to the scheduler
-	 qsub -v BAMFILES="$subFileList",JOBSPERNODE=$jobsPerNode,SCRIPTDIR=$scriptDir,SNPDIR=$snpDir,INPUTDIR=$outDir,NUM=$nJobsInRun -N $nJobsInRun $scriptDir/second.pbs 2>&1
-	 echo -e "qsub -v BAMFILES=$subFileList,JOBSPERNODE=\"$jobsPerNode\",SCRIPTDIR=\"$scriptDir\",SNPDIR=\"$snpDir\" -N \"$nJobsInRun\" $scriptDir/second.pbs" | tee -a $setup_log
+	 qsub -v SEQFILES="$subFileList",JOBSPERNODE=$jobsPerNode,SCRIPTDIR=$scriptDir,SNPDIR=$snpDir,INPUTDIR=$outDir,NUM=$nJobsInRun -N $nJobsInRun $scriptDir/second.pbs 2>&1
+	 echo -e "qsub -v SEQFILES=$subFileList,JOBSPERNODE=\"$jobsPerNode\",SCRIPTDIR=\"$scriptDir\",SNPDIR=\"$snpDir\" -N \"$nJobsInRun\" $scriptDir/second.pbs" | tee -a $setup_log
          nJobsInRun=0
          subFileList=""
 	 exit
