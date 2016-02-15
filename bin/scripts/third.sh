@@ -24,7 +24,7 @@ echo "RUNNING $scriptName as " $(readlink -f $0 ) " on " `date`  | tee  $plog
 #plog=$inputDir/python_WASP_$num
 
 echo scriptDir $scriptDir
-seqFiles=$(echo $bamFiles | sed 's/::/\ /g')
+seqFiles=$(echo $seqFiles | sed 's/::/\ /g')
 
 # make the script verbose
 set -x
@@ -32,10 +32,12 @@ set -x
 # functions to be used in the call to parallels
 FIND_SNPS() {
     set -x
-    #remap
+    
+    #map reads
     base=$(echo "$1" | sed 's/\saved.sequence.txt.gz//g')
     bowtie2 -p 4 --very-fast --phred33 -x /lustre/beagle2/ReferenceSequences/Homo_sapiens/UCSC/hg19/Sequence... -U $inputDir/$1 -S $inputDir/${base}.sam
     samtools view -S -h -q 10 $inputDir/${base}.sam >  $inputDir/${base}.bam
+    
     #first part of WASP:
     python $WASP/mapping/find_intersecting_snps.py $inputDir/${base}.bam $SNP_DIR
     
@@ -58,20 +60,19 @@ FIND_SNPS() {
 
     #WASP:
     python $WASP/mapping/rmdup.py $inputDir/${base}.keep.merged.sorted.bam $inputDir/${base}.keep.rmdup.merged.sorted.bam
-#    python $WASP/mapping/rmdup.py $inputDir/$mergedSortedBam $inputDir/$rmdupBam
-    
+
 }
 
 
 export -f FIND_SNPS
 
-echo $bamFiles
+echo $seqFiles
 
 # Check periodically for activity keep only my processes, once and hour for 20 hours
 # to figure out whether we are reasonably load balanced
 # NOTE: WHOAMI is exported from calling pbs script
 #top -b -d 3600.00 -n 20 -u $WHOAMI >> ${destdir}/topLog.${runStamp} 2>&1 &
 
-parallel -j $jobsPerNode  FIND_SNPS ::: $bamFiles  >>$plog 2>&1 
+parallel -j $jobsPerNode  FIND_SNPS ::: $seqFiles  >>$plog 2>&1 
 
 
