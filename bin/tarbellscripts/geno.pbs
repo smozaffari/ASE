@@ -1,10 +1,10 @@
 #PBS -S /bin/bash
-#PBS -N geno.pbs
+#PBS -N geno_$FINDIV.pbs
 #PBS -l walltime=00:00:30:00
 #PBS -l nodes=1:ppn=1
 #PBS -l mem=4gb
-#PBS -e geno.err
-#PBS -o geno.log
+#PBS -e geno_$FINDIV.err
+#PBS -o geno_$FINDIV.log
 #PBS -M smozaffari@uchicago.edu
 
 module load plink
