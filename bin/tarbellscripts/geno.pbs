@@ -28,9 +28,11 @@ paste <(awk '{print "chr" $1 " " $4 " " $5}' ${FINDIV}1.tped) <(awk '{print $5}'
 
 rm *.tped
 rm *.txt
-for i in `seq 1 2` 
+rm *.tfam
+rm *.log
+for i in `seq 1 22` 
 do
-   awk -v chr="chr$i" '$1 == chr {print}' ${FINDIV}_SNPs > chr${i}snps.txt
+   awk -v chr="chr$i" '$1 == chr {print}' ${FINDIV}_SNPs > chr${i}.snps.txt
    wait
    gzip chr${i}.snps.txt
    rm chr${i}.snps.txt
