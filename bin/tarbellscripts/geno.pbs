@@ -1,8 +1,4 @@
 #PBS -S /bin/bash
-echo $FINDIV
-echo FINDIV
-echo LINE
-
 #PBS -N geno_FINDIV.pbs
 #PBS -l walltime=00:00:30:00
 #PBS -l nodes=1:ppn=1
@@ -34,9 +30,8 @@ rm *.tped
 rm *.txt
 for i in `seq 1 2` 
 do
-  awk -v snp=$i '\$1 == \"chr'\"$snp\"'\" {print}' ${FINDIV}_SNPs > chr${i}.snps.txt'
-  echo "awk -v snp=$i '\$1 == \"chr'\"$snp\"'\" {print}' ${FINDIV}_SNPs > chr${i}.snps.txt'"
-# awk -v snp=$i '$1 == "chr'"$snp"'" {print}' 98241/98241_SNPs > 'chr'$i'.snps.txt'
-
-  wait
+   awk -v chr="chr$i" '$1 == chr {print}' ${FINDIV}_SNPs > chr${i}snps.txt
+   wait
+   gzip chr${i}.snps.txt
+   rm chr${i}.snps.txt
 done

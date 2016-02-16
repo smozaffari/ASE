@@ -16,4 +16,4 @@ while read LINE; do
     echo "HUTTERITES ${LINE}1" > $LINE/${LINE}1.txt
     echo "qsub -v FINDIV=$LINE $scriptDir/geno.pbs"
     qsub -v FINDIV=$LINE $scriptDir/geno.pbs
-done < /group/ober-resources/users/smozaffari/ASE/data/taillist
+done < /group/ober-resources/users/smozaffari/ASE/data/findivlist
