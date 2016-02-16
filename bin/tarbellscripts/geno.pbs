@@ -1,5 +1,9 @@
 #PBS -S /bin/bash
-#PBS -N geno_$FINDIV.pbs
+echo $FINDIV
+echo FINDIV
+echo LINE
+
+#PBS -N geno_FINDIV.pbs
 #PBS -l walltime=00:00:30:00
 #PBS -l nodes=1:ppn=1
 #PBS -l mem=4gb
@@ -7,11 +11,32 @@
 #PBS -o geno_$FINDIV.log
 #PBS -M smozaffari@uchicago.edu
 
+cd $PBS_O_WORKDIR
+echo $PBS_O_WORKDIR
+
+cd $FINDIV 
+echo $PBS_O_WORKDIR/$FINDIV
+
 module load plink
 
-echo "FINDIV:", $FINDIV
+echo "FINDIV: " $FINDIV
 
-echo "plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_paternal --keep ${FINDIV}1.txt --geno 0 --recode transpose --out ${FINDIV}1_paternal_geno"
-plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_paternal --keep ${FINDIV}1.txt --geno 0 --recode transpose --out ${FINDIV}1_paternal_geno
-echo "plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_maternal --keep ${FINDIV}2.txt --geno 0 --recode transpose --out ${FINDIV}2_maternal_geno"
-plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_maternal --keep ${FINDIV}2.txt --geno 0 --recode transpose --out ${FINDIV}2_maternal_geno
+echo "plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_paternal --keep ${FINDIV}1.txt --geno 0 --recode transpose --out ${FINDIV}1"
+plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_paternal --keep ${FINDIV}1.txt --geno 0 --recode transpose --out ${FINDIV}1
+echo "plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_maternal --keep ${FINDIV}2.txt --geno 0 --recode transpose --out ${FINDIV}2"
+plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_maternal --keep ${FINDIV}2.txt --geno 0 --recode transpose --out ${FINDIV}2
+
+
+
+paste <(awk '{print "chr" $1 " " $4 " " $5}' ${FINDIV}1.tped) <(awk '{print $5}' ${FINDIV}2.tped) | sed 's/\t/ /g' > ${FINDIV}_SNPs
+
+rm *.tped
+rm *.txt
+for i in `seq 1 2` 
+do
+  awk -v snp=$i '\$1 == \"chr'\"$snp\"'\" {print}' ${FINDIV}_SNPs > chr${i}.snps.txt'
+  echo "awk -v snp=$i '\$1 == \"chr'\"$snp\"'\" {print}' ${FINDIV}_SNPs > chr${i}.snps.txt'"
+# awk -v snp=$i '$1 == "chr'"$snp"'" {print}' 98241/98241_SNPs > 'chr'$i'.snps.txt'
+
+  wait
+done

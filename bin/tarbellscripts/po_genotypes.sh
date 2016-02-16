@@ -10,8 +10,10 @@ echo $scriptDir
 
 while read LINE; do
     echo "$LINE"
-    echo "HUTTERITES ${LINE}2" > ${LINE}2.txt
-    echo "HUTTERITES ${LINE}1" > ${LINE}1.txt
+    mkdir $LINE
+    echo $LINE
+    echo "HUTTERITES ${LINE}2" > $LINE/${LINE}2.txt
+    echo "HUTTERITES ${LINE}1" > $LINE/${LINE}1.txt
     echo "qsub -v FINDIV=$LINE $scriptDir/geno.pbs"
     qsub -v FINDIV=$LINE $scriptDir/geno.pbs
-done < /group/ober-resources/users/smozaffari/ASE/data/testfindivlist
+done < /group/ober-resources/users/smozaffari/ASE/data/taillist
