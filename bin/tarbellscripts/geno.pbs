@@ -32,7 +32,7 @@ rm *.tfam
 rm *.log
 for i in `seq 1 22` 
 do
-   awk -v chr="chr$i" '$1 == chr {print}' ${FINDIV}_SNPs > chr${i}.snps.txt
+   awk -v chr="chr$i"  '$1 == chr {print $2 " " $3 " " $4}' ${FINDIV}_SNPs > chr${i}.snps.txt
    wait
    gzip chr${i}.snps.txt
    rm chr${i}.snps.txt
