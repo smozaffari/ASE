@@ -12,7 +12,8 @@ NNodes=$3 #Number of nodes you want to use /available (for 1000 files, and about
 outDir=$(readlink -f $4)
 
 snpDir=$(readlink -f $5)
-NCoresPerNode=32 #notchangeable
+#NCoresPerNode=32 #notchangeable - beagle
+NCoresPerNode=64
 
 rundir=$PWD
 #mkdir -p $OUTDIR
@@ -36,7 +37,7 @@ echo "Total number of python jobs per node will be " $jobsPerNode | tee -a $setu
 
 
 #list of input files
-inputFiles=$(find $inputDir -name \*.saved.quality.sort.bam | sort)
+inputFiles=$(find $inputDir -name \*.saved.sequence.txt.gz | sort)
 #want to grab directory and subdirectory of input files 
 inputDirs=$( echo "$inputFiles" |              awk -F"/" '{print $(NF-2)"/"$(NF-1)}' | sort | uniq ) 
 #grap root directory of input files
@@ -72,7 +73,7 @@ for dir in $inputDirs;do
      if [ "$nJobsInRun" -eq "$filesPerNode" ] || [ "$nTotSubJobs" -eq "$NInputFiles" ]; then
          echo $nJobsInRun $nTotSubJobs $subFileList
 #Uncomment the following and jobs will be sent to the scheduler
-	 qsub -v BAMFILES="$subFileList",JOBSPERNODE=$jobsPerNode,SCRIPTDIR=$scriptDir,SNPDIR=$snpDir,INPUTDIR=$outDir,NUM=$nJobsInRun -N $nJobsInRun $scriptDir/second.sh 2>&1
+	 qsub -v BAMFILES="$subFileList",JOBSPERNODE=$jobsPerNode,SCRIPTDIR=$scriptDir,SNPDIR=$snpDir,INPUTDIR=$outDir,NUM=$nJobsInRun -N $nJobsInRun $scriptDir/second.pbs 2>&1
 	 echo -e "qsub -v BAMFILES=$subFileList,JOBSPERNODE=\"$jobsPerNode\",SCRIPTDIR=\"$scriptDir\",SNPDIR=\"$snpDir\" -N \"$nJobsInRun\" $scriptDir/second.sh" | tee -a $setup_log
          nJobsInRun=0
          subFileList=""

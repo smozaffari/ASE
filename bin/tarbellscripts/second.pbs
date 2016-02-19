@@ -2,6 +2,9 @@
 #PBS -N second
 #PBS -e second.err
 #PBS -o second.log
+#PBS -l nodes=1;ppn=4
+#PBS -l mem=4gb
+#PBS -l walltime=00:30:00
 #PBS -M smozaffari@uchicago.edu
 #PBS -m abe
 
@@ -10,7 +13,7 @@ echo $PBS_O_WORKDIR
 
 export PATH="/home/smozaffari/anaconda/bin:$PATH"
 
-module load bwa
+module load bowtie2
 module load samtools
 module load parallel
 
@@ -52,30 +55,40 @@ BAMFILES=$(echo $BAMFILES | sed 's/::/\ /g')
 
 # functions to be used in the call to parallels
 FIND_SNPS() {
-    #first part of WASP:
-    python $WASP/mapping/find_intersecting_snps.py $INPUTDIR/$1 $SNP_DIR
+
+    base=$(echo "$1" | sed 's/\.saved.sequence.txt.gz//g')
+
+    #map files:
+    bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $INPUTDIR/$1 -S $INPUTDIR/${base}.sam
     
-    base=$(echo "$1" | sed 's/\.bam//g')
+    samtools view -S -h -q 10 -b $INPUTDIR/${base}.sam > ${base}.bam
+    samtools sort 
+
+    #first part of WASP:
+
+#    python $WASP/mapping/find_intersecting_snps.py $INPUTDIR/$1 $SNP_DIR
+    
     #remap files:
-    bwa aln -n 2 -N /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBWAIndex/genome.fa $INPUTDIR/${base}.remap.fq.gz > $INPUTDIR/${base}.sai              
-    bwa samse -n 1 /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBWAIndex/genome.fa $INPUTDIR/${base}.sai $INPUTDIR/${base}.remap.fq.gz > $INPUTDIR/${base}.sam    
-    samtools view -S -b -h -q 10 $INPUTDIR/${base}.sam >  $INPUTDIR/${base}.remap.bam
+
+#    bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBWAIndex/genome.fa $INPUTDIR/${base}.remap.fq.gz > $INPUTDIR/${base}.sai              
+#    bwa samse -n 1 /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBWAIndex/genome.fa $INPUTDIR/${base}.sai $INPUTDIR/${base}.remap.fq.gz > $INPUTDIR/${base}.sam    
+#    samtools view -S -b -h -q 10 $INPUTDIR/${base}.sam >  $INPUTDIR/${base}.remap.bam
 
 
     #WASP:
-    python $WASP/mapping/filter_remapped_reads.py $INPUTDIR/${base}.to.remap.bam $INPUTDIR/${base}.remap.bam $INPUTDIR/${base}.remap.keep.bam $INPUTDIR/${base}.to.remap.num.gz
-    echo "python $WASP/mapping/filter_remapped_reads.py $INPUTDIR/${base}.to.remap.bam $INPUTDIR/${base}.remap.bam $INPUTDIR/${base}.remap.keep.bam $INPUTDIR/${base}.to.remap.num.gz"
+#    python $WASP/mapping/filter_remapped_reads.py $INPUTDIR/${base}.to.remap.bam $INPUTDIR/${base}.remap.bam $INPUTDIR/${base}.remap.keep.bam $INPUTDIR/${base}.to.remap.num.gz
+#    echo "python $WASP/mapping/filter_remapped_reads.py $INPUTDIR/${base}.to.remap.bam $INPUTDIR/${base}.remap.bam $INPUTDIR/${base}.remap.keep.bam $INPUTDIR/${base}.to.remap.num.gz"
 
     #merged bamfile:
-    samtools merge $INPUTDIR/${base}.keep.merged.bam $INPUTDIR/${base}.keep.bam $INPUTDIR/${base}.remap.keep.bam
-    samtools sort $INPUTDIR/${base}.keep.merged.bam $INPUTDIR/${base}.keep.merged.sorted
-    samtools index $INPUTDIR/${base}.keep.merged.sorted.bam
-    echo "samtools merge $INPUTDIR/${base}.keep.merged.bam $INPUTDIR/${base}.keep.bam $INPUTDIR/${base}.remap.keep.bam"
-    echo "samtools sort $INPUTDIR/${base}.keep.merged.bam $INPUTDIR/${base}.keep.merged.sorted"
-    echo "samtools index $INPUTDIR/${base}.keep.merged.sorted.bam"
+#    samtools merge $INPUTDIR/${base}.keep.merged.bam $INPUTDIR/${base}.keep.bam $INPUTDIR/${base}.remap.keep.bam
+#    samtools sort $INPUTDIR/${base}.keep.merged.bam $INPUTDIR/${base}.keep.merged.sorted
+#    samtools index $INPUTDIR/${base}.keep.merged.sorted.bam
+#    echo "samtools merge $INPUTDIR/${base}.keep.merged.bam $INPUTDIR/${base}.keep.bam $INPUTDIR/${base}.remap.keep.bam"
+#    echo "samtools sort $INPUTDIR/${base}.keep.merged.bam $INPUTDIR/${base}.keep.merged.sorted"
+#    echo "samtools index $INPUTDIR/${base}.keep.merged.sorted.bam"
 
     #WASP:
-    python $WASP/mapping/rmdup.py $INPUTDIR/${base}.keep.merged.sorted.bam $INPUTDIR/${base}.keep.rmdup.merged.sorted.bam
+#    python $WASP/mapping/rmdup.py $INPUTDIR/${base}.keep.merged.sorted.bam $INPUTDIR/${base}.keep.rmdup.merged.sorted.bam
     
 }
 
