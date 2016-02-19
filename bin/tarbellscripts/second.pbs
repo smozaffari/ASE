@@ -2,8 +2,8 @@
 #PBS -N second
 #PBS -e second.err
 #PBS -o second.log
-#PBS -l nodes=1;ppn=4
-#PBS -l mem=4gb
+#PBS -l nodes=$NUM
+#PBS -l mem=8gb
 #PBS -l walltime=00:30:00
 #PBS -M smozaffari@uchicago.edu
 #PBS -m abe
@@ -11,7 +11,7 @@
 cd $PBS_O_WORKDIR
 echo $PBS_O_WORKDIR
 
-export PATH="/home/smozaffari/anaconda/bin:$PATH"
+#export PATH="/home/smozaffari/anaconda/bin:$PATH"
 
 module load bowtie2
 module load samtools
@@ -24,7 +24,7 @@ export WHOAMI=$(whoami)
 echo "Submitted as:" $WHOAMI
 echo "running jobs in "$PWD
 echo "$SCRIPTDIR"
-echo "$BAMFILES"
+echo "$SEQFILES"
 echo "$JOBSPERNODE"
 echo "$INPUTDIR"
 
@@ -49,7 +49,7 @@ echo "RUNNING $scriptName as " $(readlink -f $0 ) " on " `date`  | tee  $plog
 #plog=$inputDir/python_WASP_$num
 
 echo SCRIPTDIR $SCRIPTDIR
-BAMFILES=$(echo $BAMFILES | sed 's/::/\ /g')
+SEQFILES=$(echo $SEQFILES | sed 's/::/\ /g')
 
 # make the script verbose
 
@@ -61,8 +61,8 @@ FIND_SNPS() {
     #map files:
     bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $INPUTDIR/$1 -S $INPUTDIR/${base}.sam
     
-    samtools view -S -h -q 10 -b $INPUTDIR/${base}.sam > ${base}.bam
-    samtools sort 
+#    samtools view -S -h -q 10 -b $INPUTDIR/${base}.sam > ${base}.bam
+#    samtools sort 
 
     #first part of WASP:
 
@@ -95,13 +95,13 @@ FIND_SNPS() {
 
 export -f FIND_SNPS
 
-echo $BAMFILES
+echo $SEQFILES
 
 # Check periodically for activity keep only my processes, once and hour for 20 hours
 # to figure out whether we are reasonably load balanced
 # NOTE: WHOAMI is exported from calling pbs script
 #top -b -d 3600.00 -n 20 -u $WHOAMI >> ${destdir}/topLog.${runStamp} 2>&1 &
 
-parallel -j $JOBSPERNODE  FIND_SNPS ::: $BAMFILES  >>$plog 2>&1 
+parallel -j $JOBSPERNODE  FIND_SNPS ::: $SEQFILES  >>$plog 2>&1 
 
 
