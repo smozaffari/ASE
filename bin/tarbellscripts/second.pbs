@@ -1,8 +1,7 @@
 #!/bin/bash
-#PBS -N second
 #PBS -e second.err
 #PBS -o second.log
-#PBS -l nodes=$NUM
+#PBS -l nodes=1:ppn=4
 #PBS -l mem=8gb
 #PBS -l walltime=00:30:00
 #PBS -M smozaffari@uchicago.edu
@@ -20,58 +19,75 @@ module load parallel
 umask 022
 
 echo "%%% Begin at " $(date)
-export WHOAMI=$(whoami)
 echo "Submitted as:" $WHOAMI
 echo "running jobs in "$PWD
 echo "$SCRIPTDIR"
-echo "$SEQFILES"
+echo "$FLOWCELLFINDIV"
 echo "$JOBSPERNODE"
 echo "$INPUTDIR"
+echo "$SNP_DIR"
+echo "$PBS_JOBNAME"
 
-export $SNP_DIR
-export $INPUTDIR
-$NUM
+echo $NUM
 export WASP=/group/ober-resources/users/smozaffari/ASE/bin/scripts/WASP
 
-scriptName=$(basename ${0})
-echo $scriptName
-scriptName=${scriptName%\.sh}
-echo $scriptName
+#scriptName=$(basename ${0})
+#echo $scriptName
+#scriptName=${scriptName%\.sh}
+#echo $scriptName
 
 #timeTag=$(date "+%y_%m_%d_%H_%M_%S")
 
-plog=$PWD/${scriptName}_${LOGNAME}_${num}.log
+ID=$(echo "$FLOWCELLFINDIV" | sed 's/\//./g')
+FINDIV=$(echo "$FLOWCELLFINDIV" | awk -F'/' '{print $2}')
+echo "$ID $FINDIV"
+plog=$PWD/${LOGNAME}_second_${FINDIV}.log
 echo $plog
 maplog=$PWD/mapping.log
 echo $maplog
 
-echo "RUNNING $scriptName as " $(readlink -f $0 ) " on " `date`  | tee  $plog
+#echo "RUNNING $scriptName as " $(readlink -f $0 ) " on " `date`  | tee  $plog
 #plog=$inputDir/python_WASP_$num
 
-echo SCRIPTDIR $SCRIPTDIR
-SEQFILES=$(echo $SEQFILES | sed 's/::/\ /g')
+echo "SCRIPTDIR:" $SCRIPTDIR
 
-# make the script verbose
+READ=$INPUTDIR/$FLOWCELLFINDIV
+echo "$READ"
 
-# functions to be used in the call to parallels
+for file in "$READ"/*; do
+    if [ "$fastqList" ]; then
+       fastqList="${fastqList},${file}"
+       echo $fastqList
+    else
+       fastqList=$file
+    fi
+done
+
 FIND_SNPS() {
 
-    base=$(echo "$1" | sed 's/\.saved.sequence.txt.gz//g')
-
-    #map files:
-    bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $INPUTDIR/$1 -S $INPUTDIR/${base}.sam
+    read=$1
+    echo $read
+    findiv=$2
+    echo $2
+    echo $findiv
+    echo $3
+    snp_dir=$4
     
-#    samtools view -S -h -q 10 -b $INPUTDIR/${base}.sam > ${base}.bam
-#    samtools sort 
+    #map files:
+    bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $read/$3 -S $read/${findiv}.sam
+    echo "bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $3 -S $read/${findiv}/.sam"
+    samtools view -S -h -q 10 -b $read/${findiv}.sam > $read/${findiv}.bam
+    samtools sort $read/${findiv}.bam $read/${findiv}.sorted.bam
+    samtools view -c $read/${findiv}.sorted.bam > ${findiv}.sorted.txt
+    samtools index $read/${findiv}.sorted.bam 
 
     #first part of WASP:
 
-#    python $WASP/mapping/find_intersecting_snps.py $INPUTDIR/$1 $SNP_DIR
+#    python $WASP/mapping/find_intersecting_snps.py $read/${findiv}.sorted.bam  $snp_dir
     
     #remap files:
 
 #    bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBWAIndex/genome.fa $INPUTDIR/${base}.remap.fq.gz > $INPUTDIR/${base}.sai              
-#    bwa samse -n 1 /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBWAIndex/genome.fa $INPUTDIR/${base}.sai $INPUTDIR/${base}.remap.fq.gz > $INPUTDIR/${base}.sam    
 #    samtools view -S -b -h -q 10 $INPUTDIR/${base}.sam >  $INPUTDIR/${base}.remap.bam
 
 
@@ -95,13 +111,13 @@ FIND_SNPS() {
 
 export -f FIND_SNPS
 
-echo $SEQFILES
+echo $fastqList
 
 # Check periodically for activity keep only my processes, once and hour for 20 hours
 # to figure out whether we are reasonably load balanced
 # NOTE: WHOAMI is exported from calling pbs script
-#top -b -d 3600.00 -n 20 -u $WHOAMI >> ${destdir}/topLog.${runStamp} 2>&1 &
+top -b -d 3600.00 -n 20 -u $WHOAMI >> ${destdir}/topLog.${runStamp} 2>&1 &
 
-parallel -j $JOBSPERNODE  FIND_SNPS ::: $SEQFILES  >>$plog 2>&1 
-
+FIND_SNPS $READ $FINDIV $fastqList $SNP_DIR >>$plog 2>&1 
+echo "FIND_SNPS $READ $FINDIV $fastqList $SNP_DIR >>$plog 2>&1"
 
