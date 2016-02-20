@@ -10,11 +10,16 @@
 cd $PBS_O_WORKDIR
 echo $PBS_O_WORKDIR
 
-#export PATH="/home/smozaffari/anaconda/bin:$PATH"
+#for trimming adaptors:
+module load cutadapt
 
-module load bowtie2
-module load samtools
-module load parallel
+#for WASP
+#export PATH="/home/smozaffari/anaconda/bin:$PATH"
+#for mapping
+#module load bowtie2
+#module load samtools
+#parallel - maybe not
+#module load parallel
 
 umask 022
 
@@ -46,10 +51,13 @@ echo $plog
 maplog=$PWD/mapping.log
 echo $maplog
 
-#echo "RUNNING $scriptName as " $(readlink -f $0 ) " on " `date`  | tee  $plog
+echo "RUNNING $scriptName as " $(readlink -f $0 ) " on " `date`  | tee  $plog
 #plog=$inputDir/python_WASP_$num
 
 echo "SCRIPTDIR:" $SCRIPTDIR
+declare -A adaptors
+adaptor_index=( [1]=" " [2]=" " [3]=" " [4]="" [5]="ACAGTG" )
+
 
 READ=$INPUTDIR/$FLOWCELLFINDIV
 echo "$READ"
@@ -60,8 +68,43 @@ for file in "$READ"/*; do
        echo $fastqList
     else
        fastqList=$file
+       echo "$file"
+       IFS='.'
+       array=( $file )
+       indexnum=${array[1]}
+       echo "$indexnum"
+       IFS='_'
+       array2=( $indexnum )
+       index=${array2[1]}
+       echo "$index"
     fi
 done
+IFS=''
+echo $index
+adaptor=$(echo ${adaptor_index[$index]} )
+echo $adaptor
+
+TRIM_READ() {
+    read=$1
+    echo "$1"
+    echo "$read"
+    findiv=$2
+    fastq=$3
+    echo "$fastq"
+    index=$4
+    echo "$index"
+    IFS=','
+    fastqs=( $fastq)
+    for i in "${fastqs[@]}"; do
+    #trim adaptors                                                                                                                            
+	ADAPTOR_SEQ="GATCGGAAGAGCACACGTCTGAACTCCAGTCAC${index}ATCTCGTATGCCGTCTTCTGCTTG"
+	echo "$ADAPTOR_SEQ"
+	output=$(echo "$i" | sed 's/txt.gz/trim.txt.gz/'g)
+	echo "$output"
+	cutadapt -b $ADAPTOR_SEQ -o $output $i
+	echo "cutadapt -b $ADAPTOR_SEQ -o $output $i"
+    done
+}
 
 FIND_SNPS() {
 
@@ -71,15 +114,16 @@ FIND_SNPS() {
     echo $2
     echo $findiv
     echo $3
+    input=$(echo "$i" | sed 's/txt.gz/trim.txt.gz/'g)
     snp_dir=$4
-    
+
     #map files:
-    bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $read/$3 -S $read/${findiv}.sam
-    echo "bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $3 -S $read/${findiv}/.sam"
-    samtools view -S -h -q 10 -b $read/${findiv}.sam > $read/${findiv}.bam
-    samtools sort $read/${findiv}.bam $read/${findiv}.sorted.bam
-    samtools view -c $read/${findiv}.sorted.bam > ${findiv}.sorted.txt
-    samtools index $read/${findiv}.sorted.bam 
+    bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $input -S $read/${findiv}.sam
+#    echo "bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $3 -S $read/${findiv}/.sam"
+#    samtools view -S -h -q 10 -b $read/${findiv}.sam > $read/${findiv}.bam
+#    samtools sort $read/${findiv}.bam $read/${findiv}.sorted.bam
+#    samtools view -c $read/${findiv}.sorted.bam > ${findiv}.sorted.txt
+#    samtools index $read/${findiv}.sorted.bam 
 
     #first part of WASP:
 
@@ -108,6 +152,7 @@ FIND_SNPS() {
     
 }
 
+export -f TRIM_READ
 
 export -f FIND_SNPS
 
@@ -116,8 +161,11 @@ echo $fastqList
 # Check periodically for activity keep only my processes, once and hour for 20 hours
 # to figure out whether we are reasonably load balanced
 # NOTE: WHOAMI is exported from calling pbs script
-top -b -d 3600.00 -n 20 -u $WHOAMI >> ${destdir}/topLog.${runStamp} 2>&1 &
+#top -b -d 3600.00 -n 20 -u $WHOAMI >> ${destdir}/topLog.${runStamp} 2>&1 &
 
-FIND_SNPS $READ $FINDIV $fastqList $SNP_DIR >>$plog 2>&1 
-echo "FIND_SNPS $READ $FINDIV $fastqList $SNP_DIR >>$plog 2>&1"
+TRIM_READ $READ $FINDIV $fastqList $adaptor >>"${plog}" 2>&1 
+echo "TRIM_READ $READ $FINDIV $fastqList $adaptor >>$plog 2>&1"
+
+#FIND_SNPS $READ $FINDIV $fastqList $SNP_DIR $adaptor >>$plog 2>&1 
+#echo "FIND_SNPS $READ $FINDIV $fastqList $SNP_DIR $adaptor >>$plog 2>&1"
 
