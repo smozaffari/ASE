@@ -20,7 +20,8 @@ module load samtools
 #for fastqc
 module load fastqc
 
-#for WASP                                                                                                                                                                     #export PATH="/home/smozaffari/anaconda/bin:$PATH"                                                                                                                            
+#for WASP                                                                                                                                                                    
+export PATH="/home/smozaffari/anaconda/bin:$PATH"                                                                                                                            
 
 umask 022
 
@@ -155,7 +156,7 @@ export -f MAP_AND_SAM
 export -f WASP
 
 echo $fastqList
-
+echo $SNP_DIR 
 # Check periodically for activity keep only my processes, once and hour for 20 hours
 # to figure out whether we are reasonably load balanced
 # NOTE: WHOAMI is exported from calling pbs script
