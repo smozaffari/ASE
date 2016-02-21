@@ -13,13 +13,14 @@ echo $PBS_O_WORKDIR
 #for trimming adaptors:
 module load cutadapt
 
-#for WASP
-#export PATH="/home/smozaffari/anaconda/bin:$PATH"
 #for mapping
-#module load bowtie2
-#module load samtools
-#parallel - maybe not
-#module load parallel
+module load bowtie2
+module load samtools
+
+#for fastqc
+module load fastqc
+
+#for WASP                                                                                                                                                                     #export PATH="/home/smozaffari/anaconda/bin:$PATH"                                                                                                                            
 
 umask 022
 
@@ -58,7 +59,6 @@ echo "SCRIPTDIR:" $SCRIPTDIR
 declare -A adaptors
 adaptor_index=( [1]=" " [2]=" " [3]=" " [4]="" [5]="ACAGTG" )
 
-
 READ=$INPUTDIR/$FLOWCELLFINDIV
 echo "$READ"
 
@@ -68,93 +68,91 @@ for file in "$READ"/*; do
        echo $fastqList
     else
        fastqList=$file
-       echo "$file"
        IFS='.'
        array=( $file )
        indexnum=${array[1]}
-       echo "$indexnum"
        IFS='_'
        array2=( $indexnum )
        index=${array2[1]}
-       echo "$index"
+       echo "$FINDIV $index"
     fi
 done
 IFS=''
-echo $index
 adaptor=$(echo ${adaptor_index[$index]} )
 echo $adaptor
 
-TRIM_READ() {
+TRIM_READ() { # trim adaptors
     read=$1
-    echo "$1"
-    echo "$read"
     findiv=$2
     fastq=$3
-    echo "$fastq"
     index=$4
-    echo "$index"
     IFS=','
     fastqs=( $fastq)
     for i in "${fastqs[@]}"; do
-    #trim adaptors                                                                                                                            
 	ADAPTOR_SEQ="GATCGGAAGAGCACACGTCTGAACTCCAGTCAC${index}ATCTCGTATGCCGTCTTCTGCTTG"
 	echo "$ADAPTOR_SEQ"
-	output=$(echo "$i" | sed 's/txt.gz/trim.txt.gz/'g)
+	output=$(echo "$i" | sed 's/txt.gz/trim.txt.gz/g')
 	echo "$output"
-	cutadapt -b $ADAPTOR_SEQ -o $output $i
-	echo "cutadapt -b $ADAPTOR_SEQ -o $output $i"
+	cutadapt -b $ADAPTOR_SEQ --format FASTQ -o $output $i
+	echo "cutadapt -b $ADAPTOR_SEQ --format FASTQ -o $output $i"
+	fastqc $output -o /group/ober-resources/users/smozaffari/ASE/results/fastqc
     done
 }
 
-FIND_SNPS() {
 
+MAP_AND_SAM() {   # map files using bowtie
     read=$1
-    echo $read
     findiv=$2
-    echo $2
-    echo $findiv
-    echo $3
-    input=$(echo "$i" | sed 's/txt.gz/trim.txt.gz/'g)
-    snp_dir=$4
-
-    #map files:
+    input=$(echo "$3" | sed 's/txt.gz/trim.txt.gz/g')
     bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $input -S $read/${findiv}.sam
-#    echo "bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $3 -S $read/${findiv}/.sam"
-#    samtools view -S -h -q 10 -b $read/${findiv}.sam > $read/${findiv}.bam
-#    samtools sort $read/${findiv}.bam $read/${findiv}.sorted.bam
-#    samtools view -c $read/${findiv}.sorted.bam > ${findiv}.sorted.txt
-#    samtools index $read/${findiv}.sorted.bam 
+    echo "bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $input -S $read/${findiv}/.sam"
+    samtools view -S -h -q 10 -b $read/${findiv}.sam > $read/${findiv}.bam
+    echo "samtools view -S -h -q 10 -b $read/${findiv}.sam > $read/${findiv}.bam"
+    samtools sort $read/${findiv}.bam $read/${findiv}.sorted
+    echo "samtools sort $read/${findiv}.bam $read/${findiv}.sorted"
+    samtools view -c $read/${findiv}.sorted.bam > ${findiv}.sorted.txt
+    echo "samtools view -c $read/${findiv}.sorted.bam > ${findiv}.sorted.txt"
+    samtools index $read/${findiv}.sorted.bam 
+    echo "samtools index $read/${findiv}.sorted.bam"
+
+}
+
+WASP() { # use WASP to remove mapping bias
+    read=$1
+    findiv=$2
+    snp_dir=$3
 
     #first part of WASP:
+    python $WASP/mapping/find_intersecting_snps.py $read/${findiv}.sorted.bam  $snp_dir
+    echo "python $WASP/mapping/find_intersecting_snps.py $read/${findiv}.sorted.bam  $snp_dir"
 
-#    python $WASP/mapping/find_intersecting_snps.py $read/${findiv}.sorted.bam  $snp_dir
-    
     #remap files:
-
-#    bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBWAIndex/genome.fa $INPUTDIR/${base}.remap.fq.gz > $INPUTDIR/${base}.sai              
-#    samtools view -S -b -h -q 10 $INPUTDIR/${base}.sam >  $INPUTDIR/${base}.remap.bam
-
+    bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBWAIndex/genome.fa $read/${findiv}.remap.fq.gz -S $read/${findiv}.map2.sam              
+    echo "bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBWAIndex/genome.fa $read/${findiv}.remap.fq.gz -S $read/${findiv}.map2.sam"
+    samtools view -S -b -h -q 10 $read/${findiv}.map2.sam >  $read/${findiv}.remap.bam
+    echo "samtools view -S -b -h -q 10 $read/${findiv}.map2.sam >  $read/${findiv}.remap.bam"
 
     #WASP:
-#    python $WASP/mapping/filter_remapped_reads.py $INPUTDIR/${base}.to.remap.bam $INPUTDIR/${base}.remap.bam $INPUTDIR/${base}.remap.keep.bam $INPUTDIR/${base}.to.remap.num.gz
-#    echo "python $WASP/mapping/filter_remapped_reads.py $INPUTDIR/${base}.to.remap.bam $INPUTDIR/${base}.remap.bam $INPUTDIR/${base}.remap.keep.bam $INPUTDIR/${base}.to.remap.num.gz"
+    python $WASP/mapping/filter_remapped_reads.py $read/${findiv}.to.remap.bam $read/${findiv}.remap.bam $read/${findiv}.remap.keep.bam $read/${findiv}.to.remap.num.gz
+    echo "python $WASP/mapping/filter_remapped_reads.py $read/${findiv}.to.remap.bam $read/${findiv}.remap.bam $read/${findiv}.remap.keep.bam $read/${findiv}.to.remap.num.gz"
 
     #merged bamfile:
-#    samtools merge $INPUTDIR/${base}.keep.merged.bam $INPUTDIR/${base}.keep.bam $INPUTDIR/${base}.remap.keep.bam
-#    samtools sort $INPUTDIR/${base}.keep.merged.bam $INPUTDIR/${base}.keep.merged.sorted
-#    samtools index $INPUTDIR/${base}.keep.merged.sorted.bam
-#    echo "samtools merge $INPUTDIR/${base}.keep.merged.bam $INPUTDIR/${base}.keep.bam $INPUTDIR/${base}.remap.keep.bam"
-#    echo "samtools sort $INPUTDIR/${base}.keep.merged.bam $INPUTDIR/${base}.keep.merged.sorted"
-#    echo "samtools index $INPUTDIR/${base}.keep.merged.sorted.bam"
+    samtools merge $read/${findiv}.keep.merged.bam $read/${findiv}.keep.bam $read/${findiv}.remap.keep.bam
+    echo "samtools merge $read/${findiv}.keep.merged.bam $read/${findiv}.keep.bam $read/${findiv}.remap.keep.bam"
+    samtools sort $read/${findiv}.keep.merged.bam $read/${findiv}.keep.merged.sorted
+    echo "samtools sort $read/${findiv}.keep.merged.bam $read/${findiv}.keep.merged.sorted"
+    samtools index $read/${findiv}.keep.merged.sorted.bam
+    echo "samtools index $read/${findiv}.keep.merged.sorted.bam"
 
     #WASP:
-#    python $WASP/mapping/rmdup.py $INPUTDIR/${base}.keep.merged.sorted.bam $INPUTDIR/${base}.keep.rmdup.merged.sorted.bam
+    python $WASP/mapping/rmdup.py samtools index $read/${findiv}.keep.merged.sorted.bam $read/${findiv}.keep.rmdup.merged.sorted.bam
     
 }
 
-export -f TRIM_READ
 
-export -f FIND_SNPS
+export -f TRIM_READ
+export -f MAP_AND_SAM
+export -f WASP
 
 echo $fastqList
 
@@ -163,9 +161,11 @@ echo $fastqList
 # NOTE: WHOAMI is exported from calling pbs script
 #top -b -d 3600.00 -n 20 -u $WHOAMI >> ${destdir}/topLog.${runStamp} 2>&1 &
 
-TRIM_READ $READ $FINDIV $fastqList $adaptor >>"${plog}" 2>&1 
-echo "TRIM_READ $READ $FINDIV $fastqList $adaptor >>$plog 2>&1"
+#TRIM_READ $READ $FINDIV $fastqList $adaptor >>"${plog}" 2>&1 
+#echo "TRIM_READ $READ $FINDIV $fastqList $adaptor >>$plog 2>&1"
 
-#FIND_SNPS $READ $FINDIV $fastqList $SNP_DIR $adaptor >>$plog 2>&1 
-#echo "FIND_SNPS $READ $FINDIV $fastqList $SNP_DIR $adaptor >>$plog 2>&1"
+#MAP_AND_SAM $READ $FINDIV $fastqList >>$plog 2>&1 
+#echo "MAP_AND_SAM $READ $FINDIV $fastqList  >>$plog 2>&1"
 
+WASP $READ $FINDIV $SNP_DIR >>$plog 2>&1
+echo "WASP $READ $FINDIV $SNP_DIR >>$plog 2>&1"
