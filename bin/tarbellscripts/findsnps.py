@@ -446,10 +446,10 @@ class BamScanner:
             num_seqs = len(seqs)
             num_pat_seqs = len(pat_seqs)
             num_mat_seqs = len(mat_seqs)
-            if num_pat_seqs > 0:
-                print "pat: ",num_pat_seqs, pat_seqs
-            if num_mat_seqs > 0:
-                print "mat: ",num_mat_seqs, mat_seqs               
+#            if num_pat_seqs > 0:
+#                print "pat: ",num_pat_seqs, pat_seqs
+#            if num_mat_seqs > 0:
+#                print "mat: ",num_mat_seqs, mat_seqs               
             if (num_seqs == 0) or (num_seqs > 10):
                 continue
 #            if (num_seqs == 1):
@@ -470,7 +470,7 @@ class BamScanner:
 #                            seq, 
 #                            loc_line,
 #                            read.qual))
-                    self.remap_num += 1
+                self.remap_num += 1
             if (num_mat_seqs > 0):
                 self.remap_num_file.write("%i\n" % (num_mat_seqs - 1))
                 self.remap_num_file.flush()
@@ -486,7 +486,7 @@ class BamScanner:
  #                           seq,
  #                           loc_line,
  #                           read.qual))
-                    self.remap_num += 1
+                self.remap_num += 1
             if (num_seqs > 1):
                 self.remap_num_file.write("%i\n" % (num_mat_seqs - 1))
                 self.remap_num_file.flush()
@@ -502,7 +502,7 @@ class BamScanner:
                             seq,
                             loc_line,
                             read.qual))
-            self.remap_num += 1
+                self.remap_num += 1
 #
         self.shift_SNP_table()
 
@@ -668,12 +668,12 @@ class BamScanner:
                                         matches+=1
                                         paternalmatches += 1
                                         pat_seqs.append(seq)
-                                        print "pat allele: ", seq[p], snp.alleles[0], p, indx, start_dist, seq
+#                                        print "pat allele: ", seq[p], snp.alleles[0], p, indx, start_dist, seq
                                     elif seq[p] == snp.alleles[1]:
                                         maternalmatches +=1
                                         matches+=1
                                         mat_seqs.append(seq)
-                                        print "mat allele: ", seq[p], snp.alleles[1], p, indx, start_dist,  seq
+ #                                       print "mat allele: ", seq[p], snp.alleles[1], p, indx, start_dist,  seq
                                 else:
                                     seqs.append(seq)
 #                                    for alt_geno in snp.alleles:
@@ -707,23 +707,22 @@ class BamScanner:
 #edited to return all three seq
         return  (seqs, pat_seqs, mat_seqs)
     
-#    
     def shift_SNP_table(self):             
         """Shifts the SNP table over one position and makes sure that
         indels are not lost."""
         self.pos += 1
+
         # Current slot to fill is the position + max_window - 1
         cur_slot=(self.pos-1) % self.max_window
-#        print cur_slot
-        
+
         # Delete indels that are no longer used (if they ended at the previous position)
         for indel_pos in self.indel_table[cur_slot]:
-
-#            try:
-            if (indel_pos + self.indel_dict.get[indel_pos].max_len-1) == (self.pos-1):
-                del self.indel_dict[indel_pos]
-#            except KeyError:
-#                pass
+            try:
+                if (indel_pos + self.indel_dict[indel_pos].max_len-1) == (self.pos-1):
+                    del self.indel_dict[indel_pos]
+            except KeyError:
+                print "some problem here: indel_pos"
+                pass
  #               if indel_pos not in self.indel_dict:
  #                   print "not in dictionary"
  #               print indel_pos
