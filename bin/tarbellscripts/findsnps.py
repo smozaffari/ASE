@@ -438,8 +438,8 @@ class BamScanner:
             self.num_reads -= 1
 #edited to write to mat and pat remap files if does map to those                                                          
             seqs, pat_seqs, mat_seqs = self.check_for_snps(read, 0)
-            print self.chr_name
-            print seqs
+  #          print self.chr_name
+  #          print seqs
             # num_seqs it the numbers of different sequences for this read which
             # includes the original sequence as well as the different sequences
             # with alternate alleles swapped in.
@@ -712,20 +712,26 @@ class BamScanner:
         """Shifts the SNP table over one position and makes sure that
         indels are not lost."""
         self.pos += 1
-        print self.pos
         # Current slot to fill is the position + max_window - 1
         cur_slot=(self.pos-1) % self.max_window
-        print cur_slot
+#        print cur_slot
         
         # Delete indels that are no longer used (if they ended at the previous position)
-        print self.indel_table[cur_slot]
         for indel_pos in self.indel_table[cur_slot]:
-            print indel_pos
-            print self.indel_dict[indel_pos]
 
-            if (indel_pos + self.indel_dict[indel_pos].max_len-1) == (self.pos-1):
+#            try:
+            if (indel_pos + self.indel_dict.get[indel_pos].max_len-1) == (self.pos-1):
                 del self.indel_dict[indel_pos]
-        
+#            except KeyError:
+#                pass
+ #               if indel_pos not in self.indel_dict:
+ #                   print "not in dictionary"
+ #               print indel_pos
+ #               pos2 = indel_pos-1
+ #               print self.indel_dict[pos2]
+ #               print self.indel_dict[indel_pos-1]
+ #               raise
+
         self.indel_table[cur_slot]=[]
         
         # Carry over indels from the previous slot
