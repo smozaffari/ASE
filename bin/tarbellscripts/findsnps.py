@@ -487,22 +487,24 @@ class BamScanner:
  #                           loc_line,
  #                           read.qual))
                 self.remap_num += 1
-            if (num_seqs > 1):
-                self.remap_num_file.write("%i\n" % (num_mat_seqs - 1))
-                self.remap_num_file.flush()
-                self.remap_bam.write(read)
-                for seq in seqs[1:]:
-                    loc_line = "%i:%s:%i:%i" % (
-                        self.remap_num,
-                        self.chr_name,
-                        read.pos,
-                        num_seqs - 1)
-                    self.fastqs[0].write("@%s\n%s\n+%s\n%s\n" % (
-                            loc_line,
-                            seq,
-                            loc_line,
-                            read.qual))
-                self.remap_num += 1
+            if (num_mat_seqs == 0):
+                if (num_pat_seqs == 0):
+                    self.keep_bam.write(read)
+#                    self.remap_num_file.write("%i\n" % (num_mat_seqs - 1))
+ #                   self.remap_num_file.flush()
+  #                  self.remap_bam.write(read)
+   #                 for seq in seqs[1:]:
+#                        loc_line = "%i:%s:%i:%i" % (
+#                            self.remap_num,
+#                            self.chr_name,
+#                            read.pos,
+#                            num_seqs - 1)
+#                        self.fastqs[0].write("@%s\n%s\n+%s\n%s\n" % (
+#                                loc_line,
+#                                seq,
+#                                loc_line,
+#                                read.qual))
+#                    self.remap_num += 1
 #
         self.shift_SNP_table()
 
