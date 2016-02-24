@@ -450,10 +450,14 @@ class BamScanner:
 #                print "pat: ",num_pat_seqs, pat_seqs
 #            if num_mat_seqs > 0:
 #                print "mat: ",num_mat_seqs, mat_seqs               
-            if (num_seqs == 0) or (num_seqs > 10):
+            if (num_seqs == 0):
+                print "0",num_seqs,seqs
                 continue
-            if (num_seqs > 1):
-                self.keep_bam.write(read)
+            if (num_seqs > 10):
+                print "10",num_seqs,seqs
+                continue
+#            if (num_seqs > 1):
+#                self.keep_bam.write(read)
 #            else:
             if (num_pat_seqs > 0):
                 self.remap_num_file.write("%i\n" % (num_pat_seqs - 1))
@@ -487,9 +491,11 @@ class BamScanner:
  #                           loc_line,
  #                           read.qual))
                 self.remap_num += 1
-#            if (num_mat_seqs == 0):
-#                if (num_pat_seqs == 0):
-#                    self.keep_bam.write(read)
+#            else:
+            if (num_seqs > 1):
+#                if (num_mat_seqs == 0):
+#                    if (num_pat_seqs == 0):
+                self.keep_bam.write(read)
 #                    self.remap_num_file.write("%i\n" % (num_mat_seqs - 1))
  #                   self.remap_num_file.flush()
   #                  self.remap_bam.write(read)
