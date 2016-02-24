@@ -438,27 +438,18 @@ class BamScanner:
             self.num_reads -= 1
 #edited to write to mat and pat remap files if does map to those                                                          
             seqs, pat_seqs, mat_seqs = self.check_for_snps(read, 0)
-  #          print self.chr_name
-  #          print seqs
+
             # num_seqs it the numbers of different sequences for this read which
             # includes the original sequence as well as the different sequences
             # with alternate alleles swapped in.
             num_seqs = len(seqs)
             num_pat_seqs = len(pat_seqs)
             num_mat_seqs = len(mat_seqs)
-#            if num_pat_seqs > 0:
-#                print "pat: ",num_pat_seqs, pat_seqs
-#            if num_mat_seqs > 0:
-#                print "mat: ",num_mat_seqs, mat_seqs               
+              
             if (num_seqs == 0):
-                print "0",num_seqs,seqs
                 continue
-            if (num_seqs > 10):
-                print "10",num_seqs,seqs
-                continue
-#            if (num_seqs > 1):
-#                self.keep_bam.write(read)
-#            else:
+#            if (num_seqs > 10):
+#               continue
             if (num_pat_seqs > 0):
                 self.remap_num_file.write("%i\n" % (num_pat_seqs - 1))
                 self.remap_num_file.flush()
@@ -469,13 +460,9 @@ class BamScanner:
                         self.chr_name, 
                         read.pos,
                         num_pat_seqs - 1)
-#                    self.fastqs[0].write("@%s\n%s\n+%s\n%s\n" % (
-#                            loc_line, 
-#                            seq, 
-#                            loc_line,
-#                            read.qual))
+
                 self.remap_num += 1
-            if (num_mat_seqs > 0):
+            elif (num_mat_seqs > 0):
                 self.remap_num_file.write("%i\n" % (num_mat_seqs - 1))
                 self.remap_num_file.flush()
                 self.remap_bam_mat.write(read)
@@ -485,33 +472,11 @@ class BamScanner:
                         self.chr_name,
                         read.pos,
                         num_mat_seqs - 1)
- #                   self.fastqs[0].write("@%s\n%s\n+%s\n%s\n" % (
- #                           loc_line,
- #                           seq,
- #                           loc_line,
- #                           read.qual))
+
                 self.remap_num += 1
-#            else:
-            if (num_seqs > 1):
-#                if (num_mat_seqs == 0):
-#                    if (num_pat_seqs == 0):
+            else:
                 self.keep_bam.write(read)
-#                    self.remap_num_file.write("%i\n" % (num_mat_seqs - 1))
- #                   self.remap_num_file.flush()
-  #                  self.remap_bam.write(read)
-   #                 for seq in seqs[1:]:
-#                        loc_line = "%i:%s:%i:%i" % (
-#                            self.remap_num,
-#                            self.chr_name,
-#                            read.pos,
-#                            num_seqs - 1)
-#                        self.fastqs[0].write("@%s\n%s\n+%s\n%s\n" % (
-#                                loc_line,
-#                                seq,
-#                                loc_line,
-#                                read.qual))
-#                    self.remap_num += 1
-#
+
         self.shift_SNP_table()
 
 
@@ -660,11 +625,11 @@ class BamScanner:
                         snp = self.snp_table[indx]
                         if snp != 0:
                             num_snps += 1
-                            if num_snps > 10:
+#                            if num_snps > 10:
                                 # If there are more than 10 snps overlapping,
                                 # throw out the read to prevent memory blow-up.
                                 # TODO: should we increment self.toss here?
-                                return([],[],[])
+#                                return([],[],[])
 #edited by SVM
                             for seq in list(seqs):
                                 matches = 0
@@ -699,6 +664,7 @@ class BamScanner:
                     else:
                         # It's an indel, throw it out.
                         self.toss += 1
+                        print self.chr_name, read.pos, snp, snp.alleles
                         return([],[],[])
                     indx = (indx + 1) % self.max_window
                     p += 1
