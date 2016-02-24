@@ -452,8 +452,8 @@ class BamScanner:
 #                print "mat: ",num_mat_seqs, mat_seqs               
             if (num_seqs == 0) or (num_seqs > 10):
                 continue
-#            if (num_seqs == 1):
-#                self.keep_bam.write(read)
+            if (num_seqs > 1):
+                self.keep_bam.write(read)
 #            else:
             if (num_pat_seqs > 0):
                 self.remap_num_file.write("%i\n" % (num_pat_seqs - 1))
@@ -487,9 +487,9 @@ class BamScanner:
  #                           loc_line,
  #                           read.qual))
                 self.remap_num += 1
-            if (num_mat_seqs == 0):
-                if (num_pat_seqs == 0):
-                    self.keep_bam.write(read)
+#            if (num_mat_seqs == 0):
+#                if (num_pat_seqs == 0):
+#                    self.keep_bam.write(read)
 #                    self.remap_num_file.write("%i\n" % (num_mat_seqs - 1))
  #                   self.remap_num_file.flush()
   #                  self.remap_bam.write(read)
@@ -676,6 +676,8 @@ class BamScanner:
                                         matches+=1
                                         mat_seqs.append(seq)
  #                                       print "mat allele: ", seq[p], snp.alleles[1], p, indx, start_dist,  seq
+                                    else:
+                                        seqs.append(seq)
                                 else:
                                     seqs.append(seq)
 #                                    for alt_geno in snp.alleles:
@@ -723,7 +725,7 @@ class BamScanner:
                 if (indel_pos + self.indel_dict[indel_pos].max_len-1) == (self.pos-1):
                     del self.indel_dict[indel_pos]
             except KeyError:
-                print "some problem here: indel_pos"
+                print "some problem here:", indel_pos
                 pass
  #               if indel_pos not in self.indel_dict:
  #                   print "not in dictionary"
