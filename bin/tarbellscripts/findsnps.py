@@ -664,7 +664,7 @@ class BamScanner:
                     else:
                         # It's an indel, throw it out.
                         self.toss += 1
-                        print self.chr_name, read.pos, snp, snp.alleles
+                        print self.chr_name, read.pos
                         return([],[],[])
                     indx = (indx + 1) % self.max_window
                     p += 1

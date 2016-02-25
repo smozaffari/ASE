@@ -1,6 +1,4 @@
 #!/bin/bash
-#PBS -e second.err
-#PBS -o second.log
 #PBS -l nodes=1:ppn=4
 #PBS -l mem=8gb
 #PBS -l walltime=24:00:00
@@ -18,7 +16,7 @@ module load bowtie2
 module load samtools
 
 #for fastqc
-module load fastqc
+#module load fastqc
 
 #for WASP and ASE
 export PATH="/home/smozaffari/anaconda/bin:$PATH"                                                                                                                      
@@ -61,7 +59,7 @@ echo "RUNNING $scriptName as " $(readlink -f $0 ) " on " `date`  | tee  $plog
 
 echo "SCRIPTDIR:" $SCRIPTDIR
 declare -A adaptors
-adaptor_index=( [1]=" " [2]=" " [3]=" " [4]="" [5]="ACAGTG" )
+adaptor_index=( [1]="ATCACG" [2]="CGATGT" [3]="TTAGGC" [4]="TGACCA" [5]="ACAGTG" [6]="GCCAAT" [7]="CAGATC" [8]="ACTTGA" [9]="GATCAG" [10]="TAGCTT" [11]="GGCTAC" [12]="CTTGTA")
 
 READ=$INPUTDIR/$FLOWCELLFINDIV
 echo "$READ"
@@ -79,6 +77,7 @@ for file in "$READ"/*; do
        array2=( $indexnum )
        index=${array2[1]}
        echo "$FINDIV $index"
+       IFS=''
     fi
 done
 IFS=''
@@ -97,9 +96,11 @@ TRIM_READ() { # trim adaptors
 	echo "$ADAPTOR_SEQ"
 	output=$(echo "$i" | sed 's/txt.gz/trim.txt.gz/g')
 	echo "$output"
-	cutadapt -b $ADAPTOR_SEQ --format FASTQ -o $output $i
 	echo "cutadapt -b $ADAPTOR_SEQ --format FASTQ -o $output $i"
-	fastqc $output -o /group/ober-resources/users/smozaffari/ASE/results/fastqc
+	cutadapt -b $ADAPTOR_SEQ --format FASTQ -o $output $i
+
+#	fastqc $output -o $read
+#	echo "fastqc $output -o $read"
     done
 }
 
@@ -114,10 +115,13 @@ MAP_AND_SAM() {   # map files using bowtie
     echo "samtools view -S -h -q 10 -b $read/${findiv}.sam > $read/${findiv}.bam"
     samtools sort $read/${findiv}.bam $read/${findiv}.sorted
     echo "samtools sort $read/${findiv}.bam $read/${findiv}.sorted"
-    samtools view -c $read/${findiv}.sorted.bam > ${findiv}.sorted.txt
-    echo "samtools view -c $read/${findiv}.sorted.bam > ${findiv}.sorted.txt"
+    samtools view -c $read/${findiv}.sorted.bam > $read/${findiv}.sorted.txt
+    echo "samtools view -c $read/${findiv}.sorted.bam > $read/${findiv}.sorted.txt"
     samtools index $read/${findiv}.sorted.bam 
     echo "samtools index $read/${findiv}.sorted.bam"
+    rm $read/*trim.txt.gz
+    bzip2 $read/${findiv}.sam
+    bzip2 $read/${findiv}.bam
 
 }
 
@@ -136,6 +140,8 @@ WASP() { # use WASP to remove mapping bias
     samtools view -S -b -h -q 10 $read/${findiv}.sorted.map2.sam >  $read/${findiv}.sorted.remap.bam
     echo "samtools view -S -b -h -q 10 $read/${findiv}.sorted.map2.sam >  $read/${findiv}.sorted.remap.bam"
 
+    bzip2 $read/${findiv}.sorted.bam
+
     #WASP:
     python $WASP/mapping/filter_remapped_reads.py $read/${findiv}.sorted.to.remap.bam $read/${findiv}.sorted.remap.bam $read/${findiv}.sorted.remap.keep.bam $read/${findiv}.sorted.to.remap.num.gz
     echo "python $WASP/mapping/filter_remapped_reads.py $read/${findiv}.sorted.to.remap.bam $read/${findiv}.sorted.remap.bam $read/${findiv}.sorted.remap.keep.bam $read/${findiv}.sorted.to.remap.num.gz"
@@ -149,7 +155,13 @@ WASP() { # use WASP to remove mapping bias
     echo "samtools index $read/${findiv}.keep.merged.sorted.bam"
 
     #WASP:
-    python $WASP/mapping/rmdup.py  $read/${findiv}.keep.merged.sorted.bam $read/${findiv}.keep.rmdup.merged.sorted.bam
+#    python $WASP/mapping/rmdup.py  $read/${findiv}.keep.merged.sorted.bam $read/${findiv}.keep.rmdup.merged.sorted.bam
+    rm $read/*map2.sam
+    rm $read/*remap.bam
+    rm $read/${findiv}.keep.merged.bam
+    rm $read/${findiv}.sorted.remap.keep.bam
+    rm $read/${findiv}.sorted.keep.bam
+    
 
 }
 
@@ -157,7 +169,7 @@ ASE() {
     read=$1
     findiv=$2
     scriptdir=$3
-    python $scriptdir/findsnps.py $read/${findiv}.keep.merged.sorted.bam /group/ober-resources/users/smozaffari/ASE/data/genotypes/$findiv
+    python $scriptdir/findsnps.py $read/${findiv}.keep.merged.sorted.bam /group/ober-resources/users/smozaffari/ASE/data/genotypes/$findiv > $read/${findiv}_reads_with_indels
 
 }
 
@@ -165,9 +177,9 @@ GENECOUNT() {
     read=$1
     findiv=$2
     scriptdir=$3
-    samtools view  $read/${findiv}.keep.rmdup.merged.sorted.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /group/referenceFiles/Homo_sapiens/UCSC/hg19/Annotation/Genes/genes.gtf > $read/${findiv}_genes
-    samtools view  $read/${findiv}.keep.rmdup.merged.sorted.maternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /group/referenceFiles/Homo_sapiens/UCSC/hg19/Annotation/Genes/genes.gtf > $read/${findiv}_genes_maternal
-    samtools view  $read/${findiv}.keep.rmdup.merged.sorted.paternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /group/referenceFiles/Homo_sapiens/UCSC/hg19/Annotation/Genes/genes.gtf > $read/${findiv}_genes_paternal
+    samtools view  $read/${findiv}.keep.merged.sorted.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /group/referenceFiles/Homo_sapiens/UCSC/hg19/Annotation/Genes/genes.gtf > $read/${findiv}_genes
+    samtools view  $read/${findiv}.keep.merged.sorted.maternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /group/referenceFiles/Homo_sapiens/UCSC/hg19/Annotation/Genes/genes.gtf > $read/${findiv}_genes_maternal
+    samtools view  $read/${findiv}.keep.merged.sorted.paternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /group/referenceFiles/Homo_sapiens/UCSC/hg19/Annotation/Genes/genes.gtf > $read/${findiv}_genes_paternal
 
 }
 export -f TRIM_READ
@@ -184,17 +196,17 @@ echo $SCRIPTDIR
 # to figure out whether we are reasonably load balanced
 # NOTE: WHOAMI is exported from calling pbs script
 
-#TRIM_READ $READ $FINDIV $fastqList $adaptor >>"${plog}" 2>&1 
-#echo "TRIM_READ $READ $FINDIV $fastqList $adaptor >>$plog 2>&1"
+TRIM_READ $READ $FINDIV $fastqList $adaptor >>"${plog}" 2>&1 
+echo "TRIM_READ $READ $FINDIV $fastqList $adaptor >>$plog 2>&1"
 
-#MAP_AND_SAM $READ $FINDIV $fastqList >>$plog 2>&1 
-#echo "MAP_AND_SAM $READ $FINDIV $fastqList  >>$plog 2>&1"
+MAP_AND_SAM $READ $FINDIV $fastqList >>$plog 2>&1 
+echo "MAP_AND_SAM $READ $FINDIV $fastqList  >>$plog 2>&1"
 
-#WASP $READ $FINDIV $SNP_DIR >>$plog 2>&1
-#echo "WASP $READ $FINDIV $SNP_DIR >>$plog 2>&1"
+WASP $READ $FINDIV $SNP_DIR >>$plog 2>&1
+echo "WASP $READ $FINDIV $SNP_DIR >>$plog 2>&1"
 
 ASE $READ $FINDIV $SCRIPTDIR >>$plog 2>&1
 echo "ASE $READ $FINDIV $SCRIPTDIR >>$plog 2>&1"
 
-#GENECOUNT $READ $FINDIV $SCRIPTDIR >>$plog 2>&1
-#echo "GENECOUNT $READ $FINDIV $SCRIPTDIR >>$plog 2>&1"
+GENECOUNT $READ $FINDIV $SCRIPTDIR >>$plog 2>&1
+echo "GENECOUNT $READ $FINDIV $SCRIPTDIR >>$plog 2>&1"

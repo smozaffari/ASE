@@ -12,6 +12,9 @@ NNodes=$3 #Number of nodes you want to use /available (for 1000 files, and about
 outDir=$(readlink -f $4)
 
 snpDir=$(readlink -f $5)
+
+flowcell=$6
+echo $flowcell
 #NCoresPerNode=32 #notchangeable - beagle
 NCoresPerNode=64
 
@@ -30,7 +33,7 @@ timeTag=$(date "+%y_%m_%d_%H_%M_%S")
 setup_log=${scriptName}_${LOGNAME}_${timeTag}.log
 echo $setup_log
 echo "RUNNING $scriptName as " $(readlink -f $0 ) " on " `date`  | tee  $setup_log
-
+echo "$flowcell" | tee -a $setup_log
 echo "Computation will run on  $NCoresPerNode cores per node " | tee -a $setup_log
 echo "Each python file will be run on " $NNodes " Compute nodes" | tee -a $setup_log
 echo "Total number of python jobs per node will be " $jobsPerNode | tee -a $setup_log
@@ -55,34 +58,32 @@ echo "root of input files" $inputRoot
 nJobsInRun=0
 nTotSubJobs=0
 subFileList=""
+count=0
 for dir in $inputDirs;do
-    echo "   $dir"
-    mkdir -p "$outDir/$dir"
-    infiles=( $inputDir/$dir/*.sequence.txt.gz )
-    infiles=${#infiles[@]}
-    outfiles=( $outDir/$dir/*sequence.txt.gz)
-    outfiles=${#outfiles[@]}
-    for file in $(echo "$inputFiles"| grep $dir); do
-	fileName=$dir/$(basename $file)
-#create softlink for input files
-	ln -s $file "$outDir/$dir"  
+    if [[ $dir == *${flowcell}* ]]; then
+	echo "   $dir"
+	mkdir -p "$outDir/$dir"
+	infiles=( $inputDir/$dir/*.sequence.txt.gz )
+	infiles=${#infiles[@]}
 	outfiles=( $outDir/$dir/*sequence.txt.gz)
 	outfiles=${#outfiles[@]}
-	if [ "$infiles" == "$outfiles" ]; then
-            qsub -v FLOWCELLFINDIV=$dir,JOBSPERNODE=$jobsPerNode,SCRIPTDIR=$scriptDir,SNP_DIR=$snpDir,INPUTDIR=$outDir,NUM=$nJobsInRun -N $nJobsInRun $scriptDir/second.pbs 2>&1                                      
-            echo -e "qsub -v FLOWCELLFINDIV=\"$dir\",JOBSPERNODE=\"$jobsPerNode\",SCRIPTDIR=\"$scriptDir\",SNP_DIR=\"$snpDir\" -N \"$nJobsInRun\" $scriptDir/second.pbs" | tee -a $setup_log                                
-	
-	
-#	 qsub -v SEQFILES="$subFileList",JOBSPERNODE=$jobsPerNode,SCRIPTDIR=$scriptDir,SNPDIR=$snpDir,INPUTDIR=$outDir,NUM=$nJobsInRun -N $nJobsInRun $scriptDir/second.pbs 2>&1
-#	 echo -e "qsub -v SEQFILES=$subFileList,JOBSPERNODE=\"$jobsPerNode\",SCRIPTDIR=\"$scriptDir\",SNPDIR=\"$snpDir\" -N \"$nJobsInRun\" $scriptDir/second.pbs" | tee -a $setup_log
-            nJobsInRun=0
-#            subFileList=""
-	    exit
-	fi
-#	 exit
- #    fi    
-	
-  done
+	for file in $(echo "$inputFiles"| grep $dir); do
+	    fileName=$dir/$(basename $file)
+#create softlink for input files
+	    ln -s $file "$outDir/$dir"  
+	    outfiles=( $outDir/$dir/*sequence.txt.gz)
+	    outfiles=${#outfiles[@]}
+	    if [ "$infiles" == "$outfiles" ]; then
+		qsub -v FLOWCELLFINDIV=$dir,JOBSPERNODE=$jobsPerNode,SCRIPTDIR=$scriptDir,SNP_DIR=$snpDir,INPUTDIR=$outDir,NUM=$nJobsInRun -N $nJobsInRun $scriptDir/second.pbs 2>&1                                      
+		echo -e "qsub -v FLOWCELLFINDIV=\"$dir\",JOBSPERNODE=\"$jobsPerNode\",SCRIPTDIR=\"$scriptDir\",SNP_DIR=\"$snpDir\" -N \"$nJobsInRun\" $scriptDir/second.pbs" | tee -a $setup_log                                
+		((count++))
+		nJobsInRun=0
+		if [[ "$count" == 3 ]]; then
+		    exit
+		fi
+	    fi
+	done
+    fi
 done | tee -a $setup_log
 echo $NInputFiles
 
