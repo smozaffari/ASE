@@ -3,7 +3,7 @@
 #PBS -l mem=8gb
 #PBS -l walltime=24:00:00
 #PBS -M smozaffari@uchicago.edu
-#PBS -m abe
+#PBS -m e
 
 cd $PBS_O_WORKDIR
 echo $PBS_O_WORKDIR
@@ -64,20 +64,22 @@ adaptor_index=( [1]="ATCACG" [2]="CGATGT" [3]="TTAGGC" [4]="TGACCA" [5]="ACAGTG"
 READ=$INPUTDIR/$FLOWCELLFINDIV
 echo "$READ"
 
-for file in "$READ"/*; do
+for file in "$READ"/*.sequence.txt.gz; do
+#    if [ "$file" /*.sequence.txt.gz ]; then
+    echo "$file"
     if [ "$fastqList" ]; then
-       fastqList="${fastqList},${file}"
-       echo $fastqList
+	fastqList="${fastqList},${file}"
+	echo $fastqList
     else
-       fastqList=$file
-       IFS='.'
-       array=( $file )
-       indexnum=${array[1]}
-       IFS='_'
-       array2=( $indexnum )
-       index=${array2[1]}
-       echo "$FINDIV $index"
-       IFS=''
+	fastqList=$file
+	IFS='.'
+	array=( $file )
+	indexnum=${array[1]}
+	IFS='_'
+	array2=( $indexnum )
+	index=${array2[1]}
+	echo "$FINDIV $index"
+	IFS=''
     fi
 done
 IFS=''
@@ -89,6 +91,7 @@ TRIM_READ() { # trim adaptors
     findiv=$2
     fastq=$3
     index=$4
+    echo "$fastq"
     IFS=','
     fastqs=( $fastq)
     for i in "${fastqs[@]}"; do
@@ -96,33 +99,34 @@ TRIM_READ() { # trim adaptors
 	echo "$ADAPTOR_SEQ"
 	output=$(echo "$i" | sed 's/txt.gz/trim.txt.gz/g')
 	echo "$output"
+	echo "$index"
 	echo "cutadapt -b $ADAPTOR_SEQ --format FASTQ -o $output $i"
 	cutadapt -b $ADAPTOR_SEQ --format FASTQ -o $output $i
 
 #	fastqc $output -o $read
 #	echo "fastqc $output -o $read"
     done
+    IFS=''
 }
 
 
 MAP_AND_SAM() {   # map files using bowtie
     read=$1
     findiv=$2
-    input=$(echo "$3" | sed 's/txt.gz/trim.txt.gz/g')
+    IFS=''
+    input=$3
+    echo "$input"
+    echo "bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $input -S $read/${findiv}.sam"
     bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $input -S $read/${findiv}.sam
-    echo "bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $input -S $read/${findiv}/.sam"
-    samtools view -S -h -q 10 -b $read/${findiv}.sam > $read/${findiv}.bam
+#    echo "bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $input -S $read/${findiv}/.sam"
     echo "samtools view -S -h -q 10 -b $read/${findiv}.sam > $read/${findiv}.bam"
-    samtools sort $read/${findiv}.bam $read/${findiv}.sorted
+    samtools view -S -h -q 10 -b $read/${findiv}.sam > $read/${findiv}.bam
     echo "samtools sort $read/${findiv}.bam $read/${findiv}.sorted"
-    samtools view -c $read/${findiv}.sorted.bam > $read/${findiv}.sorted.txt
+    samtools sort $read/${findiv}.bam $read/${findiv}.sorted
     echo "samtools view -c $read/${findiv}.sorted.bam > $read/${findiv}.sorted.txt"
-    samtools index $read/${findiv}.sorted.bam 
+    samtools view -c $read/${findiv}.sorted.bam > $read/${findiv}.sorted.txt
     echo "samtools index $read/${findiv}.sorted.bam"
-    rm $read/*trim.txt.gz
-    bzip2 $read/${findiv}.sam
-    bzip2 $read/${findiv}.bam
-
+    samtools index $read/${findiv}.sorted.bam 
 }
 
 WASP() { # use WASP to remove mapping bias
@@ -156,11 +160,11 @@ WASP() { # use WASP to remove mapping bias
 
     #WASP:
 #    python $WASP/mapping/rmdup.py  $read/${findiv}.keep.merged.sorted.bam $read/${findiv}.keep.rmdup.merged.sorted.bam
-    rm $read/*map2.sam
-    rm $read/*remap.bam
-    rm $read/${findiv}.keep.merged.bam
-    rm $read/${findiv}.sorted.remap.keep.bam
-    rm $read/${findiv}.sorted.keep.bam
+ #   rm $read/*map2.sam
+ #   rm $read/*remap.bam
+ #   rm $read/${findiv}.keep.merged.bam
+ #   rm $read/${findiv}.sorted.remap.keep.bam
+ #   rm $read/${findiv}.sorted.keep.bam
     
 
 }
@@ -196,17 +200,20 @@ echo $SCRIPTDIR
 # to figure out whether we are reasonably load balanced
 # NOTE: WHOAMI is exported from calling pbs script
 
-TRIM_READ $READ $FINDIV $fastqList $adaptor >>"${plog}" 2>&1 
+#TRIM_READ $READ $FINDIV $fastqList $adaptor >>$plog 2>&1 
 echo "TRIM_READ $READ $FINDIV $fastqList $adaptor >>$plog 2>&1"
 
-MAP_AND_SAM $READ $FINDIV $fastqList >>$plog 2>&1 
-echo "MAP_AND_SAM $READ $FINDIV $fastqList  >>$plog 2>&1"
+input=$(echo "$fastqList" | sed 's/txt.gz/trim.txt.gz/g')
+echo "$input"
+
+#MAP_AND_SAM $READ $FINDIV $input >>$plog 2>&1 
+echo "MAP_AND_SAM $READ $FINDIV $input  >>$plog 2>&1"
 
 WASP $READ $FINDIV $SNP_DIR >>$plog 2>&1
 echo "WASP $READ $FINDIV $SNP_DIR >>$plog 2>&1"
 
 ASE $READ $FINDIV $SCRIPTDIR >>$plog 2>&1
-echo "ASE $READ $FINDIV $SCRIPTDIR >>$plog 2>&1"
+#echo "ASE $READ $FINDIV $SCRIPTDIR >>$plog 2>&1"
 
 GENECOUNT $READ $FINDIV $SCRIPTDIR >>$plog 2>&1
-echo "GENECOUNT $READ $FINDIV $SCRIPTDIR >>$plog 2>&1"
+#echo "GENECOUNT $READ $FINDIV $SCRIPTDIR >>$plog 2>&1"

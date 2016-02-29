@@ -67,22 +67,33 @@ for dir in $inputDirs;do
 	infiles=${#infiles[@]}
 	outfiles=( $outDir/$dir/*sequence.txt.gz)
 	outfiles=${#outfiles[@]}
-	for file in $(echo "$inputFiles"| grep $dir); do
-	    fileName=$dir/$(basename $file)
+	if [ "$infiles" == "$outfiles" ]; then
+            qsub -v FLOWCELLFINDIV=$dir,JOBSPERNODE=$jobsPerNode,SCRIPTDIR=$scriptDir,SNP_DIR=$snpDir,INPUTDIR=$outDir,NUM=$nJobsInRun -N $nJobsInRun $scriptDir/second.pbs 2>&1
+	    echo "already present"
+            echo -e "qsub -v FLOWCELLFINDIV=\"$dir\",JOBSPERNODE=\"$jobsPerNode\",SCRIPTDIR=\"$scriptDir\",SNP_DIR=\"$snpDir\" -N \"$nJobsInRun\" $scriptDir/second.pbs" | tee -a $setup_log
+            ((count++))
+            nJobsInRun=0
+	else 
+
+	    for file in $(echo "$inputFiles"| grep $dir); do
+		fileName=$dir/$(basename $file)
 #create softlink for input files
-	    ln -s $file "$outDir/$dir"  
-	    outfiles=( $outDir/$dir/*sequence.txt.gz)
-	    outfiles=${#outfiles[@]}
-	    if [ "$infiles" == "$outfiles" ]; then
-		qsub -v FLOWCELLFINDIV=$dir,JOBSPERNODE=$jobsPerNode,SCRIPTDIR=$scriptDir,SNP_DIR=$snpDir,INPUTDIR=$outDir,NUM=$nJobsInRun -N $nJobsInRun $scriptDir/second.pbs 2>&1                                      
-		echo -e "qsub -v FLOWCELLFINDIV=\"$dir\",JOBSPERNODE=\"$jobsPerNode\",SCRIPTDIR=\"$scriptDir\",SNP_DIR=\"$snpDir\" -N \"$nJobsInRun\" $scriptDir/second.pbs" | tee -a $setup_log                                
-		((count++))
-		nJobsInRun=0
-		if [[ "$count" == 3 ]]; then
-		    exit
+		ln -s $file "$outDir/$dir"  
+		outfiles=( $outDir/$dir/*sequence.txt.gz)
+		outfiles=${#outfiles[@]}
+		if [ "$infiles" == "$outfiles" ]; then
+		    qsub -v FLOWCELLFINDIV=$dir,JOBSPERNODE=$jobsPerNode,SCRIPTDIR=$scriptDir,SNP_DIR=$snpDir,INPUTDIR=$outDir,NUM=$nJobsInRun -N $nJobsInRun $scriptDir/second.pbs 2>&1                                      
+		    echo "simlink then equal"
+		    echo -e "qsub -v FLOWCELLFINDIV=\"$dir\",JOBSPERNODE=\"$jobsPerNode\",SCRIPTDIR=\"$scriptDir\",SNP_DIR=\"$snpDir\" -N \"$nJobsInRun\" $scriptDir/second.pbs" | tee -a $setup_log                                
+		    ((count++))
+		    nJobsInRun=0
 		fi
-	    fi
-	done
+	    done
+	fi
+	if [[ "$count" == 3 ]]; then
+	    exit
+	fi
+	    
     fi
 done | tee -a $setup_log
 echo $NInputFiles
