@@ -451,9 +451,9 @@ class BamScanner:
 #            if (num_seqs > 10):
 #               continue
             if (num_pat_seqs > 0):
-                print self.pos
-                print self.max_window
-                print cur_slot
+#                print self.pos
+#                print self.max_window
+#                print cur_slot
                 self.remap_num_file.write("%i\n" % (num_pat_seqs - 1))
                 self.remap_num_file.flush()
                 self.remap_bam_pat.write(read)
@@ -645,15 +645,16 @@ class BamScanner:
                                         paternalmatches += 1
                                         pat_seqs.append(seq)
 #                                        print self.snp_table[cur_pos]
-                                        print self.cur_snp
-                                        print self.cur_snp.pos
-                                        print read.pos,  "pat allele: ", seq[p], snp.alleles[0], p, indx, start_dist, seq
-                                        print self.snpfile.readline()
+#                                        print self.cur_snp
+#                                        print self.cur_snp.pos
+                                        print self.pos+p+1,  "pat allele: ", seq[p], snp.alleles[0], p, indx, start_dist, seq
+#                                        print self.snpfile.readline()
                                     elif seq[p] == snp.alleles[1]:
                                         maternalmatches +=1
                                         matches+=1
                                         mat_seqs.append(seq)
 #                                        print snp, cur_pos, self.snp_table[cur_pos], self.cur_snp, self.snpfile.readline(), snp_line, snp, "mat allele: ", seq[p], snp.alleles[1], p, indx, start_dist,  seq
+                                        print self.pos+p+1,  "mat allele: ", seq[p], snp.alleles[1], p, indx, start_dist, seq
                                     else:
                                         seqs.append(seq)
                                 else:
