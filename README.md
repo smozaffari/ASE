@@ -1,9 +1,7 @@
 # ASE
 
-following WASP
-##Mapping reads
 
-1. Intial mapping of reads --> bam files (done by Darren) 
+1. Fastq files (done by Darren) 
 [RNAseq 500HT Project](https://oberlab-tk.uchicago.edu/wiki/Hutterites/RNAseq%20500HT%20Project)
     * single end
     * hg19 (excluding 'random' chr)
