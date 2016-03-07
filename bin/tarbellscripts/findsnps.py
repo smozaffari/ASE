@@ -644,21 +644,17 @@ class BamScanner:
                                         matches+=1
                                         paternalmatches += 1
                                         pat_seqs.append(seq)
-#                                        print self.snp_table[cur_pos]
-#                                        print self.cur_snp
-#                                        print self.cur_snp.pos
-                                        print self.pos+p+1,  "pat allele: ", seq[p], snp.alleles[0], p, indx, start_dist, seq
-#                                        print self.snpfile.readline()
+                                        print self.chr_name, self.pos+p+1,  "pat", seq[p], snp.alleles[1], p, indx, start_dist, seq
                                     elif seq[p] == snp.alleles[1]:
                                         maternalmatches +=1
                                         matches+=1
                                         mat_seqs.append(seq)
-#                                        print snp, cur_pos, self.snp_table[cur_pos], self.cur_snp, self.snpfile.readline(), snp_line, snp, "mat allele: ", seq[p], snp.alleles[1], p, indx, start_dist,  seq
-                                        print self.pos+p+1,  "mat allele: ", seq[p], snp.alleles[1], p, indx, start_dist, seq
+                                        print self.chr_name, self.pos+p+1,  "mat", seq[p], snp.alleles[0], p, indx, start_dist, seq
                                     else:
                                         seqs.append(seq)
                                 else:
                                     seqs.append(seq)
+                                    print self.chr_name, self.pos+p+1, "homozygous", seq[p], p, indx, seq
 #                                    for alt_geno in snp.alleles:
 #                                        if not alt_geno == geno:
 #                                            new_seq = (seq[:p] + alt_geno +
@@ -672,7 +668,7 @@ class BamScanner:
                     else:
                         # It's an indel, throw it out.
                         self.toss += 1
-                        print self.chr_name, read.pos
+                        print self.chr_name, self.pos+p+1, "indel"
                         return([],[],[])
                     indx = (indx + 1) % self.max_window
                     p += 1
