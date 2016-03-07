@@ -116,8 +116,13 @@ MAP_AND_SAM() {   # map files using bowtie
     IFS=''
     input=$3
     echo "$input"
-    echo "bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $input -S $read/${findiv}.sam"
-    bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $input -S $read/${findiv}.sam
+
+#/group/referenceFiles/Homo_sapiens/UCSC/hg38/Sequence/IlluminaBowtie2Index/v2.2.5/genome.
+    echo "bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg38/Sequence/IlluminaBowtie2Index/v2.2.5/genome -U $input -S $read/${findiv}.sam"
+    bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg38/Sequence/IlluminaBowtie2Index/v2.2.5/genome -U $input -S $read/${findiv}.sam
+#    echo "bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $input -S $read/${findiv}.sam"
+#    bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $input -S $read/${findiv}.sam
+
 #    echo "bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $input -S $read/${findiv}/.sam"
     echo "samtools view -S -h -q 10 -b $read/${findiv}.sam > $read/${findiv}.bam"
     samtools view -S -h -q 10 -b $read/${findiv}.sam > $read/${findiv}.bam
@@ -127,6 +132,9 @@ MAP_AND_SAM() {   # map files using bowtie
     samtools view -c $read/${findiv}.sorted.bam > $read/${findiv}.sorted.txt
     echo "samtools index $read/${findiv}.sorted.bam"
     samtools index $read/${findiv}.sorted.bam 
+
+    rm $read/*sequence.trim.txt.gz
+    rm $read/*sequence.txt.gz
 }
 
 WASP() { # use WASP to remove mapping bias
@@ -139,7 +147,10 @@ WASP() { # use WASP to remove mapping bias
     echo "python $WASP/mapping/find_intersecting_snps.py $read/${findiv}.sorted.bam  $snp_dir"
 
     #remap files:
-    bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $read/${findiv}.sorted.remap.fq.gz -S $read/${findiv}.sorted.map2.sam              
+#    /group/referenceFiles/Homo_sapiens/UCSC/hg38/Sequence/IlluminaBowtie2Index/v2.2.5/genome.fa
+    echo "bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg38/Sequence/IlluminaBowtie2Index/v2.2.5/genome -U $read/${findiv}.sorted.remap.fq.gz -S $read/${findiv}.sorted.map2.sam"
+    bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg38/Sequence/IlluminaBowtie2Index/v2.2.5/genome -U $read/${findiv}.sorted.remap.fq.gz -S $read/${findiv}.sorted.map2.sam
+#    bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $read/${findiv}.sorted.remap.fq.gz -S $read/${findiv}.sorted.map2.sam              
     echo "bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $read/${findiv}.sorted.remap.fq.gz -S $read/${findiv}.sorted.map2.sam"
     samtools view -S -b -h -q 10 $read/${findiv}.sorted.map2.sam >  $read/${findiv}.sorted.remap.bam
     echo "samtools view -S -b -h -q 10 $read/${findiv}.sorted.map2.sam >  $read/${findiv}.sorted.remap.bam"
@@ -160,12 +171,12 @@ WASP() { # use WASP to remove mapping bias
 
     #WASP:
 #    python $WASP/mapping/rmdup.py  $read/${findiv}.keep.merged.sorted.bam $read/${findiv}.keep.rmdup.merged.sorted.bam
- #   rm $read/*map2.sam
- #   rm $read/*remap.bam
- #   rm $read/${findiv}.keep.merged.bam
- #   rm $read/${findiv}.sorted.remap.keep.bam
- #   rm $read/${findiv}.sorted.keep.bam
-    
+    rm $read/*map2.sam
+    rm $read/*remap.bam
+    rm $read/${findiv}.keep.merged.bam
+    rm $read/${findiv}.sorted.remap.keep.bam
+    rm $read/${findiv}.sorted.keep.bam
+    rm $read/${findiv}.sam
 
 }
 
@@ -184,7 +195,7 @@ GENECOUNT() {
     samtools view  $read/${findiv}.keep.merged.sorted.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /group/referenceFiles/Homo_sapiens/UCSC/hg19/Annotation/Genes/genes.gtf > $read/${findiv}_genes
     samtools view  $read/${findiv}.keep.merged.sorted.maternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /group/referenceFiles/Homo_sapiens/UCSC/hg19/Annotation/Genes/genes.gtf > $read/${findiv}_genes_maternal
     samtools view  $read/${findiv}.keep.merged.sorted.paternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /group/referenceFiles/Homo_sapiens/UCSC/hg19/Annotation/Genes/genes.gtf > $read/${findiv}_genes_paternal
-    samtools view $read/${findiv}.keep.merged.sorted.keep.bam | htseq-count -s no -m intersection-nonempty -a 30 - group/referenceFiles/Homo_sapiens/UCSC/hg19/Annotation/Genes/genes.gtf > $read/${findiv}_hom_genes
+    samtools view $read/${findiv}.keep.merged.sorted.keep.bam | htseq-count -s no -m intersection-nonempty -a 30 - /group/referenceFiles/Homo_sapiens/UCSC/hg19/Annotation/Genes/genes.gtf > $read/${findiv}_hom_genes
 
 }
 export -f TRIM_READ
@@ -224,8 +235,8 @@ echo "TRIM_READ $READ $FINDIV $fastqList $adaptor >>$plog 2>&1"
 
 input=$(echo "$fastqList" | sed 's/txt.gz/trim.txt.gz/g')
 echo "$input"
-
-MAP_AND_SAM $READ $FINDIV $input >>$plog 2>&1                                                                                            echo "MAP_AND_SAM $READ $FINDIV $input  >>$plog 2>&1"
+MAP_AND_SAM $READ $FINDIV $input >>$plog 2>&1                                                                                            
+echo "MAP_AND_SAM $READ $FINDIV $input  >>$plog 2>&1"
 
 #fi
 
