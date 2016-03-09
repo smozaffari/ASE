@@ -120,10 +120,6 @@ MAP_AND_SAM() {   # map files using bowtie
 #/group/referenceFiles/Homo_sapiens/UCSC/hg38/Sequence/IlluminaBowtie2Index/v2.2.5/genome.
     echo "bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg38/Sequence/IlluminaBowtie2Index/v2.2.5/genome -U $input -S $read/${findiv}.sam"
     bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg38/Sequence/IlluminaBowtie2Index/v2.2.5/genome -U $input -S $read/${findiv}.sam
-#    echo "bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $input -S $read/${findiv}.sam"
-#    bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $input -S $read/${findiv}.sam
-
-#    echo "bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $input -S $read/${findiv}/.sam"
     echo "samtools view -S -h -q 10 -b $read/${findiv}.sam > $read/${findiv}.bam"
     samtools view -S -h -q 10 -b $read/${findiv}.sam > $read/${findiv}.bam
     echo "samtools sort $read/${findiv}.bam $read/${findiv}.sorted"
@@ -133,8 +129,8 @@ MAP_AND_SAM() {   # map files using bowtie
     echo "samtools index $read/${findiv}.sorted.bam"
     samtools index $read/${findiv}.sorted.bam 
 
-    rm $read/*sequence.trim.txt.gz
-    rm $read/*sequence.txt.gz
+#    rm $read/*sequence.trim.txt.gz
+#    rm $read/*sequence.txt.gz
 }
 
 WASP() { # use WASP to remove mapping bias
@@ -147,19 +143,18 @@ WASP() { # use WASP to remove mapping bias
     echo "python $WASP/mapping/find_intersecting_snps.py $read/${findiv}.sorted.bam  $snp_dir"
 
     #remap files:
-#    /group/referenceFiles/Homo_sapiens/UCSC/hg38/Sequence/IlluminaBowtie2Index/v2.2.5/genome.fa
     echo "bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg38/Sequence/IlluminaBowtie2Index/v2.2.5/genome -U $read/${findiv}.sorted.remap.fq.gz -S $read/${findiv}.sorted.map2.sam"
     bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg38/Sequence/IlluminaBowtie2Index/v2.2.5/genome -U $read/${findiv}.sorted.remap.fq.gz -S $read/${findiv}.sorted.map2.sam
-#    bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $read/${findiv}.sorted.remap.fq.gz -S $read/${findiv}.sorted.map2.sam              
-    echo "bowtie2 -p 4 --very-fast --phred33 -x /group/referenceFiles/Homo_sapiens/UCSC/hg19/Sequence/IlluminaBowtie2Index/genome -U $read/${findiv}.sorted.remap.fq.gz -S $read/${findiv}.sorted.map2.sam"
+    wait
     samtools view -S -b -h -q 10 $read/${findiv}.sorted.map2.sam >  $read/${findiv}.sorted.remap.bam
     echo "samtools view -S -b -h -q 10 $read/${findiv}.sorted.map2.sam >  $read/${findiv}.sorted.remap.bam"
 
-    bzip2 $read/${findiv}.sorted.bam
+ #   bzip2 $read/${findiv}.sorted.bam
 
     #WASP:
     python $WASP/mapping/filter_remapped_reads.py $read/${findiv}.sorted.to.remap.bam $read/${findiv}.sorted.remap.bam $read/${findiv}.sorted.remap.keep.bam $read/${findiv}.sorted.to.remap.num.gz
     echo "python $WASP/mapping/filter_remapped_reads.py $read/${findiv}.sorted.to.remap.bam $read/${findiv}.sorted.remap.bam $read/${findiv}.sorted.remap.keep.bam $read/${findiv}.sorted.to.remap.num.gz"
+    wait
 
     #merged bamfile:
     samtools merge $read/${findiv}.keep.merged.bam $read/${findiv}.sorted.keep.bam $read/${findiv}.sorted.remap.keep.bam
@@ -171,12 +166,12 @@ WASP() { # use WASP to remove mapping bias
 
     #WASP:
 #    python $WASP/mapping/rmdup.py  $read/${findiv}.keep.merged.sorted.bam $read/${findiv}.keep.rmdup.merged.sorted.bam
-    rm $read/*map2.sam
-    rm $read/*remap.bam
-    rm $read/${findiv}.keep.merged.bam
-    rm $read/${findiv}.sorted.remap.keep.bam
-    rm $read/${findiv}.sorted.keep.bam
-    rm $read/${findiv}.sam
+#    rm $read/*map2.sam
+#    rm $read/*remap.bam
+#    rm $read/${findiv}.keep.merged.bam
+#    rm $read/${findiv}.sorted.remap.keep.bam
+#    rm $read/${findiv}.sorted.keep.bam
+#    rm $read/${findiv}.sam
 
 }
 
