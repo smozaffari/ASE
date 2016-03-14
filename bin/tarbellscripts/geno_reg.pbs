@@ -1,0 +1,44 @@
+#!/bin/bash
+#PBS -N geno_FINDIV.pbs
+#PBS -l walltime=00:00:30:00
+#PBS -l nodes=1:ppn=1
+#PBS -l mem=4gb
+#PBS -e geno_$FINDIV.err
+#PBS -o geno_$FINDIV.log
+#PBS -M smozaffari@uchicago.edu
+
+cd $PBS_O_WORKDIR
+echo $PBS_O_WORKDIR
+
+cd $FINDIV 
+echo $PBS_O_WORKDIR/$FINDIV
+
+module load plink
+
+echo "FINDIV: " $FINDIV
+
+echo "plink --bfile /group/ober-resources/resources/Hutterites/PRIMAL/data-sets/qc/qc  --keep ${FINDIV}.txt --geno 0 --recode transpose --out ${FINDIV}"
+plink --bfile /group/ober-resources/resources/Hutterites/PRIMAL/data-sets/qc/qc  --keep ${FINDIV}.txt --geno 0 --recode transpose --out ${FINDIV}
+
+#plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_paternal --keep ${FINDIV}1.txt --geno 0 --extract ../exonicvariants_imputationID --recode transpose --out ${FINDIV}1_exonic
+
+#echo "plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_maternal --keep ${FINDIV}2.txt --geno 0 --recode transpose --out ${FINDIV}2"
+#plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_maternal --keep ${FINDIV}2.txt --geno 0 --recode transpose --out ${FINDIV}2
+#plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_maternal --keep ${FINDIV}2.txt --geno 0 --extract ../exonicvariants_imputationID --recode transpose --out ${FINDIV}2_exonic    
+
+
+paste <(awk '{print "chr" $1 " " $4 " " $5 " " $6}' ${FINDIV}.tped) | sed 's/\t/ /g' > ${FINDIV}_SNPs
+
+#paste <(awk '{print "chr" $1 " " $4 " " $5}' ${FINDIV}1_exonic.tped) <(awk '{print $5}' ${FINDIV}2_exonic.tped) | sed 's/\t/ /g' > ${FINDIV}_exonicSNPs
+
+rm *.tped
+rm *.txt
+rm *.tfam
+rm *.log
+for i in `seq 1 22` 
+do
+   awk -v chr="chr$i"  '$1 == chr {print $2 " " $3 " " $4}' ${FINDIV}_SNPs > chr${i}.txt
+   wait
+   gzip chr${i}.snps.txt
+   rm chr${i}.snps.txt
+done
