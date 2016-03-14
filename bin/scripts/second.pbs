@@ -8,15 +8,25 @@
 cd $PBS_O_WORKDIR
 echo $PBS_O_WORKDIR
 . /opt/modules/default/init/bash
-if [ ! $(module list -t 2>&1 | grep PrgEnv-gnu) ]; then
- module swap PrgEnv-cray PrgEnv-gnu
-fi
+#if [ ! $(module list -t 2>&1 | grep PrgEnv-gnu) ]; then
+# module swap PrgEnv-cray PrgEnv-gnu
+#fi
 
-export PATH=/lustre/beagle2/lpBuild/python/Python-2.7.10-inst/bin:$PATH
-export LD_LIBRARY_PATH=/lustre/beagle2/lpBuild/python/Python-2.7.10-inst/lib:$LD_LIBRARY_PATH
+#export PATH=/lustre/beagle2/lpBuild/python/Python-2.7.10-inst/bin:$PATH
+#export LD_LIBRARY_PATH=/lustre/beagle2/lpBuild/python/Python-2.7.10-inst/lib:$LD_LIBRARY_PATH
 
-module load bowtie2
-module load samtools
+#export PATH="/lustre/beagle2/ober/users/smozaffari/miniconda2/bin:$PATH"
+#export LD_LIBRARY_PATH="/lustre/beagle2/ober/users/smozaffari/miniconda2/lib:$LD_LIBRARY_PATH"
+#module load python/2.7.10
+#module load cutadapt
+#which python
+#pip list
+
+#module load bowtie2/2.2.5 
+
+#module load bcftools
+#module load samtools/1.2 
+#module load HTSeq
 
 umask 022
 
@@ -25,14 +35,17 @@ export WHOAMI=$(whoami)
 echo "Submitted as:" $WHOAMI
 echo "running jobs in "$PWD
 echo "$SCRIPTDIR"
-echo "$SEQFILES"
-echo "$JOBSPERNODE"
+#echo "$SEQFILES"
+#echo "$JOBSPERNODE"
 echo "$INPUTDIR"
-
+echo "$FLOWCELLFINDIV"
+echo "$SNP_DIR"
 
 
 # -b is useful because the scripts are accessible to the compute nodes and don't need to be transferred to spool
-aprun -n1 -N1 -d32 -b $SCRIPTDIR/third.sh $SEQFILES $JOBSPERNODE $SCRIPTDIR $SNPDIR $INPUTDIR $NUM
-echo "aprun -n1 -N1 -d32 -b $SCRIPTDIR/third.sh $SEQFILES $JOBSPERNODE $SCRIPTDIR $SNPDIR $INPUTDIR $NUM"
+#aprun -n1 -N1 -d32 -b $SCRIPTDIR/newthird.sh $SEQFILES $JOBSPERNODE $SCRIPTDIR $SNPDIR $INPUTDIR $FLOWCELLFINDIV
+aprun -n1 -N1 -d32 -b $SCRIPTDIR/newthird.sh  $SCRIPTDIR $FLOWCELLFINDIV $INPUTDIR $SNP_DIR
+echo "aprun -n1 -N1 -d32 -b $SCRIPTDIR/newthird.sh  $SCRIPTDIR $FLOWCELLFINDIV $INPUTDIR $SNP_DIR"
+#echo "aprun -n1 -N1 -d32 -b $SCRIPTDIR/newthird.sh $SEQFILES $JOBSPERNODE $SCRIPTDIR $SNPDIR $INPUTDIR $FLOWCELLFINDIV"
 
 echo "%%% Ending at "$(date)
