@@ -166,12 +166,12 @@ WASP() { # use WASP to remove mapping bias
 
     #WASP:
 #    python $WASP/mapping/rmdup.py  $read/${findiv}.keep.merged.sorted.bam $read/${findiv}.keep.rmdup.merged.sorted.bam
-#    rm $read/*map2.sam
+    rm $read/*map2.sam
 #    rm $read/*remap.bam
 #    rm $read/${findiv}.keep.merged.bam
 #    rm $read/${findiv}.sorted.remap.keep.bam
 #    rm $read/${findiv}.sorted.keep.bam
-#    rm $read/${findiv}.sam
+    rm $read/${findiv}.sam
 
 }
 
