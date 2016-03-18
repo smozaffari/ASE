@@ -15,8 +15,7 @@ snpDir=$(readlink -f $5)
 
 flowcell=$6
 echo $flowcell
-#NCoresPerNode=32 #notchangeable - beagle
-NCoresPerNode=64
+NCoresPerNode=32 #notchangeable - beagle
 
 rundir=$PWD
 #mkdir -p $OUTDIR
@@ -48,7 +47,7 @@ inputRoot=$( echo "$inputFiles" | head -n 1 |  awk -F"/" '{$(NF-2)=$(NF-1)=$NF="
 
 #Number of input files
 NInputFiles=$(wc -w <<< "$inputFiles" )
-echo "Running all " $NInputFiles " bam files in $inputDir:" | tee -a $setup_log
+echo "Running all " $NInputFiles " fastq files in $inputDir:" | tee -a $setup_log
 filesPerNode=$(( ($NInputFiles+$NNodes-1)/$NNodes))
 echo "Running  $filesPerNode bam files per compute node for a total of " $(($filesPerNode*$NNodes))  | tee -a $setup_log
 echo "root of input files" $inputRoot
@@ -68,6 +67,7 @@ for dir in $inputDirs;do
 	outfiles=( $outDir/$dir/*sequence.txt.gz)
 	outfiles=${#outfiles[@]}
 	if [ "$infiles" == "$outfiles" ]; then
+	    nJobsInRun=$infiles
             qsub -v FLOWCELLFINDIV=$dir,JOBSPERNODE=$jobsPerNode,SCRIPTDIR=$scriptDir,SNP_DIR=$snpDir,INPUTDIR=$outDir -N $nJobsInRun $scriptDir/second.pbs 2>&1
 	    echo "already present"
             echo -e "qsub -v FLOWCELLFINDIV=\"$dir\",JOBSPERNODE=\"$jobsPerNode\",SCRIPTDIR=\"$scriptDir\",SNP_DIR=\"$snpDir\", INPUT_DIR=\"$outDir\" -N \"$nJobsInRun\" $scriptDir/second.pbs" | tee -a $setup_log
@@ -82,17 +82,18 @@ for dir in $inputDirs;do
 		outfiles=( $outDir/$dir/*sequence.txt.gz)
 		outfiles=${#outfiles[@]}
 		if [ "$infiles" == "$outfiles" ]; then
+		    nJobsInRun=$infiles
 		    qsub -v FLOWCELLFINDIV=$dir,JOBSPERNODE=$jobsPerNode,SCRIPTDIR=$scriptDir,SNP_DIR=$snpDir,INPUTDIR=$outDir -N $nJobsInRun $scriptDir/second.pbs 2>&1                                      
 		    echo "simlink then equal"
-		    echo -e "qsub -v FLOWCELLFINDIV=\"$dir\",JOBSPERNODE=\"$jobsPerNode\",SCRIPTDIR=\"$scriptDir\",SNP_DIR=\"$snpDir\",INPUT_DIR=\"$outDir\" -N \"$nJobsInRun\" $scriptDir/second.pbs" | tee -a $setup_log                                
+		    echo -e "qsub -v FLOWCELLFINDIV=\"$dir\",JOBSPERNODE=\"$jobsPerNode\",SCRIPTDIR=\"$scriptDir\",SNP_DIR=\"$snpDir\",INPUT_DIR=\"$outDir\" -N \"$nJobsInRun\" $scriptDir/second.pbs" | tee -a $setup_log
 		    ((count++))
 		    nJobsInRun=0
 		fi
 	    done
 	fi
-	if [[ "$count" == 5 ]]; then
-	    exit
-	fi
+#	if [[ "$count" == 5 ]]; then
+#	    exit
+#	fi
 	    
     fi
 done | tee -a $setup_log
