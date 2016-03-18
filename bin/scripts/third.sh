@@ -27,11 +27,9 @@ echo scriptDir $scriptDir
 seqFiles=$(echo $seqFiles | sed 's/::/\ /g')
 
 # make the script verbose
-set -x
 
 # functions to be used in the call to parallels
 FIND_SNPS() {
-    set -x
     
     #map reads
     base=$(echo "$1" | sed 's/\saved.sequence.txt.gz//g')
