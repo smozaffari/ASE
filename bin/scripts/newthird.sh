@@ -6,33 +6,19 @@ if [ ! $(module list -t 2>&1 | grep PrgEnv-gnu) ]; then
  module swap PrgEnv-cray PrgEnv-gnu
 fi
 
-#export PATH=/lustre/beagle2/lpBuild/python/Python-2.7.10-inst/bin:$PATH                                                           
-#export LD_LIBRARY_PATH=/lustre/beagle2/lpBuild/python/Python-2.7.10-inst/lib:$LD_LIBRARY_PATH                                     
-
 export PATH="/lustre/beagle2/ober/users/smozaffari/miniconda2/bin:$PATH"
-#export LD_LIBRARY_PATH="/lustre/beagle2/ober/users/smozaffari/miniconda2/lib:$LD_LIBRARY_PATH"
-#module load python/2.7.10                                                                                                         
-#module load cutadapt                                                                                                              
-which python
-pip list
 
-env
-module list
-module load bowtie2/2.2.5
-which bowtie2
+module load bowtie2
+
 module load bcftools
 
-
 module load samtools/1.2
-#module load HTSeq             
 
 SCRIPTDIR=$1
 FLOWCELLFINDIV=$2
 export INPUTDIR=$3
 export SNP_DIR=$4
 export WASP=$SCRIPTDIR/WASP
-
-
 
 scriptName=$(basename ${0})
 echo $scriptName
@@ -45,7 +31,7 @@ FINDIV=$(echo "$FLOWCELLFINDIV" | awk -F'/' '{print $2}')
 echo $ID
 echo $FINDIV
 
-plog=$PWD/${scriptName}_${LOGNAME}_${FINDIV}.log
+plog=$PWD/PO_${LOGNAME}_${FINDIV}.log
 echo $plog
 maplog=$PWD/mapping.log
 echo $maplog
@@ -99,7 +85,7 @@ TRIM_READ() { # trim adaptors
     for i in "${fastqs[@]}"; do
 	ADAPTOR_SEQ="GATCGGAAGAGCACACGTCTGAACTCCAGTCAC${index}ATCTCGTATGCCGTCTTCTGCTTG"
 	echo "$ADAPTOR_SEQ"
-	output=$(echo "$i" | sed 's/txt.gz/trim.txt.gz/g')
+	output=$(echo "$i" | sed 's/txt.gz/trim.txt/g')
 	echo "$output"
 	echo "$index"
 	echo "cutadapt -b $ADAPTOR_SEQ --format FASTQ -o $output $i"
@@ -121,7 +107,7 @@ MAP_AND_SAM() {   # map files using bowtie
 
 #/group/referenceFiles/Homo_sapiens/UCSC/hg38/Sequence/IlluminaBowtie2Index/v2.2.5/genome.
     echo "bowtie2 -p 4 --very-fast --phred33 -x /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg38/analysisset/bowtie2Index/genome -U $input -S $read/${findiv}.sam"
-    bowtie2 -p 4 --very-fast --phred33 -x /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg38/analysisset/bowtie2Index/genome -U $input -S $read/${findiv}.sam
+    bowtie2-align -p 4 --very-fast --phred33 -x /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg38/analysisset/bowtie2Index/genome -U $input -S $read/${findiv}.sam
     echo "samtools view -S -h -q 10 -b $read/${findiv}.sam > $read/${findiv}.bam"
     samtools view -S -h -q 10 -b $read/${findiv}.sam > $read/${findiv}.bam
     echo "samtools sort $read/${findiv}.bam $read/${findiv}.sorted"
@@ -182,17 +168,17 @@ ASE() {
     findiv=$2
     scriptdir=$3
 #    python $scriptdir/findsnps.py $read/${findiv}.keep.merged.sorted.bam /group/ober-resources/users/smozaffari/ASE/data/genotypes/$findiv > $read/${findiv}_reads_with_indels
-    python $scriptdir/findsnps.py $read/${findiv}.keep.merged.sorted.bam /group/ober-resources/users/smozaffari/ASE/data/genotypes/$findiv > $read/${findiv}_ASE_info
+    python $scriptdir/findsnps.py $read/${findiv}.keep.merged.sorted.bam /lustre/beagle2/ober/users/smozaffari/ASE/data/genotypes/$findiv > $read/${findiv}_ASE_info
 }
 
 GENECOUNT() {
     read=$1
     findiv=$2
     scriptdir=$3
-    samtools view  $read/${findiv}.keep.merged.sorted.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /group/referenceFiles/Homo_sapiens/UCSC/hg19/Annotation/Genes/genes.gtf > $read/${findiv}_genes
-    samtools view  $read/${findiv}.keep.merged.sorted.maternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /group/referenceFiles/Homo_sapiens/UCSC/hg19/Annotation/Genes/genes.gtf > $read/${findiv}_genes_maternal
-    samtools view  $read/${findiv}.keep.merged.sorted.paternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /group/referenceFiles/Homo_sapiens/UCSC/hg19/Annotation/Genes/genes.gtf > $read/${findiv}_genes_paternal
-    samtools view $read/${findiv}.keep.merged.sorted.keep.bam | htseq-count -s no -m intersection-nonempty -a 30 - /group/referenceFiles/Homo_sapiens/UCSC/hg19/Annotation/Genes/genes.gtf > $read/${findiv}_hom_genes
+    samtools view  $read/${findiv}.keep.merged.sorted.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/UCSC_Annotation/gencode.v24.annotation.gtf > $read/${findiv}_genes
+    samtools view  $read/${findiv}.keep.merged.sorted.maternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/UCSC_Annotation/gencode.v24.annotation.gtf > $read/${findiv}_genes_maternal
+    samtools view  $read/${findiv}.keep.merged.sorted.paternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/UCSC_Annotation/gencode.v24.annotation.gtf > $read/${findiv}_genes_paternal
+    samtools view $read/${findiv}.keep.merged.sorted.keep.bam | htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/UCSC_Annotation/gencode.v24.annotation.gtf > $read/${findiv}_genes_hom
 
 }
 export -f TRIM_READ
@@ -208,11 +194,10 @@ echo $SCRIPTDIR
 TRIM_READ $READ $FINDIV $fastqList $adaptor >>$plog 2>&1 
 echo "TRIM_READ $READ $FINDIV $fastqList $adaptor >>$plog 2>&1"
 
-input=$(echo "$fastqList" | sed 's/txt.gz/trim.txt.gz/g')
+input=$(echo "$fastqList" | sed 's/txt.gz/trim.txt/g')
 echo "$input"
 MAP_AND_SAM $READ $FINDIV $input >>$plog 2>&1                                                       
 echo "MAP_AND_SAM $READ $FINDIV $input  >>$plog 2>&1"
-
 
 WASP $READ $FINDIV $SNP_DIR >>$plog 2>&1
 echo "WASP $READ $FINDIV $SNP_DIR >>$plog 2>&1"
@@ -220,5 +205,5 @@ echo "WASP $READ $FINDIV $SNP_DIR >>$plog 2>&1"
 ASE $READ $FINDIV $SCRIPTDIR >>$plog 2>&1
 echo "ASE $READ $FINDIV $SCRIPTDIR >>$plog 2>&1"
 
-#GENECOUNT $READ $FINDIV $SCRIPTDIR >>$plog 2>&1
+GENECOUNT $READ $FINDIV $SCRIPTDIR >>$plog 2>&1
 echo "GENECOUNT $READ $FINDIV $SCRIPTDIR >>$plog 2>&1"
