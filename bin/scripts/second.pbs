@@ -24,9 +24,7 @@ echo "$SNP_DIR"
 
 
 # -b is useful because the scripts are accessible to the compute nodes and don't need to be transferred to spool
-#aprun -n1 -N1 -d32 -b $SCRIPTDIR/newthird.sh $SEQFILES $JOBSPERNODE $SCRIPTDIR $SNPDIR $INPUTDIR $FLOWCELLFINDIV
-aprun -n1 -N1 -d $JOBSPERNODE -b $SCRIPTDIR/newthird.sh  $SCRIPTDIR $FLOWCELLFINDIV $INPUTDIR $SNP_DIR
-echo "aprun -n1 -N1 -d $JOBSPERNODE -b $SCRIPTDIR/newthird.sh  $SCRIPTDIR $FLOWCELLFINDIV $INPUTDIR $SNP_DIR"
-#echo "aprun -n1 -N1 -d32 -b $SCRIPTDIR/newthird.sh $SEQFILES $JOBSPERNODE $SCRIPTDIR $SNPDIR $INPUTDIR $FLOWCELLFINDIV"
+aprun -n1 -n1 -d $JOBSPERNODE -b $SCRIPTDIR/hg19third.sh  $SCRIPTDIR $FLOWCELLFINDIV $INPUTDIR $SNP_DIR
+echo "aprun -n1 -N1 -d $JOBSPERNODE -b $SCRIPTDIR/hg19third.sh  $SCRIPTDIR $FLOWCELLFINDIV $INPUTDIR $SNP_DIR"
 
 echo "%%% Ending at "$(date)
