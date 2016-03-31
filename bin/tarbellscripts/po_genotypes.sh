@@ -15,4 +15,4 @@ while read LINE; do
     echo "qsub -v FINDIV=$LINE $scriptDir/geno.pbs"
     qsub -v FINDIV=$LINE $scriptDir/geno.pbs
     sleep 3
-done < /group/ober-resources/users/smozaffari/ASE/data/findiv100092
+done < /group/ober-resources/users/smozaffari/ASE/data/findivlist
