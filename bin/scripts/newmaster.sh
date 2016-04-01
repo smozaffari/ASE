@@ -91,9 +91,9 @@ for dir in $inputDirs;do
 		fi
 	    done
 	fi
-#	if [[ "$count" == 5 ]]; then
-#	    exit
-#	fi
+	if [[ "$count" == 1 ]]; then
+	    exit
+	fi
 	    
     fi
 done | tee -a $setup_log
