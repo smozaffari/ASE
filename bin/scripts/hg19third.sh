@@ -152,16 +152,28 @@ WASP() { # use WASP to remove mapping bias
     samtools index $read/${findiv}.keep.merged.sorted.bam
     echo "samtools index $read/${findiv}.keep.merged.sorted.bam"
 
-    #WASP:
-#    python $WASP/mapping/rmdup.py  $read/${findiv}.keep.merged.sorted.bam $read/${findiv}.keep.rmdup.merged.sorted.bam
-#    rm $read/*map2.sam
-#    rm $read/*remap.bam
-#    rm $read/${findiv}.keep.merged.bam
-#    rm $read/${findiv}.sorted.remap.keep.bam
-#    rm $read/${findiv}.sorted.keep.bam
-#    rm $read/${findiv}.sam
+    samtools index $read/${findiv}.sorted.sort.bam
+    echo "samtools index $read/${findiv}.sorted.sort.bam"
+    samtools view $read/${findiv}.sorted.sort.bam chrX -b > $read/${findiv}.chrX.bam
+    echo "samtools view $read/${findiv}.sorted.sort.bam chrX -b > $read/${findiv}.chrX.bam"
+
+    samtools view $read/${findiv}.sorted.sort.bam chrY -b > $read/${findiv}.chrY.bam
+    echo "samtools view $read/${findiv}.sorted.sort.bam chrY -b > $read/${findiv}.chrY.bam"
+
+    samtools view $read/${findiv}.sorted.sort.bam chrM -b > $read/${findiv}.chrM.bam
+    echo "samtools view $read/${findiv}.sorted.sort.bam chrM -b > $read/${findiv}.chrM.bam"
+
+
+    samtools merge $read/${findiv}.withX.bam $read/${findiv}.keep.merged.bam $read/${findiv}.chrX.bam $read/${findiv}.chrY.bam $read/${findiv}.chrM.bam
+    echo "samtools merge $read/${findiv}.withX.bam $read/${findiv}.keep.merged.bam $read/${findiv}.chrX.bam $read/${findiv}.chrY.bam $read/${findiv}.chrM.bam"
+    samtools sort $read/${findiv}.withX.bam $read/${findiv}.sort.withX
+    echo "samtools sort $read/${findiv}.withX.bam $read/${findiv}.sort.withX"
+    samtools index $read/${findiv}.sort.withX.bam
+    echo "samtools index $read/${findiv}.sort.withX.bam"
 
 }
+
+
 
 ASE() {
     read=$1
@@ -175,12 +187,40 @@ GENECOUNT() {
     read=$1
     findiv=$2
     scriptdir=$3
-    samtools view  $read/${findiv}.keep.merged.sorted.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${findiv}_genes
+#    samtools view  $read/${findiv}.keep.merged.sorted.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${findiv}_genes
+    samtools view $read/${findiv}.merged.withX.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${findiv}_genes_withsex
     samtools view  $read/${findiv}.keep.merged.sorted.maternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${findiv}_genes_maternal
     samtools view  $read/${findiv}.keep.merged.sorted.paternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${findiv}_genes_paternal
     samtools view $read/${findiv}.keep.merged.sorted.keep.bam | htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${findiv}_genes_hom
 
 }
+
+SEXGENES() {
+    read=$1
+    findiv=$2
+    samtools index $read/${findiv}.sorted.sort.bam
+    echo "samtools index $read/${findiv}.sorted.sort.bam"
+    samtools view $read/${findiv}.sorted.sort.bam chrX -b > $read/${findiv}.chrX.bam
+    echo "samtools view $read/${findiv}.sorted.sort.bam chrX -b > $read/${findiv}.chrX.bam"
+
+    samtools view $read/${findiv}.sorted.sort.bam chrY -b > $read/${findiv}.chrY.bam
+    echo "samtools view $read/${findiv}.sorted.sort.bam chrY -b > $read/${findiv}.chrY.bam"
+
+    samtools view $read/${findiv}.sorted.sort.bam chrM -b > $read/${findiv}.chrM.bam
+    echo "samtools view $read/${findiv}.sorted.sort.bam chrM -b > $read/${findiv}.chrM.bam"
+
+
+    samtools merge $read/${findiv}.withX.bam $read/${findiv}.keep.merged.bam $read/${findiv}.chrX.bam $read/${findiv}.chrY.bam $read/${findiv}.chrM.bam
+    echo "samtools merge $read/${findiv}.withX.bam $read/${findiv}.keep.merged.bam $read/${findiv}.chrX.bam $read/${findiv}.chrY.bam $read/${findiv}.chrM.bam"
+    samtools sort $read/${findiv}.withX.bam $read/${findiv}.sort.withX
+    echo "samtools sort $read/${findiv}.withX.bam $read/${findiv}.sort.withX"
+    samtools index $read/${findiv}.sort.withX.bam
+    echo "samtools index $read/${findiv}.sort.withX.bam"
+
+    samtools view $read/${findiv}.merged.withX.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${findiv}_genes_withsex
+}
+
+
 export -f TRIM_READ
 export -f MAP_AND_SAM
 export -f WASP
@@ -191,12 +231,12 @@ echo $fastqList
 echo $SNP_DIR 
 echo $SCRIPTDIR
 
-TRIM_READ $READ $FINDIV $fastqList $adaptor >>$plog 2>&1 
+#TRIM_READ $READ $FINDIV $fastqList $adaptor >>$plog 2>&1 
 echo "TRIM_READ $READ $FINDIV $fastqList $adaptor >>$plog 2>&1"
 
 input=$(echo "$fastqList" | sed 's/txt.gz/trim.txt/g')
 echo "$input"
-MAP_AND_SAM $READ $FINDIV $input >>$plog 2>&1                                                       
+#MAP_AND_SAM $READ $FINDIV $input >>$plog 2>&1                                                       
 echo "MAP_AND_SAM $READ $FINDIV $input  >>$plog 2>&1"
 
 WASP $READ $FINDIV $SNP_DIR >>$plog 2>&1
@@ -207,3 +247,6 @@ echo "ASE $READ $FINDIV $SCRIPTDIR >>$plog 2>&1"
 
 GENECOUNT $READ $FINDIV $SCRIPTDIR >>$plog 2>&1
 echo "GENECOUNT $READ $FINDIV $SCRIPTDIR >>$plog 2>&1"
+
+#SEXGENES $READ $FINDIV >>$plog 2>&1
+#echo "SEXGENES $READ $FINDIV >>$plog 2>&1"
