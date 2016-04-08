@@ -20,6 +20,6 @@ f2 <- substr(findiv, 1, nchar(findiv)-14)
 colnames(outputfile) <- c(f2)
 
 genes <- rownames(file)
-outputfile$Genes <- genes
+rownames(outputfile) <- genes
 
 write.table(outputfile, "withoutsaved_genes_withsex", row.names = T, col.names = T, quote = F)
