@@ -17,4 +17,9 @@
    * `master2.sh <inputDir> <outDir> <SNPDir> <FlowCell> `
    * `../bin/scripts/master2.sh /lustre/beagle2/ober/resources/RNASeq__500HT withoutsaved/ ../data/SNP_files/ FlowCell2`
 
-3. 
+3. count matrix
+    * analysis_1.pbs
+    * ls -ld withoutsaved/*/*/* | grep index | grep trim | cut -f11 -d" " | cut -f2-4 -d"/" | sed 's/\.sequence\.trim\.txt//g' > lane_and_index
+    * ls -ld withoutsaved/*/*/* | grep index | grep trim | cut -f11 -d" " | cut -f2-4 -d"/" | sed 's/\.sequence\.trim\.txt//g' | sed 's/\//\./g' > lane_and_index2
+    * s -ld withoutsaved/*/*/* | grep index | grep trim | cut -f11 -d" " | cut -f2-4 -d"/" | sed 's/\.sequence\.trim\.txt//g' | sed 's/\//\./g' | sed 's/\./\ /g' | sed 's/lane_//g' | sed 's/index_//g' >lane_and_index3
+
