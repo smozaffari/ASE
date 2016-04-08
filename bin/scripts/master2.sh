@@ -6,14 +6,14 @@
 inputDir=$(readlink -f $1)
 echo "Input files will be searched in " $inputDir
 
-jobsPerNode=$2 #How many jobs per node = 1..32 what parallel gets 1-32 specific to Beagle
-NNodes=$3 #Number of nodes you want to use /available (for 1000 files, and about 20 jobs/node only need 50 nodes)
+#jobsPerNode=$2 #How many jobs per node = 1..32 what parallel gets 1-32 specific to Beagle
+#NNodes=$3 #Number of nodes you want to use /available (for 1000 files, and about 20 jobs/node only need 50 nodes)
 
-outDir=$(readlink -f $4)
+outDir=$(readlink -f $2)
 
-snpDir=$(readlink -f $5)
+snpDir=$(readlink -f $3)
 
-flowcell=$6
+flowcell=$4
 echo $flowcell
 NCoresPerNode=32 #notchangeable - beagle
 
@@ -33,9 +33,9 @@ setup_log=${scriptName}_${LOGNAME}_${timeTag}.log
 echo $setup_log
 echo "RUNNING $scriptName as " $(readlink -f $0 ) " on " `date`  | tee  $setup_log
 echo "$flowcell" | tee -a $setup_log
-echo "Computation will run on  $NCoresPerNode cores per node " | tee -a $setup_log
-echo "Each python file will be run on " $NNodes " Compute nodes" | tee -a $setup_log
-echo "Total number of python jobs per node will be " $jobsPerNode | tee -a $setup_log
+#echo "Computation will run on  $NCoresPerNode cores per node " | tee -a $setup_log
+#echo "Each python file will be run on " $NNodes " Compute nodes" | tee -a $setup_log
+#echo "Total number of python jobs per node will be " $jobsPerNode | tee -a $setup_log
 
 
 #list of input files
@@ -48,8 +48,8 @@ inputRoot=$( echo "$inputFiles" | head -n 1 |  awk -F"/" '{$(NF-2)=$(NF-1)=$NF="
 #Number of input files
 NInputFiles=$(wc -w <<< "$inputFiles" )
 echo "Running all " $NInputFiles " fastq files in $inputDir:" | tee -a $setup_log
-filesPerNode=$(( ($NInputFiles+$NNodes-1)/$NNodes))
-echo "Running  $filesPerNode bam files per compute node for a total of " $(($filesPerNode*$NNodes))  | tee -a $setup_log
+#filesPerNode=$(( ($NInputFiles+$NNodes-1)/$NNodes))
+#echo "Running  $filesPerNode bam files per compute node for a total of " $(($filesPerNode*$NNodes))  | tee -a $setup_log
 echo "root of input files" $inputRoot
 
 #loop through directories to create directory structure and softlinks of input data in output directory
@@ -88,5 +88,5 @@ for dir in $inputDirs;do
 done | tee -a $setup_log
 echo $NInputFiles
 
-echo "Total number of nodes used will be " $(($NNodes))
+echo "Total number of nodes used will be " $(($count))
 echo "%%%" $(date) "$scriptName completed its execution " | tee -a $setup_log
