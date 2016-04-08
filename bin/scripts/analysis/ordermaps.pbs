@@ -15,5 +15,4 @@ module swap PrgEnv-cray PrgEnv-gnu
 
 cd $PBS_O_WORKDIR
 
-#aprun -N 1 -n 1 -d 1 Rscript ../PO_script_genes.R
 aprun -N 1 -n 1 -d 1  order_maps.sh
