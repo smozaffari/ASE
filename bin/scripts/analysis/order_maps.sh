@@ -1,7 +1,8 @@
 #!/bin/bash
 
-
-grep -w "FlowCell1" newqcsorted > FC1_mapped
+for i in `seq 1 11`;
+do
+grep -w "FlowCell${i}" newqcsorted > FC${i}_mapped
 grep FlowCell2 newqcsorted | grep -v 121171 | grep -v 106622 > FC2_mapped
 grep FlowCell3 newqcsorted > FC3_mapped
 grep FlowCell4 newqcsorted > FC4_mapped
