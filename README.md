@@ -1,28 +1,20 @@
 # ASE
 
 
-1. Fastq files (done by Darren) 
+1. Fastq files (Darren) 
 [RNAseq 500HT Project](https://oberlab-tk.uchicago.edu/wiki/Hutterites/RNAseq%20500HT%20Project)
-    * single end
-    * hg19 (excluding 'random' chr)
-    * BWA, less than 3 mismatches: bwa aln -n2
-    * `/group/ober-resources/resources/Hutterites/RNAseq_500HT/raw_data/`
+   * single end
+   * `/lustre/beagle2/ober/resources/RNASeq__500HT`
+   * FlowCell/FINDIV/lane.index.sequence 
     
-2. SNPs in SNP directory
+2. Process all the reads (ignore rescued reads) and put into output Directory : 
+   * Trim adaptors with cutadapt
+   * Map to hg19 using bowtie2
+   * WASP to remove mapping bias
+   * findsnps.py to separate maternal and paternal reads
+   * Add back in sex chromosome genes
+   * HTSeq-count to count genes
+   * `master2.sh <inputDir> <outDir> <SNPDir> <FlowCell> `
+   * `../bin/scripts/master2.sh /lustre/beagle2/ober/resources/RNASeq__500HT withoutsaved/ ../data/SNP_files/ FlowCell2`
 
-    * chr<#>.snps.txt.gz
-    * position refallele altallele
-    * `awk -F"\t" '$4=="chr1" { print }' <file> > newfile` 
-
-
-3. to run WASP on all the reads (including remapping reads step) and put into output Directory : 
-  
-   * `Masterscript.sh <inputDir> <#jobspernode> <#Nodes> <outDir> <SNPDir>`
-   
-
-###Creating IMPUTE2 files from PRIMAL(plink) output
-
-1. impute2 haplotype file
-   * `awk '{ print $52 " " $4 " " $5 " " $15 }'   /group/ober-resources/users/rlee/hutt_annotation/annotation_data/all12_imputed_cgi.annovar_plink_annotations.hg19_multianno.txt | tail -n+2 > testrecode.txt`
-
-   * `phased2imputehaps.sh`
+3. 
