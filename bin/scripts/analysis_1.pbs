@@ -17,7 +17,7 @@ module load R
 cd $PBS_O_WORKDIR
 
 # get gene count matrix, by findiv_lane for AfterWASP with sex chromosomes:
-aprun -N 1 -n 1 -d 1 /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/count_sex.R
+aprun -N 1 -n 1 -d 1 /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/count_parental.R
 
 
 # get number of mapped reads: BeforeWASP/AfterWASPwithsexchromosomes/AfterWASP/Uknown/Paternal/Maternal 

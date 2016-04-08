@@ -1,7 +1,13 @@
-#path="~/lustre/beagle2/ober/users/smozaffari/ASE/results/hg19genes_withsex"
+##  Sahar Mozaffari
+## 4.8.16
+## To get gene count matrix for gene count after WASP and including sex chromosomes
+
+# Folder output of RNAseq data is in
 path="withoutsaved"
 
-file.names<-  list.files(path,recursive=T,pattern='withsex',full.names=T)
+# pattern = ending of file 
+pattern = "withsex"
+file.names<-  list.files(path,recursive=T,pattern=pattern,full.names=T)
 
 outputfile<- NULL
 findiv<- c()
@@ -22,4 +28,4 @@ colnames(outputfile) <- c(f2)
 genes <- rownames(file)
 rownames(outputfile) <- genes
 
-write.table(outputfile, "withoutsaved_genes_withsex", row.names = T, col.names = T, quote = F)
+write.table(outputfile, paste(path, "genecount", pattern, sep="_"), row.names = T, col.names = T, quote = F)
