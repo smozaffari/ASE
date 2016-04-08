@@ -73,15 +73,16 @@ for dir in $inputDirs;do
 		lane=$(echo $newfile |  cut -d "." -f1)
 		echo $newfile
 		echo $lane
-		qsub -v FLOWCELLFINDIV=$dir,NUM=$count,SCRIPTDIR=$scriptDir,SNP_DIR=$snpDir,INPUTDIR=$outDir,LANE=$lane,FILE=$newfile -N ${fileName}_${dir} $scriptDir/second.pbs 2>&1
-		echo -e "qsub -v FLOWCELLFINDIV=\"$dir\",NUM=\"$count\",SCRIPTDIR=\"$scriptDir\",SNP_DIR=\"$snpDir\",INPUT_DIR=\"$outDir\",LANE=\"$lane\",FILE=\"$newfile\" -N \"${dir}_${lane}\" $scriptDir/second.pbs" | tee -a $setup_log
-		
+		if [[ $dir == *"108891"* ]] ; then
+		    qsub -v FLOWCELLFINDIV=$dir,NUM=$count,SCRIPTDIR=$scriptDir,SNP_DIR=$snpDir,INPUTDIR=$outDir,LANE=$lane,FILE=$newfile -N ${dir}_${lane} $scriptDir/second.pbs 2>&1
+		    echo -e "qsub -v FLOWCELLFINDIV=\"$dir\",NUM=\"$count\",SCRIPTDIR=\"$scriptDir\",SNP_DIR=\"$snpDir\",INPUT_DIR=\"$outDir\",LANE=\"$lane\",FILE=\"$newfile\" -N \"${dir}_${lane}\" $scriptDir/second.pbs" | tee -a $setup_log
+		fi
 		((count++))
 		nJobsInRun=0
 	    fi
-	    if [[ "$count" == 2 ]]; then
-		exit
-	    fi
+#	    if [[ "$count" == 2 ]]; then
+#		exit
+#	    fi
 	done
     fi
 done | tee -a $setup_log
