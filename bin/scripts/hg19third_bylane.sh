@@ -34,7 +34,7 @@ FINDIV=$(echo "$FLOWCELLFINDIV" | awk -F'/' '{print $2}')
 echo $ID
 echo $FINDIV
 
-plog=$PWD/PO_${LOGNAME}_${FINDIV}.log
+plog=$PWD/PO_${LOGNAME}_${FINDIV}_${lane}.log
 echo $plog
 maplog=$PWD/mapping.log
 echo $maplog
@@ -197,6 +197,7 @@ SEXGENES() {
     samtools index $read/${sample}.sort.withX.bam
     echo "samtools index $read/${sample}.sort.withX.bam"
 
+    echo "samtools view $read/${sample}.sort.withX.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_withsex"
     samtools view $read/${sample}.sort.withX.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_withsex
 }
 
