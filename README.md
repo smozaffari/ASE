@@ -19,6 +19,7 @@
 
 3. count matrix
     * analysis_1.pbs
-    * ls -ld withoutsaved/*/*/* | grep index | grep trim | cut -f2-4 -d"/"  | sed 's/\.sequence\.trim\.txt//g' | sed 's/\//\./g' | sed 's/\./\ /g' | sed 's/lane_//g' | sed 's/index_//g' >lane_and_index3
+    * ls -ld withoutsaved/*/*/* | grep index | grep trim | cut -f2-4 -d"/"  | sed 's/\.sequence\.trim\.txt//g' | sed 's/\//\./g' | sed 's/\./\ /g' | sed 's/lane_//g' | sed 's/index_//g' | sed 's/FlowCell//g' >lane_and_index3
+
 
 
