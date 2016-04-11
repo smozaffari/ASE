@@ -160,7 +160,7 @@ ASE() {
     findiv=$2
     scriptdir=$3
     sample=$4
-    python $scriptdir/findsnps.py $read/${sample}.keep.merged.sorted.bam /lustre/beagle2/ober/users/smozaffari/ASE/data/genotypes/$findiv > $read/${sample}_ASE_info
+    python $scriptdir/findsnps.py $read/${sample}.keep.merged.sorted.bam /lustre/beagle2/ober/users/smozaffari/ASE/data/genotypes_everyone/$findiv > $read/${sample}_ASE_info
 }
 
 GENECOUNT() {
@@ -233,15 +233,15 @@ echo $SNP_DIR
 echo $SCRIPTDIR
 
 
-TRIM_READ $READ $FINDIV $FILE $adaptor $SAMPLE >>$plog 2>&1 
+#TRIM_READ $READ $FINDIV $FILE $adaptor $SAMPLE >>$plog 2>&1 
 echo "TRIM_READ $READ $FINDIV $FILE $adaptor $SAMPLE  >>$plog 2>&1"
 
 input=$(echo "$FILE" | sed 's/txt.gz/trim.txt/g')
 echo "$input"
-MAP_AND_SAM $READ $FINDIV $input $SAMPLE >>$plog 2>&1
+#MAP_AND_SAM $READ $FINDIV $input $SAMPLE >>$plog 2>&1
 echo "MAP_AND_SAM $READ $FINDIV $SAMPLE  >>$plog 2>&1"
 
-WASP $READ $FINDIV $SNP_DIR $SAMPLE >>$plog 2>&1
+#WASP $READ $FINDIV $SNP_DIR $SAMPLE >>$plog 2>&1
 echo "WASP $READ $FINDIV $SNP_DIR $SAMPLE >>$plog 2>&1"
 
 ASE $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1
