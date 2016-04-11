@@ -9,11 +9,13 @@ path="withoutsaved"
 patterns = c("withsex", "hom", "maternal", "paternal")
 for (val  in 1:length(patterns)) {
     	print (val);
-	file.names<-  list.files(path,recursive=T,pattern=val,full.names=T)
+	print (patterns[val]);
+	file.names<-  list.files(path,recursive=T,pattern=patterns[val],full.names=T)
 	
     	outputfile<- NULL
     	findiv<- c()
     	for(i in 1:length(file.names)) {
+	     if (file.info(file.names[i])$size >0) {
     		file <- read.table(file.names[i], header=F)
 	      	if (!exists("outputfile")) {
 	       		outputfile <- file
@@ -22,6 +24,7 @@ for (val  in 1:length(patterns)) {
       			outputfile <- cbind(outputfile, file$V2)
       			findiv<- c(findiv, unlist(strsplit(file.names[i], "/"))[4])
     		}
+	      }
 	}
 	str(outputfile)
 	f2 <- substr(findiv, 1, nchar(findiv)-14)
@@ -30,5 +33,5 @@ for (val  in 1:length(patterns)) {
 	genes <- rownames(file)
 	rownames(outputfile) <- genes
 
-	write.table(outputfile, paste(path, "genecount", val, sep="_"), row.names = T, col.names = T, quote = F)
+	write.table(outputfile, paste(path, "genecount", patterns[val], sep="_"), row.names = T, col.names = T, quote = F)
 }
