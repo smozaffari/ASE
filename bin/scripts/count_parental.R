@@ -6,12 +6,14 @@
 path="withoutsaved"
 
 # pattern = ending of file 
-patterns = c("withsex", "hom", "maternal", "paternal")
+patterns = c("withsex", "hom", "genes_maternal", "genes_paternal")
+ending = c(14, 17, 22, 22)
+
 for (val  in 1:length(patterns)) {
     	print (val);
 	print (patterns[val]);
 	file.names<-  list.files(path,recursive=T,pattern=patterns[val],full.names=T)
-	
+	length(file.names)	
     	outputfile<- NULL
     	findiv<- c()
     	for(i in 1:length(file.names)) {
@@ -22,15 +24,17 @@ for (val  in 1:length(patterns)) {
 		    	findiv<- c(findiv, unlist(strsplit(file.names[i], "/"))[4])
 		} else {	    
       			outputfile <- cbind(outputfile, file$V2)
-      			findiv<- c(findiv, unlist(strsplit(file.names[i], "/"))[4])
+			flowcell <- unlist(strsplit(file.names[i], "/"))[2]
+			fc <- substr(flowcell, 9, nchar(flowcell))
+			findiv<- c(findiv, paste(fc, unlist(strsplit(file.names[i], "/"))[4], sep="_"))
     		}
 	      }
 	}
 	str(outputfile)
-	f2 <- substr(findiv, 1, nchar(findiv)-14)
+	f2 <- substr(findiv, 1, nchar(findiv)-ending[val])
 	colnames(outputfile) <- c(f2)
 
-	genes <- rownames(file)
+	genes <- file$V1
 	rownames(outputfile) <- genes
 
 	write.table(outputfile, paste(path, "genecount", patterns[val], sep="_"), row.names = T, col.names = T, quote = F)
