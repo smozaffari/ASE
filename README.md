@@ -19,7 +19,10 @@
 
 3. count matrix
     * analysis_1.pbs
-    * ls -ld withoutsaved/*/*/* | grep index | grep trim | cut -f2-4 -d"/"  | sed 's/\.sequence\.trim\.txt//g' | sed 's/\//\./g' | sed 's/\./\ /g' | sed 's/lane_//g' | sed 's/index_//g' | sed 's/FlowCell//g' >lane_and_index3
+    * ` ls -ld withoutsaved/*/*/* | grep index | grep trim | cut -f2-4 -d"/"  | sed 's/\.sequence\.trim\.txt//g' | sed 's/\//\./g' | sed 's/\./\ /g' | sed 's/lane_//g' | sed 's/index_//g' | sed 's/FlowCell//g' >lane_and_index3 
+
+4. POreads
+    * `cut -f1-4 -d" "  withoutsaved/FlowCell1/4972/4972_lane_6_ASE_info | grep -v D7LYM | sort -k1.4,1n -k2,2n -t" " | uniq -c | grep -v indel  | grep -v some >4972_lane6_POreads`
 
 
 
