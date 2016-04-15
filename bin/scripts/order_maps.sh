@@ -11,14 +11,16 @@
 for i in `seq 1 11`;
 do
     echo $i
-    echo "grep -w \"FlowCell${i}\" newqcsorted > FC${i}_mapped"
-    
-    grep -w "FlowCell${i}" newqcsorted > FC${i}_mapped
+#    echo "grep -w \"FlowCell${i}\" newqcsorted > FC${i}_mapped"
+#    grep -w "FlowCell${i}" newqcsorted > FC${i}_mapped
+    echo "grep -w "FlowCell${i}" 989_sorted | sort > FC${i}_mapped"
+    grep -w "FlowCell${i}" 989_sorted |  sort > FC${i}_mapped  
     mkdir map_FC${i}
     echo "for file in `cat FC${i}_mapped`; do cp "$file" map_FC${i}/  ; done "
-    for file in `cat FC${i}_mapped`; do cp "$file" map_FC${i}/  ; done 
-    sed -n '1~6p' map_FC${i}/* > order_FC_map
 
+    for file in `cat FC${i}_mapped`; do cp "$file" map_FC${i}/  ; done 
+
+    sed -n '1~6p' map_FC${i}/* > order_FC_map
     paste FC${i}_mapped order_FC_map | awk '{print $1 $2}' > test
     sed -n '2~6p' map_FC${i}/* > order_FC_map
     paste test order_FC_map | awk '{print $1, $2, $3}' > test2

@@ -233,15 +233,15 @@ echo $SNP_DIR
 echo $SCRIPTDIR
 
 
-#TRIM_READ $READ $FINDIV $FILE $adaptor $SAMPLE >>$plog 2>&1 
+TRIM_READ $READ $FINDIV $FILE $adaptor $SAMPLE >>$plog 2>&1 
 echo "TRIM_READ $READ $FINDIV $FILE $adaptor $SAMPLE  >>$plog 2>&1"
 
 input=$(echo "$FILE" | sed 's/txt.gz/trim.txt/g')
 echo "$input"
-#MAP_AND_SAM $READ $FINDIV $input $SAMPLE >>$plog 2>&1
+MAP_AND_SAM $READ $FINDIV $input $SAMPLE >>$plog 2>&1
 echo "MAP_AND_SAM $READ $FINDIV $SAMPLE  >>$plog 2>&1"
 
-#WASP $READ $FINDIV $SNP_DIR $SAMPLE >>$plog 2>&1
+WASP $READ $FINDIV $SNP_DIR $SAMPLE >>$plog 2>&1
 echo "WASP $READ $FINDIV $SNP_DIR $SAMPLE >>$plog 2>&1"
 
 ASE $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1
