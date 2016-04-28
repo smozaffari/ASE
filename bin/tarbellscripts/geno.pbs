@@ -10,22 +10,24 @@
 cd $PBS_O_WORKDIR
 echo $PBS_O_WORKDIR
 
-#cd $FINDIV 
+cd $FINDIV 
 #echo $PBS_O_WORKDIR/$FINDIV
 
 module load plink
 
 echo "FINDIV: " $FINDIV
 
-echo "plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_paternal --keep ${FINDIV}1.txt --geno 0 --recode transpose --out ${FINDIV}1"
-#plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_paternal --keep ${FINDIV}1.txt --geno 0 --recode transpose --out ${FINDIV}1
-plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_paternal --keep ${FINDIV}1.txt --geno 0 --extract ../exonicvariants_imputationID --recode transpose --out ${FINDIV}1_exonic
-echo "plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_maternal --keep ${FINDIV}2.txt --geno 0 --recode transpose --out ${FINDIV}2"
-#plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_maternal --keep ${FINDIV}2.txt --geno 0 --recode transpose --out ${FINDIV}2
-plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_maternal --keep ${FINDIV}2.txt --geno 0 --extract ../exonicvariants_imputationID --recode transpose --out ${FINDIV}2_exonic    
+echo "plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/imputed_qcfilter --keep ${FINDIV}1.txt --geno 0 --recode transpose --out ${FINDIV}1"
+plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/imputed_qcfilter --keep ${FINDIV}1.txt --geno 0 --recode transpose --out ${FINDIV}1
+#plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/imputed_qcfilter --keep ${FINDIV}1.txt --geno 0 --extract ../exonicvariants_imputationID --recode transpose --out ${FINDIV}1_exonic
+echo "plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/imputed_qcfilter --keep ${FINDIV}2.txt --geno 0 --recode transpose --out ${FINDIV}2"
+plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/imputed_qcfilter --keep ${FINDIV}2.txt --geno 0 --recode transpose --out ${FINDIV}2
+#plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/imputed_qcfilter --keep ${FINDIV}2.txt --geno 0 --extract ../exonicvariants_imputationID --recode transpose --out ${FINDIV}2_exonic    
 
 
-paste <(awk '{print "chr" $1 " " $4 " " $5}' ${FINDIV}1_exonic.tped) <(awk '{print $5}' ${FINDIV}2_exonic.tped) | sed 's/\t/ /g' > ${FINDIV}_exonicSNPs
+#paste <(awk '{print "chr" $1 " " $4 " " $5}' ${FINDIV}1_exonic.tped) <(awk '{print $5}' ${FINDIV}2_exonic.tped) | sed 's/\t/ /g' > ${FINDIV}_exonicSNPs
+paste <(awk '{print "chr" $1 " " $4 " " $5}' ${FINDIV}1.tped) <(awk '{print $5}' ${FINDIV}2.tped) | sed 's/\t/ /g' > ${FINDIV}_SNPs               
+
 
 rm *.tped
 rm *.txt
@@ -33,8 +35,8 @@ rm *.tfam
 rm *.log
 for i in `seq 1 22` 
 do
-   awk -v chr="chr$i"  '$1 == chr {print $2 " " $3 " " $4}' ${FINDIV}_exonicSNPs > chr${i}.exonicsnps.txt
+   awk -v chr="chr$i"  '$1 == chr {print $2 " " $3 " " $4}' ${FINDIV}_SNPs > chr${i}.snps.txt
    wait
-   gzip chr${i}.exonicsnps.txt
-   rm chr${i}.exonicsnps.txt
+   gzip chr${i}.snps.txt
+   rm chr${i}.snps.txt
 done
