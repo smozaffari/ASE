@@ -1,0 +1,26 @@
+#!/bin/bash
+#PBS -l mppwidth=32
+#PBS -l walltime=00:30:00
+#PBS -j oe 
+#PBS -A CI-MCB000155
+
+cd $PBS_O_WORKDIR
+echo $PBS_O_WORKDIR
+. /opt/modules/default/init/bash
+
+umask 022
+
+echo "%%% Begin at " $(date)
+export WHOAMI=$(whoami)
+echo "Submitted as:" $WHOAMI
+echo "running jobs in "$PWD
+#echo "$SCRIPTDIR"
+echo "$FILE"
+
+#cat test_ASE | while read i; do
+#    echo $FILE
+# -b is useful because the scripts are accessible to the compute nodes and don't need to be transferred to spool
+    aprun -n1 -N1 -d 1 -b perl /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/gene_onefile.pl  $FILE
+    echo "aprun -n1 -N1 -d 1 -b perl /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/gene_onefile.pl  $FILE"
+echo "%%% Ending at "$(date)
+#done
