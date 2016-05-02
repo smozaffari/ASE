@@ -18,61 +18,26 @@ while (my $line = <ANN>) {
     my $start = $line[1];
     my $stop = $line[2];
     my $gene = $line[6];
-    if ($gene =~ m/;/) {
-	my @genes = split ";", $gene;
-	my $gene1 = $genes[0];
-	my $gene2 = $genes[1];
-	if ($start{$gene1}) {
-	    if ($start < $start{$gene1}) {
-		$start{$gene1} = $start;
+#    if ($gene =~ m/,/) {
+    my @genes = split ",", $gene;
+    
+    foreach my $genex (@genes) {
+	if ($genex !~ m/NONE/) {
+	    if ($start{$genex}) {
+		if ($start < $start{$genex}) {
+		    $start{$genex} = $start;
+		}
+	    } else {
+		$start{$genex} = $start;
+		$chr{$genex} = $chr;
 	    }
-	} else {
-	    $start{$gene1} = $start;
-	    $chr{$gene1} = $chr;
-	}
-	if ($stop{$gene1}) {
-	    if ($stop > $stop{$gene1}) {
-		$stop{$gene1} = $stop;
+	    if ($stop{$genex}) {
+		if ($stop > $stop{$genex}) {
+		    $stop{$genex} = $stop;
+		}
+	    } else {
+		$stop{$genex} = $stop;
 	    }
-	} else {
-	    $stop{$gene1} = $stop;
-	}
-
-
-	if ($start{$gene2}) {
-            if ($start < $start{$gene2}) {
-		$start{$gene2} = $start;
-            }
-	} else {
-	    $start{$gene2} = $start;
-	    $chr{$gene1} = $chr;
-	}
-
-
-	if ($stop{$gene2}) {
-            if ($stop > $stop{$gene1}) {
-		$stop{$gene2} = $stop;
-            }
-	} else {
-	    $stop{$gene2} = $stop;
-	}
-
-    } else {
-	if ($start{$gene}) {
-            if ($start < $start{$gene}) {
-		$start{$gene} = $start;
-            }
-	} else {
-	    $start{$gene} = $start;
-	    $chr{$gene} = $chr;
-	}
-
-	if ($stop{$gene}) {
-            if ($stop > $stop{$gene}) {
-		$stop{$gene} =$stop;
-            }
-	} else {
-	    $stop{$gene} = $stop;
 	}
     }
 }
