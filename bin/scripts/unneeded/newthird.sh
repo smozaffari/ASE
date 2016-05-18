@@ -191,12 +191,12 @@ echo $fastqList
 echo $SNP_DIR 
 echo $SCRIPTDIR
 
-TRIM_READ $READ $FINDIV $fastqList $adaptor >>$plog 2>&1 
+#TRIM_READ $READ $FINDIV $fastqList $adaptor >>$plog 2>&1 
 echo "TRIM_READ $READ $FINDIV $fastqList $adaptor >>$plog 2>&1"
 
 input=$(echo "$fastqList" | sed 's/txt.gz/trim.txt/g')
 echo "$input"
-MAP_AND_SAM $READ $FINDIV $input >>$plog 2>&1                                                       
+#MAP_AND_SAM $READ $FINDIV $input >>$plog 2>&1                                                       
 echo "MAP_AND_SAM $READ $FINDIV $input  >>$plog 2>&1"
 
 WASP $READ $FINDIV $SNP_DIR >>$plog 2>&1

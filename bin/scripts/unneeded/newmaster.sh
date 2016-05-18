@@ -91,7 +91,7 @@ for dir in $inputDirs;do
 		fi
 	    done
 	fi
-#	if [[ "$count" == 5 ]]; then
+#	if [[ "$count" == 1 ]]; then
 #	    exit
 #	fi
 	    

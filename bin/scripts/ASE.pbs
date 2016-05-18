@@ -1,8 +1,7 @@
 #!/bin/bash
 #PBS -l mppwidth=32
-#PBS -l walltime=24:00:00
+#PBS -l walltime=00:30:00
 #PBS -j oe 
-#PBS -N $FLOWCELLFINDIV
 #PBS -A CI-MCB000155
 
 cd $PBS_O_WORKDIR
@@ -15,17 +14,13 @@ echo "%%% Begin at " $(date)
 export WHOAMI=$(whoami)
 echo "Submitted as:" $WHOAMI
 echo "running jobs in "$PWD
-echo "$SCRIPTDIR"
-#echo "$SEQFILES"
-#echo "$JOBSPERNODE"
-echo "$INPUTDIR"
-echo "$FLOWCELLFINDIV"
-echo "$SNP_DIR"
-echo "$LANE"
+#echo "$SCRIPTDIR"
 echo "$FILE"
 
+#cat test_ASE | while read i; do
+#    echo $FILE
 # -b is useful because the scripts are accessible to the compute nodes and don't need to be transferred to spool
-aprun -n1 -N1 -d 1 -b $SCRIPTDIR/hg19third_bylane.sh  $SCRIPTDIR $FLOWCELLFINDIV $INPUTDIR $SNP_DIR $LANE $FILE
-echo "aprun -n1 -N1 -d 1 -b $SCRIPTDIR/hg19third_bylane.sh  $SCRIPTDIR $FLOWCELLFINDIV $INPUTDIR $SNP_DIR $LANE $FILE 
-
+    aprun -n1 -N1 -d 1 -b perl /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/gene_onefile.pl  $FILE
+    echo "aprun -n1 -N1 -d 1 -b perl /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/gene_onefile.pl  $FILE"
 echo "%%% Ending at "$(date)
+#done
