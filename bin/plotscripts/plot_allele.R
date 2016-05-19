@@ -1,26 +1,26 @@
 
-
+#install.packages("ggplot2")
+library(ggplot2)
 
 args <- commandArgs(trailingOnly=TRUE)
 
-dir <- args[1]
-gene <- args[2]
-chr <- args[3]
-bp <- args[4]
+gene <- args[1]
+chr <- args[2]
+bp <- args[3]
 
-maternal <- read.table(paste(dir, "/Maternal_gene_normalized.txt", sep=""), check.names = F)
-paternal <- read.table(paste(dir, "/Paternal_gene_normalized.txt", sep=""), check.names = F)
+maternal <- read.table("/group/ober-resources/users/smozaffari/ASE/data/expression/Maternal_gene_normalized.txt", check.names = F)
+paternal <- read.table("/group/ober-resources/users/smozaffari/ASE/data/expression/Paternal_gene_normalized.txt", check.names = F)
 genes <- rownames(maternal)
 
-system2(paste("plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_paternal --chr ",
-              chr ,"--from-bp ",
-              bp, "--to-bp ", bp,
-              "--recode --out ", chr, "_snppat", bp, sep=""))
+system(paste("plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_paternal --chr ",
+              chr ," --from-bp ",
+              bp, " --to-bp ", bp,
+              " --recode --out ", chr, "_snppat", bp, sep=""))
 
-system2(paste("plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_maternal --chr ",
-              chr ,"--from-bp ",
-              bp, "--to-bp ", bp,
-              "--recode --out ", chr, "_snpmat", bp, sep=""))
+system(paste("plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_maternal --chr ",
+              chr ," --from-bp ",
+              bp, " --to-bp ", bp,
+              " --recode --out ", chr, "_snpmat", bp, sep=""))
 
 pat <- read.table(paste(chr, "_snppat", bp, ".ped" , sep=""))
 mat <- read.table(paste(chr, "_snpmat", bp, ".ped" , sep=""))
@@ -42,13 +42,11 @@ maternal2 <- as.matrix(maternal)
 paternal2 <- as.matrix(paternal)
 
 for (i in num) {
+  print(i)
   new <- as.data.frame(cbind(maternal2[i,], paternal2[i,]))
   new[is.na(new)] <- 0
   colnames(new) <- c("Mat", "Pat")
-  new$Mat <- as.numeric(new$Mat)
-  new$Pat <- as.numeric(new$Pat)
-  png(paste(gene,"_Maternal_Paternal_", chr,"_", snp, ".png", sep=""), width=800, height=600)
-  ggplot(new, aes(Mat, Pat, col=gtype3$GG)) + 
+  p <-   ggplot(new, aes(Mat, Pat, col=gtype3$GG)) + 
     geom_point( size=3)+
     scale_colour_manual(values=c("#762a83", "#af8dc3", "#bababa", "#7fbf7b", "#1b7837"))+ 
  #                       breaks = c("--", "-G",  "G-", "GG", "00"), 
@@ -59,7 +57,11 @@ for (i in num) {
           legend.title=element_text(size=20),
           legend.text=element_text(size=14),
           legend.key=element_rect(size=5))+ 
-    labs(title=gene, x= "Maternal", y="Paternal")+
+    labs(title=paste(genes[i], " by SNP: chr", chr, ":", bp, sep=""), x= "Maternal", y="Paternal")+
     guides(col=guide_legend(title="Parental Genotype: \n  Maternal:Paternal\n"))
-  dev.off()
+    name=paste(genes[i],"_Maternal_Paternal_", chr,"_", bp, "_", i, ".pdf", sep="")
+    print(name)
+    ggsave(name, plot=p, width=10, height=6, units="in")
 }
+
+sessionInfo()
