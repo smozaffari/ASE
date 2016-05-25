@@ -66,7 +66,7 @@ p <-   ggplot(new, aes(Mat, Pat, col=gtype3$GG)) +
         legend.title=element_text(size=10),
         legend.text=element_text(size=10),
         legend.key=element_rect(size=5))+ 
-  labs(title=paste(genes[i], " by SNP: chr", chr, ":", bp, sep=""), x= "Maternal", y="Paternal")
+  labs(title="All Genotypes",  x= "Maternal", y="Paternal")
 
   name=paste(genes[i],"_Maternal_Paternal_", chr,"_", bp, "_", i, ".pdf", sep="")
 
@@ -92,7 +92,7 @@ q <- ggplot(new2, aes(Mat, Pat, col=gtype4$GG)) +
         legend.title=element_text(size=10),
         legend.text=element_text(size=10),
         legend.key=element_rect(size=5))+ 
-  labs(title=paste(genes[i], " by SNP: chr", chr, ":", bp, sep=""), x= "Maternal", y="Paternal")
+  labs(title="Reciprocal Heterozygotes", x= "Maternal", y="Paternal")
 
 
 #  hom <- unknown[i,]
@@ -118,7 +118,7 @@ print("beforeA")
           legend.title=element_text(size=10),
           legend.text=element_text(size=10),
           legend.key=element_rect(size=5))+ 
-    labs(title=paste("Total ", genes[i], " by SNP: chr", chr, ":", bp, sep=""), 
+    labs(title="Total expression" , 
          y= "Gene Expression", x = "Genotype")
 
 print("beforeb")
@@ -136,14 +136,14 @@ print("beforeb")
           legend.title=element_text(size=10),
           legend.text=element_text(size=10),
           legend.key=element_rect(size=5))+ 
-    labs(title=paste("Y_u expression: ", genes[i], " by SNP: chr", chr, ":", bp, sep=""), 
+    labs(title=paste("Y_u expression: ", sep=""), 
          y= "Gene Expression", x = "Genotype")
 
 
 
     print(name)
-    g <- arrangeGrob(p,q,a,b, ncol=2, nrow=2)
-    ggsave(name, g, width=11, height=8, units="in")
+    g <- arrangeGrob(p,q,a,b, ncol=2, nrow=2, top = paste(genes[i], " by SNP: chr", chr, ":", bp, sep=""))
+    ggsave(name, g, width=11, height=8, units="in", title=paste(genes[i], " by SNP: chr", chr, ":", bp, sep=""))
 }
 
 sessionInfo()
