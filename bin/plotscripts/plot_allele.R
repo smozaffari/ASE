@@ -57,7 +57,7 @@ t <- table(gtype3$GG)
 
 p <-   ggplot(new, aes(Mat, Pat, col=gtype3$GG)) + 
   	      geom_point( size=2.5)+
-	      scale_colour_manual("Parental Genotype\n Maternal: Paternal", values=c("#762a83", "#af8dc3", "#bababa", "#7fbf7b", "#1b7837"),
+	      scale_colour_manual("Parental Genotype\n Paternal: Maternal", values=c("#762a83", "#af8dc3", "#bababa", "#7fbf7b", "#1b7837"),
 	      				    breaks=names(t),
 					    labels=c(paste(names(t), " N=", t))) +
  	      theme(axis.title=element_text(size=12), 
@@ -83,7 +83,7 @@ print("beforeq")
 t2 <- table(gtype4$GG)
 q <- ggplot(new2, aes(Mat, Pat, col=gtype4$GG)) + 
   geom_point( size=2.5)+
-  scale_colour_manual("Heterozygotes\n Maternal:Paternal", values=c("#bababa", "#7fbf7b"),
+  scale_colour_manual("Heterozygotes\n Paternal:Maternal", values=c("#bababa", "#7fbf7b"),
                       breaks=names(t2),
                       labels=c(paste(names(t2), " N=", t2))) +
   theme(axis.title=element_text(size=12), 
@@ -108,7 +108,7 @@ print("beforeA")
   a <- ggplot(all2, aes(as.factor(GG), as.numeric(as.character(total))))+
     geom_boxplot(aes(fill=GG))+
     
-    scale_fill_manual("Parental Genotype\n Maternal: Paternal", 
+    scale_fill_manual("Parental Genotype\n Paternal: Maternal", 
                         values=c("#762a83", "#af8dc3", "#bababa", "#7fbf7b", "#1b7837"),
                         breaks=names(t),
                         labels=c(paste(names(t), " N=",t))) +
@@ -126,7 +126,7 @@ print("beforeb")
   b <- ggplot(all2, aes(as.factor(GG), as.numeric(as.character(hom))))+
     geom_boxplot(aes(fill=GG))+
     
-    scale_fill_manual("Parental Genotype\n Maternal: Paternal", 
+    scale_fill_manual("Parental Genotype\n Paternal: Maternal", 
                       values=c("#762a83", "#af8dc3", "#bababa",  "#7fbf7b", "#1b7837"),
                       breaks=names(t),
                       labels=c(paste(names(t), " N=",t))) +
