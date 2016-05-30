@@ -14,15 +14,21 @@ permute <- function() {
 
 
 for (i in 1:dim(maternal2)[1]) {
-  snps <- system(paste("grep -w ", genes[i], /group/ober-resources/users/rlee/hutt_annotation/annotation_data/all12_imputed_cgi.annovar_plink_annotations.hg19_multianno.txt | cut -f52))
-  system(paste("plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_paternal --chr ",
-              chr ," --from-bp ",
-              bp, " --to-bp ", bp,
-              " --recode --out ", chr, "_snppat", bp, sep=""))
-system(paste("plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_maternal --chr ",
-              chr ," --from-bp ",
-             bp, " --to-bp ", bp,
-              " --recode --out ", chr, "_snpmat", bp, sep=""))
+  print( genes[i])
+  command <- paste("grep -w ",genes[i], " /group/ober-resources/users/smozaffari/ASE/data/ensemble_table_hg19_05.31  | cut -f2-5,12 | uniq", sep="")
+  snps <- read.table(text=system(command, intern=TRUE))
+  mins <- sapply( total , function(x) max( x$V4 )+250000 )
+  maxs <- sapply( total , function(x) max( x$V4 )+250000 )
+  chr <- sapply( total , function(x) unique(x$V1) )
+  for (m in 1:mins)
+    system(paste("plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_paternal --chr ",
+              chr[m] ," --from-bp ",
+              mins[m], " --to-bp ", maxs[m],
+              " --recode --out ", chr[m], "_snppat", mins[m], sep=""))
+    system(paste("plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_maternal --chr ",
+              chr[m] ," --from-bp ",
+              mins[m], " --to-bp ", maxs[m],
+              " --recode --out ", chr[m], "_snpmat", mins[m], sep=""))
 
 mc <- mean(maternal2[i,])
   pc <- mean(paternal2[i,])
