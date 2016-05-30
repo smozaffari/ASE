@@ -17,10 +17,11 @@ for (i in 1:dim(maternal2)[1]) {
   print( genes[i])
   command <- paste("grep -w ",genes[i], " /group/ober-resources/users/smozaffari/ASE/data/ensemble_table_hg19_05.31  | cut -f2-5,12 | uniq", sep="")
   snps <- read.table(text=system(command, intern=TRUE))
+  total <- split( snps , f = snps$V5 )
   mins <- sapply( total , function(x) max( x$V4 )+250000 )
   maxs <- sapply( total , function(x) max( x$V4 )+250000 )
   chr <- sapply( total , function(x) unique(x$V1) )
-  for (m in 1:mins)
+  for (m in 1:length(mins))
     system(paste("plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_paternal --chr ",
               chr[m] ," --from-bp ",
               mins[m], " --to-bp ", maxs[m],
