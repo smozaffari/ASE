@@ -14,7 +14,9 @@ permute <- function() {
 
 
 for (i in 1:dim(maternal2)[1]) {
-  snps <- system(paste("grep -w ", genes[i], /group/ober-resources/users/rlee/hutt_annotation/annotation_data/all12_imputed_cgi.annovar_plink_annotations.hg19_multianno.txt | cut -f52))
+  snps <- system(paste("grep -w ",genes[i], /group/ober-resources/users/smozaffari/ASE/data/ ensemble_table_hg19_05.31  | cut -f2-5,12 | sort | uniq | grep -v _"))
+  genes <- system(paste("grep -w ",genes[i], /group/ober-resources/users/smozaffari/ASE/data/ ensemble_table_hg19_05.31  | cut -f12 | sort | uniq"))
+  foreach (
   system(paste("plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_paternal --chr ",
               chr ," --from-bp ",
               bp, " --to-bp ", bp,
