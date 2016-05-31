@@ -2,6 +2,7 @@ pvals <- c()
 #names(pvals) <- c()
 totalsnps <- c()
 totalpeople <- c()
+mm <- 0
 
 maternal <- read.table("/group/ober-resources/users/smozaffari/ASE/data/expression/Maternal_gene_normalized.txt", check.names = F)
 paternal <- read.table("/group/ober-resources/users/smozaffari/ASE/data/expression/Paternal_gene_normalized.txt", check.names = F)
@@ -25,7 +26,7 @@ tstat <- function(tab) {
 }
 
 sig <- function(vec, newstat) {
-    pval <-  length(which(vec<newstat))/(length(vec)+1)
+    pval <-  (length(vec<newstat))/(length(vec)+1)
     p2<- sprintf("%.10f",pval)
     return(p2)
 }
@@ -52,7 +53,10 @@ for (i in 1:10) {
   snps <- try(read.table(text=system(command, intern=TRUE)))
   if (class(snps) =='try-error') {
      snps=NULL
-
+     pvals[mm+1] <- "NA"
+     names(pvals)[mm+1] <- genes[i]
+     totalsnps[mm+1] <- "NA"
+     names(totalsnps)[mm+1] <- genes[i]
   }
   if (!is.null(snps)) {
   total <- split( snps , f = snps$V5 )
@@ -72,38 +76,31 @@ for (i in 1:10) {
               mins[m], " --to-bp ", maxs[m],
               " --recode --out /group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], sep=""))
      file <- paste("/group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], ".map", sep="")
-     print(file)
     if (file.exists(file)) {
        pat <- read.table(paste("/group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snppat", names(total)[m], ".ped" , sep=""))
        mat <- read.table(paste("/group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], ".ped" , sep=""))
        map <- read.table(paste("/group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], ".map" , sep=""))
-       print(pat[1:5,1:5])
        Findiv <- substr(as.numeric(mat$V2), 1, nchar(mat$V2)-1)
-       print(head(Findiv))
        genos <- (dim(mat)[2]-6)/2
-       print(genos)
        totalsnps[nn] <-  genos
        names(totalsnps)[nn] <- names(total)[m]
        for (g in 1:genos) {
        	   col <- g+7
-	   print(col)
-	   print(head(pat[[col]]))
        	   gtype <- cbind(Findiv, as.character(pat[[col]]), as.character(mat[[col]]))
-	   print(head(gtype))
        	   colnames(gtype) <- c("Findiv", "Pat", "Mat")
 	   findiv <- sort(Findiv)
 	   lostgt <- which(Findiv%in%colnames(maternal))
 	   gtype2 <- as.data.frame(gtype[c(lostgt),])
-	   print(head(gtype2))
 	   maternal424 <- maternal[,c(which(colnames(maternal)%in%Findiv))]
 	   paternal424 <- paternal[,c(which(colnames(paternal)%in%Findiv))]
-	   dim(maternal424)
 	   mm <- i+m+g-1
-	   totalpeople[mm] <- length(which(paternal424[i,]>0)))
+	   totalpeople[mm] <- length(which(paternal424[i,]>0))
 	   names(totalpeople)[mm] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
+	   if (totalpeople[mm] > 10) {
+	      print(totalpeople[mm])
 	   gtype3 <- gtype2[match(colnames(maternal424), as.character(gtype2$Findiv)),]
 	   gtype3$GG <- paste(gtype3$Pat, gtype3$Mat, sep=":")
-	   print(head(gtype3))
+#	   print(head(gtype3))
 	   tgg <- table(gtype3$GG)
 	   print(tgg)
 	   if (length(levels(gtype3$Mat)< 3)) {
@@ -116,32 +113,37 @@ for (i in 1:10) {
 	      	 gtype3$Pat <- factor(gtype3$Pat, levels=levels(gtype3$Mat))
 		 }
 		 }
-	   if (levels(gtype3$Pat) == levels(gtype3$Mat)) {
+	   if (all.equal(levels(gtype3$Pat),  levels(gtype3$Mat))) {
 	   hets <- which(!gtype3$Pat==gtype3$Mat)
 	   if (length(hets) > 10) {
 	   
 	   	   new <- as.data.frame(cbind(unlist(c(maternal424[i,hets])), unlist(c(paternal424[i,hets])),unlist(c(gtype3[hets,"GG"]))))
 		   mm <- i+m+g-1
 	   	   pvals[mm] <- permute(new, 1000)
-		   #	   pvals <- c(pvals,  permute(new, 1000))
-		  print(pvals)
-		print(names(pvals))
-		print(names(total[m]))
+	#		  print(pvals)
+#		print(names(pvals))
+#		print(names(total[m]))
 		names(pvals)[mm] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
-		print(pvals)
+#		print(pvals)
 	    }
 	   write.table(pvals, "pvalues", row.names = F, quote = F)
 	   }
 	}
-
+	}
+	} else {
+	  totalsnps[mm+1] <- 0
+	  names(totalsnps)[mm+1] <- names(total)[m]
+	  totalpeople[mm+1] <- 0
+	  names(totalpeople)[mm+1] <- names(total)[m]
+	 }
 	system(paste("rm /group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snppat", names(total)[m], ".*" , sep=""))
 
 }
 }
 }
-}
 
-write.table(as.character(pvals), "pvalues.txt", quote = F)
-write.table(as.character(totalsnps), "totalsnps.txt", quote=F )
-write.table(as.character(totalpeople), "totalpeople.txt", quote=F )
+
+write.table(t(pvals), "pvalues.txt", quote = F)
+write.table(t(totalsnps), "totalsnps.txt", quote=F )
+write.table(t(totalpeople), "totalpeople.txt", quote=F )
 
