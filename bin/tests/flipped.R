@@ -141,7 +141,7 @@ for (i in 1:10) {
 }
 }
 
-write.table(as.character(pvals), "pvalues", colquote = F)
-write.table(as.character(totalsnps), "totalsnps", quote=F )
-write.table(as.character(totalpeople), "totalpeople", quote=F )
+write.table(as.character(pvals), "pvalues.txt", quote = F)
+write.table(as.character(totalsnps), "totalsnps.txt", quote=F )
+write.table(as.character(totalpeople), "totalpeople.txt", quote=F )
 
