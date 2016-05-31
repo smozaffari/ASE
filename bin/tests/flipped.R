@@ -126,7 +126,7 @@ for (i in 1:10) {
 		names(pvals)[mm] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
 #		print(pvals)
 	    }
-	   write.table(pvals, "pvalues", row.names = F, quote = F)
+	   write.table(t(pvals), "pvalues.txt", row.names = F, quote = F)
 	   }
 	}
 	}
