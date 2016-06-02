@@ -57,7 +57,7 @@ i <- 19232
   print(i)
   print( genes[i])
   genecount <- genecount+1
-  command <- paste("grep -w ",genes[i], " /group/ober-resources/users/smozaffari/ASE/data/ensemble_table_hg19_05.31  | cut -f2-5,12 | uniq", sep="")
+  command <- paste("grep -w ",genes[i], " /group/ober-resources/users/smozaffari/ASE/data/ensemble_table_hg19_05.31  | grep -v \"_\" | cut -f2-5,12 | uniq", sep="")
   snps <- try(read.table(text=system(command, intern=TRUE)))
   head(snps)
   if (class(snps) =='try-error') {
