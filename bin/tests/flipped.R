@@ -30,8 +30,8 @@ tstat <- function(tab) {
 
 sig <- function(vec, newstat) {
   pval <-  (length(which(vec>newstat)))/(length(vec)+1)
-  p2<- sprintf("%.10f",pval)
-  print(p2)
+  format(pval, scientific=TRUE)
+  list(p=pval, t=true)
 }
 
 permute <- function(tab, num) {
@@ -64,6 +64,8 @@ i <- 19232
     snps=NULL	
     pvals[snpcount] <- "NA"
     names(pvals)[snpcount] <- genes[i]
+    tvals[snpcount] <- "NA"
+    names(tvals)[snpcount] <- genes[i]
     totalsnps[genecount] <- "NA"
     names(totalsnps)[genecount] <- genes[i]
     totalpeople[snpcount] <- "NA"
@@ -128,11 +130,16 @@ i <- 19232
 	      names(totalhets)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
 	       if (length(hets) > 10) {
 	         new <- as.data.frame(cbind(unlist(c(maternal424[i,hets])), unlist(c(paternal424[i,hets])),unlist(c(gtype3[hets,"GG"]))))
-	         pvals[snpcount] <- permute(new, 1000)
+	         per <- permute(new, 1000)
+	         pvals[snpcount] <- per$p 
 	         names(pvals)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
+	         tvals[snpcount] <- per$t 
+	         names(tvals)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
 	       } else {
                  pvals[snpcount] <- 'NA'
                  names(pvals)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
+                 tvals[snpcount] <- 'NA'
+                 names(tvals)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
 	       }
 	       write.table(t(pvals), "pvalues.txt", row.names = F, quote = F)
 	    } else {
@@ -155,9 +162,11 @@ i <- 19232
        totalsnps[genecount] <- 0
        names(totalsnps)[genecount] <- names(total)[m]
        totalpeople[snpcount] <- 0
-       names(totalpeople)[snpcount] <- names(total)[m]
+       names(totalpeople)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
        pvals[snpcount] <- 'NA'
-       names(pvals)[snpcount] <- names(total)[m]	  
+       names(pvals)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
+       tvals[snpcount] <- 'NA'
+       names(tvals)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
        totalhets[snpcount] <- 'NA'
        names(totalhets)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
        snpcount <- snpcount+1
@@ -169,10 +178,15 @@ i <- 19232
 
 
 pvals2 <- cbind(names(pvals), pvals)
-write.table(pvals2, "pvalues.txt", quote = F, row.names = F)
+#write.table(pvals2, "pvalues.txt", quote = F, row.names = F)
+tvals2 <- cbind(names(tvals), tvals)
+#write.table(tvals2, "tvalues.txt", quote = F, row.names = F)
 tot2 <- cbind(names(totalsnps), totalsnps)
-write.table(tot2, "totalsnps.txt", quote=F, row.names = F )
+write.table(tot2, "snps.txt", quote=F, row.names = F )
 pp2 <- cbind(names(totalpeople), totalpeople)
-write.table(pp2, "totalpeople.txt", quote=F, row.names = F )
+#write.table(pp2, "people.txt", quote=F, row.names = F )
 het2 <- cbind(names(totalhets), totalhets)
-write.table(het2, "totalhets.txt", quote = F, row.names = F)
+#write.table(het2, "hets.txt", quote = F, row.names = F)
+
+all <- cbind(pp2, het2, tvals2, pvals2)
+write.table(all, "Pvalues_people.txt", quote = F, row.names = F)
