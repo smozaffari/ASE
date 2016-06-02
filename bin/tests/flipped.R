@@ -91,11 +91,10 @@ i <- 19232
        	mat <- read.table(paste("/group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], ".ped" , sep=""))
        	map <- read.table(paste("/group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], ".map" , sep=""))
        	Findiv <- substr(as.numeric(mat$V2), 1, nchar(mat$V2)-1)
-       	genos <- (dim(mat)[2]-6)/2
+       	genos <- ((dim(mat)[2])/2)+6
        	totalsnps[genecount] <-  genos
        	names(totalsnps)[genecount] <- names(total)[m]
-	genos <- 10
-       	for (g in 1:genos) {
+	for (g in 1:genos) {
        	  col <- g
        	  gtype <- cbind(Findiv, as.character(pat[[col]]), as.character(mat[[col]]))
        	  colnames(gtype) <- c("Findiv", "Pat", "Mat")
