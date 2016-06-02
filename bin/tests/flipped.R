@@ -24,12 +24,12 @@ tstat <- function(tab) {
   het1m <- mean(na.omit(as.numeric(as.character(unlist(s[[1]][2])))))
   het2m <- mean(na.omit(as.numeric(as.character(unlist(s[[2]][2])))))
 
-  T = (het1p-het2p)^2-(het1m-het2m)^2
+  T = (het1m-het2p)^2-(het1p-het2m)^2
   list(h1p=het1p, h2p=het2p, h1m=het1m, h2m=het2m, T=T)
 }
 
 sig <- function(vec, newstat) {
-  pval <-  (length(vec>newstat))/(length(vec)+1)
+  pval <-  (length(which(vec>newstat)))/(length(vec)+1)
   p2<- sprintf("%.10f",pval)
   print(p2)
 }
@@ -91,11 +91,11 @@ i <- 19232
        	mat <- read.table(paste("/group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], ".ped" , sep=""))
        	map <- read.table(paste("/group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], ".map" , sep=""))
        	Findiv <- substr(as.numeric(mat$V2), 1, nchar(mat$V2)-1)
-       	genos <- ((dim(mat)[2])/2)+6
+       	genos <- ((dim(mat)[2])/2)
        	totalsnps[genecount] <-  genos
        	names(totalsnps)[genecount] <- names(total)[m]
 	for (g in 1:genos) {
-       	  col <- g
+       	  col <- g+6+1
        	  gtype <- cbind(Findiv, as.character(pat[[col]]), as.character(mat[[col]]))
        	  colnames(gtype) <- c("Findiv", "Pat", "Mat")
 	  findiv <- sort(Findiv)
