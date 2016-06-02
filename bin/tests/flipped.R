@@ -24,12 +24,12 @@ tstat <- function(tab) {
   het1m <- mean(na.omit(as.numeric(as.character(unlist(s[[1]][2])))))
   het2m <- mean(na.omit(as.numeric(as.character(unlist(s[[2]][2])))))
 
-  T = (het1p-het2p)^2+(het1m-het2m)^2
+  T = (het1p-het2p)^2-(het1m-het2m)^2
   list(h1p=het1p, h2p=het2p, h1m=het1m, h2m=het2m, T=T)
 }
 
 sig <- function(vec, newstat) {
-  pval <-  (length(vec<newstat))/(length(vec)+1)
+  pval <-  (length(vec>newstat))/(length(vec)+1)
   p2<- sprintf("%.10f",pval)
   print(p2)
 }
@@ -39,13 +39,12 @@ permute <- function(tab, num) {
   orig <- tstat(tab)
   true <- orig$T	
   for (n in 1:num) {
-    tab1 <- tab[, c(sample(c(1,2)))]
-    tab2 <- tab1[sample(nrow(tab1)),]
-    tab3 <- cbind(tab2, tab$V3)
-    colnames(tab3)[3] <- "V3"
-    vec <- c(vec, tstat(tab3)$T)
-    print(vec, tstat(tab3)$T)
-    tab <- tab3
+    tab1 <- tab[, c(1,2)]
+    tab1 <- cbind(tab1, sample(tab$V3))
+    colnames(tab1)[3] <- "V3"
+    vec <- c(vec, tstat(tab1)$T)
+#    print(vec, tstat(tab1)$T)
+tab <- tab1
   }
 #  list(vals=vec)
    sig(vec, true)	   
@@ -84,10 +83,8 @@ i <- 19232
 	#      nn <- i+m-1
       c <- substr(chr[m], 4, nchar(as.character(chr[m])))
 #      print(c, mins[m], maxs[m])
-      system(paste("plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_paternal --chr ", c ," --from-bp ", mins[m], " --to-bp ", maxs[m],
-              	" --recode --out /group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snppat", names(total)[m] , sep=""))
-      system(paste("plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_maternal --chr ", c ," --from-bp ", mins[m], " --to-bp ", maxs[m],
-              	" --recode --out /group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], sep=""))
+      system(paste("plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_paternal --chr ", c ," --from-bp ", mins[m], " --to-bp ", maxs[m], " --recode --out /group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snppat", names(total)[m] , sep=""))
+      system(paste("plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_maternal --chr ", c ," --from-bp ", mins[m], " --to-bp ", maxs[m], " --recode --out /group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], sep=""))
       file <- paste("/group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], ".map", sep="")
       if (file.exists(file)) {
         pat <- read.table(paste("/group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snppat", names(total)[m], ".ped" , sep=""))
@@ -99,7 +96,7 @@ i <- 19232
        	names(totalsnps)[genecount] <- names(total)[m]
 	genos <- 10
        	for (g in 1:genos) {
-       	  col <- g+7
+       	  col <- g
        	  gtype <- cbind(Findiv, as.character(pat[[col]]), as.character(mat[[col]]))
        	  colnames(gtype) <- c("Findiv", "Pat", "Mat")
 	  findiv <- sort(Findiv)
