@@ -44,7 +44,7 @@ permute <- function(tab, num) {
     tab3 <- cbind(tab2, tab$V3)
     colnames(tab3)[3] <- "V3"
     vec <- c(vec, tstat(tab3)$T)
-    print(vec, tstat(tab3$)$T)
+    print(vec, tstat(tab3)$T)
     tab <- tab3
   }
 #  list(vals=vec)
