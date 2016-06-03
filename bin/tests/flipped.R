@@ -2,6 +2,7 @@ pvals <- c()
 totalsnps <- c()
 totalpeople <- c()
 totalhets <- c()
+tvals <- c()
 mm <- 0
 
 snpcount <- 1;
@@ -29,9 +30,11 @@ tstat <- function(tab) {
 }
 
 sig <- function(vec, newstat) {
-  pval <-  (length(which(vec>newstat)))/(length(vec)+1)
-  format(pval, scientific=TRUE)
-  list(p=pval, t=true)
+  pval <-  (length(which(vec>newstat))+1)/(length(vec)+1)
+#  pval2 <- sprintf("%.100f",pval)
+#  pval2<- sprintf("%.20f",pval)
+#  print(pval2)
+   list(p=format(pval, scientific=TRUE), t=newstat)
 }
 
 permute <- function(tab, num) {
@@ -76,15 +79,13 @@ i <- 19232
   }
   if (!is.null(snps)) {
     total <- split( snps , f = snps$V5 )
+    print(total)
     mins <- sapply( total , function(x) min( x$V3 )-250000 )
     maxs <- sapply( total , function(x) max( x$V4 )+250000 )
     chr <- sapply( total , function(x) unique(x$V1) )
     totmatch <- length(total)
     for (m in 1:totmatch) {
-      genecount <- genecount+m-1
-	#      nn <- i+m-1
       c <- substr(chr[m], 4, nchar(as.character(chr[m])))
-#      print(c, mins[m], maxs[m])
       system(paste("plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_paternal --chr ", c ," --from-bp ", mins[m], " --to-bp ", maxs[m], " --recode --out /group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snppat", names(total)[m] , sep=""))
       system(paste("plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_maternal --chr ", c ," --from-bp ", mins[m], " --to-bp ", maxs[m], " --recode --out /group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], sep=""))
       file <- paste("/group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], ".map", sep="")
@@ -97,7 +98,10 @@ i <- 19232
        	totalsnps[genecount] <-  genos
        	names(totalsnps)[genecount] <- names(total)[m]
 	for (g in 1:genos) {
-       	  col <- g+6+1
+	  if (g%%2==0) {
+	    g+1
+	  }
+       	  col <- g+6
        	  gtype <- cbind(Findiv, as.character(pat[[col]]), as.character(mat[[col]]))
        	  colnames(gtype) <- c("Findiv", "Pat", "Mat")
 	  findiv <- sort(Findiv)
@@ -109,7 +113,6 @@ i <- 19232
 	  totalpeople[snpcount] <- length(which(paternal424[i,]>0))
 	  names(totalpeople)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
 	  if ( totalpeople[snpcount] >= 10) {
-	    print(totalpeople[snpcount])
 	    gtype3 <- gtype2[match(colnames(maternal424), as.character(gtype2$Findiv)),]
 	    gtype3$GG <- paste(gtype3$Pat, gtype3$Mat, sep=":")
 	    tgg <- table(gtype3$GG)
@@ -125,13 +128,17 @@ i <- 19232
 	    }
 	    if (all.equal(levels(gtype3$Pat),  levels(gtype3$Mat))) {
 	      hets <- which(!gtype3$Pat==gtype3$Mat)
-#	      print(hets)
 	      totalhets[snpcount] <- length(hets)
 	      names(totalhets)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
 	       if (length(hets) > 10) {
 	         new <- as.data.frame(cbind(unlist(c(maternal424[i,hets])), unlist(c(paternal424[i,hets])),unlist(c(gtype3[hets,"GG"]))))
+		 write.table(new, "ZDBF2.txt", quote = F)
 	         per <- permute(new, 1000)
-	         pvals[snpcount] <- per$p 
+		 print(per$p)
+		 print(format(permute(new, 1000), scientific=TRUE))
+		 print(format(per$p), scientific=TRUE)
+		 print (as.integer(per$p))
+	         pvals[snpcount] <- per$p
 	         names(pvals)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
 	         tvals[snpcount] <- per$t 
 	         names(tvals)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
@@ -150,9 +157,7 @@ i <- 19232
 	  print("not 10 people")
 	  if (all.equal(levels(gtype3$Pat),  levels(gtype3$Mat))) {
             hets <- which(!gtype3$Pat==gtype3$Mat)
-#	    print(hets)	    
 	    totalhets[snpcount] <- length(hets)
-	    
 	    names(totalhets)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
 	  }
 	}
