@@ -1,3 +1,5 @@
+args = commandArgs(trailingOnly=TRUE)
+
 pvals <- c()
 totalsnps <- c()
 totalpeople <- c()
@@ -25,16 +27,13 @@ tstat <- function(tab) {
   het1m <- mean(na.omit(as.numeric(as.character(unlist(s[[1]][2])))))
   het2m <- mean(na.omit(as.numeric(as.character(unlist(s[[2]][2])))))
 
-  T = (het1m-het2p)^2-(het1p-het2m)^2
+  T = (het1m-het2p)^2+(het1p-het2m)^2
   list(h1p=het1p, h2p=het2p, h1m=het1m, h2m=het2m, T=T)
 }
 
 sig <- function(vec, newstat) {
   pval <-  (length(which(vec>newstat))+1)/(length(vec)+1)
-#  pval2 <- sprintf("%.100f",pval)
-#  pval2<- sprintf("%.20f",pval)
-#  print(pval2)
-   list(p=format(pval, scientific=TRUE), t=newstat)
+  list(p=format(pval, scientific=TRUE), t=newstat)
 }
 
 permute <- function(tab, num) {
@@ -46,17 +45,14 @@ permute <- function(tab, num) {
     tab1 <- cbind(tab1, sample(tab$V3))
     colnames(tab1)[3] <- "V3"
     vec <- c(vec, tstat(tab1)$T)
-#    print(vec, tstat(tab1)$T)
-tab <- tab1
+    tab <- tab1
   }
-#  list(vals=vec)
    sig(vec, true)	   
 }
 
 print(dim(maternal2)[1])
-#for (i in 1:dim(maternal2)[1]) {
-#for (i in 1:20) {
-i <- 19232
+
+  i <- args[1]
   print(i)
   print( genes[i])
   genecount <- genecount+1
@@ -193,5 +189,5 @@ pp2 <- cbind(names(totalpeople), totalpeople)
 het2 <- cbind(names(totalhets), totalhets)
 #write.table(het2, "hets.txt", quote = F, row.names = F)
 
-all <- cbind(pp2, het2, tvals2, pvals2)
-write.table(all, "Pvalues_people.txt", quote = F, row.names = F)
+all <- cbind(names(totalpeople), totalpeople, totalhets, tvals, pvals)
+write.table(all, paste("summary_",genes[i],".txt", sep=""), quote = F, row.names = F)
