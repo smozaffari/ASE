@@ -10,6 +10,12 @@
 
 module load plink
 
+cd $PBS_O_WORKDIR
+echo $PBS_O_WORKDIR
+
+cd $FINDIV 
+echo $PBS_O_WORKDIR/$FINDIV
+
 #echo "$FINDIV:", $FINDIV
 
 #echo "plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_paternal --keep ${FINDIV}1.txt --geno 0 --recode transpose --out ${FINDIV}1_paternal_geno"
@@ -17,10 +23,10 @@ module load plink
 
 echo "FINDIV: " $FINDIV
 
-echo "plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_paternal --keep ${FINDIV}1.txt --geno 0 --recode transpose --out ${FINDIV}1"
-plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_paternal --keep ${FINDIV}1.txt --geno 0 --recode transpose --out ${FINDIV}1
-echo "plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_maternal --keep ${FINDIV}2.txt --geno 0 --recode transpose --out ${FINDIV}2"
-plink --bfile /group/ober-resources/users/smozaffari/POeQTL/data/Hutterite_maternal --keep ${FINDIV}2.txt --geno 0 --recode transpose --out ${FINDIV}2
+echo "plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_paternal --keep ${FINDIV}1.txt --geno 0 --recode transpose --out ${FINDIV}1"
+plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_paternal --keep ${FINDIV}1.txt --geno 0 --recode transpose --out ${FINDIV}1
+echo "plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_maternal --keep ${FINDIV}2.txt --geno 0 --recode transpose --out ${FINDIV}2"
+plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_maternal --keep ${FINDIV}2.txt --geno 0 --recode transpose --out ${FINDIV}2
 
 
 
