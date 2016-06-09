@@ -1,6 +1,6 @@
 /lustre/beagle2/ober/users/smozaffari/ASE/data/*
 /data/*
-bin/ref/*
+bin/ref/*.fa
 /lustre/beagle2/ober/users/smozaffari/ASE/ref/*
 bin/scripts/WASP/*
 bin/scripts/WASP/master/*

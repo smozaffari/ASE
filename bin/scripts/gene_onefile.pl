@@ -24,7 +24,8 @@ while (my $line = <ANN>) {
 #open (FILES, "/lustre/beagle2/ober/users/smozaffari/ASE/results/test_ASE") || die "nope: $!";
 #while (my $fileline = <FILES>) {
 my @findiv_lane = split "/", $inputfile;
-my $name = $findiv_lane[3];
+
+my $name = $findiv_lane[1].'_'.$findiv_lane[3];
 my $outfile = "out_$name.txt";
 open (OUT, ">summarystats/$outfile") || die "nope: $!";
 open (ASE, $inputfile) || die "nope: $!";
