@@ -1,5 +1,6 @@
 args = commandArgs(trailingOnly=TRUE)
-
+i <- args[1]
+print(i)
 pvals <- c()
 totalsnps <- c()
 totalpeople <- c()
@@ -13,6 +14,8 @@ genecount <- 0;
 maternal <- read.table("/group/ober-resources/users/smozaffari/ASE/data/expression/Maternal_gene_normalized.txt", check.names = F)
 paternal <- read.table("/group/ober-resources/users/smozaffari/ASE/data/expression/Paternal_gene_normalized.txt", check.names = F)
 genes <- rownames(maternal)
+print(genes)
+genes[i]
 unknown <- read.table("/group/ober-resources/users/smozaffari/ASE/data/expression/Unknown_gene_normalized.txt", check.names = F)
 total <- read.table("/group/ober-resources/users/smozaffari/ASE/data/expression/Total_gene_normalized.txt", check.names = F)                
 
@@ -54,7 +57,7 @@ print(dim(maternal2)[1])
 
   i <- args[1]
   print(i)
-  print( genes[i])
+  print(genes[i])
   genecount <- genecount+1
   command <- paste("grep -w ",genes[i], " /group/ober-resources/users/smozaffari/ASE/data/ensemble_table_hg19_05.31  | grep -v \"_\" | cut -f2-5,12 | uniq", sep="")
   snps <- try(read.table(text=system(command, intern=TRUE)))
@@ -189,5 +192,6 @@ pp2 <- cbind(names(totalpeople), totalpeople)
 het2 <- cbind(names(totalhets), totalhets)
 #write.table(het2, "hets.txt", quote = F, row.names = F)
 
-all <- cbind(names(totalpeople), totalpeople, totalhets, tvals, pvals)
+all <- cbind(tot2, totalhets, tvals, pvals)
+head(all)
 write.table(all, paste("summary_",genes[i],".txt", sep=""), quote = F, row.names = F)

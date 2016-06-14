@@ -7,12 +7,14 @@
 #PBS -o test.log
 #PBS -M smozaffari@uchicago.edu
 
+cd $PBS_O_WORKDIR
+echo $PBS_O_WORKDIR
 
 module load plink
 module load R
 
 #for i in {1..19920}
 #do
-i=7
-	Rscript /group/ober-resources/users/smozaffari/ASE/bin/tests/flipped.R $i
+i=19233
+Rscript --vanilla /group/ober-resources/users/smozaffari/ASE/bin/tests/flipped.R $i
 #done
