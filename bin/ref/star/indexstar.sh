@@ -1,7 +1,6 @@
 #!/bin/bash
-#PBS -l mppwidth=32
+#PBS -l mppwidth=30
 #PBS -l walltime=05:00:00
-#PBS -l mem=30gb
 #PBS -j oe 
 ## Beagle specific
 ##PBS -A CI-MCB000155
@@ -27,10 +26,9 @@ echo $setup_log
 echo "RUNNING $scriptName as " $(readlink -f $0 ) " on " `date`  | tee  $setup_log
 
 
-cat /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/hg19.chroms/* > genome.fa
-wait
+#cp /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/bowtie2Index/genome.fa genome.fa
+#wait
 
-/lustre/beagle2/ober/users/smozaffari/STAR/STAR-2.5.2a/bin/Linux_x86_64/STAR --runMode genomeGenerate --runThreadN 8 --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/. --genomeFastaFiles genome.fa --sjdbGTFfile /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotations/genes.gtf --sjdbOverhang 49
-
+aprun -n 1  -N 1  -d 1 -b /lustre/beagle2/ober/users/smozaffari/STAR/STAR-2.5.2a/bin/Linux_x86_64/STAR --runMode genomeGenerate --runThreadN 30 --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/. --genomeFastaFiles genome.fa
 
 
