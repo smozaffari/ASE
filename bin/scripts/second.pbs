@@ -25,7 +25,7 @@ echo "$LANE"
 echo "$FILE"
 
 # -b is useful because the scripts are accessible to the compute nodes and don't need to be transferred to spool
-aprun -n1 -N1 -d 1 -b $SCRIPTDIR/hg19third_bylane.sh  $SCRIPTDIR $FLOWCELLFINDIV $INPUTDIR $SNP_DIR $LANE $FILE
-echo "aprun -n1 -N1 -d 1 -b $SCRIPTDIR/hg19third_bylane.sh  $SCRIPTDIR $FLOWCELLFINDIV $INPUTDIR $SNP_DIR $LANE $FILE 
+aprun -n1 -N1 -d 1 -b $SCRIPTDIR/hg19_star.sh  $SCRIPTDIR $FLOWCELLFINDIV $INPUTDIR $SNP_DIR $LANE $FILE
+echo "aprun -n1 -N1 -d 1 -b $SCRIPTDIR/hg19_star.sh  $SCRIPTDIR $FLOWCELLFINDIV $INPUTDIR $SNP_DIR $LANE $FILE 
 
 echo "%%% Ending at "$(date)
