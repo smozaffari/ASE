@@ -164,6 +164,16 @@ print(dim(maternal2)[1])
 #          gtype3$GG <- paste(gtype3$Pat, gtype3$Mat, sep=":")
 #	  head(gtype3)
 #	  if (all.equal(levels(gtype3$Pat),  levels(gtype3$Mat))) {
+	  if (length(levels(gtype3$Mat)< 3)) {
+	      if (length(levels(gtype3$Pat) ==3 )) {
+	        gtype3$Mat <- factor(gtype3$Mat, levels=levels(gtype3$Pat))
+	      }
+	    }
+	    if (length(levels(gtype3$Pat) < 3)) {
+	      if (length(levels(gtype3$Mat) ==3)) {
+	        gtype3$Pat <- factor(gtype3$Pat, levels=levels(gtype3$Mat))
+	      }
+	    }
             hets <- which(!gtype3$Pat==gtype3$Mat)
 	    totalhets[snpcount] <- 'NA'
 	    names(totalhets)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
