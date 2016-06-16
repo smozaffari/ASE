@@ -1,5 +1,5 @@
 args = commandArgs(trailingOnly=TRUE)
-i <- args[1]
+i <- as.numeric(args[1])
 print(i)
 pvals <- c()
 totalsnps <- c()
@@ -14,7 +14,6 @@ genecount <- 0;
 maternal <- read.table("/group/ober-resources/users/smozaffari/ASE/data/expression/Maternal_gene_normalized.txt", check.names = F)
 paternal <- read.table("/group/ober-resources/users/smozaffari/ASE/data/expression/Paternal_gene_normalized.txt", check.names = F)
 genes <- rownames(maternal)
-print(genes)
 genes[i]
 unknown <- read.table("/group/ober-resources/users/smozaffari/ASE/data/expression/Unknown_gene_normalized.txt", check.names = F)
 total <- read.table("/group/ober-resources/users/smozaffari/ASE/data/expression/Total_gene_normalized.txt", check.names = F)                
@@ -55,11 +54,12 @@ permute <- function(tab, num) {
 
 print(dim(maternal2)[1])
 
-  i <- args[1]
+  i <- as.numeric(args[1])
   print(i)
   print(genes[i])
   genecount <- genecount+1
   command <- paste("grep -w ",genes[i], " /group/ober-resources/users/smozaffari/ASE/data/ensemble_table_hg19_05.31  | grep -v \"_\" | cut -f2-5,12 | uniq", sep="")
+  print(command);
   snps <- try(read.table(text=system(command, intern=TRUE)))
   head(snps)
   if (class(snps) =='try-error') {
@@ -111,10 +111,13 @@ print(dim(maternal2)[1])
 	  lots <- length(which(paternal424[i,]>0))
 	  totalpeople[snpcount] <- length(which(paternal424[i,]>0))
 	  names(totalpeople)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
+ 	  gtype3 <- gtype2[match(colnames(maternal424), as.character(gtype2$Findiv)),]
+          gtype3$GG <- paste(gtype3$Pat, gtype3$Mat, sep=":")
+          tgg <- table(gtype3$GG)
 	  if ( totalpeople[snpcount] >= 10) {
-	    gtype3 <- gtype2[match(colnames(maternal424), as.character(gtype2$Findiv)),]
-	    gtype3$GG <- paste(gtype3$Pat, gtype3$Mat, sep=":")
-	    tgg <- table(gtype3$GG)
+#	    gtype3 <- gtype2[match(colnames(maternal424), as.character(gtype2$Findiv)),]
+#	    gtype3$GG <- paste(gtype3$Pat, gtype3$Mat, sep=":")
+#	    tgg <- table(gtype3$GG)
 	    if (length(levels(gtype3$Mat)< 3)) {
 	      if (length(levels(gtype3$Pat) ==3 )) {
 	        gtype3$Mat <- factor(gtype3$Mat, levels=levels(gtype3$Pat))
@@ -125,7 +128,8 @@ print(dim(maternal2)[1])
 	        gtype3$Pat <- factor(gtype3$Pat, levels=levels(gtype3$Mat))
 	      }
 	    }
-	    if (all.equal(levels(gtype3$Pat),  levels(gtype3$Mat))) {
+#	    if (all.equal(levels(gtype3$Pat),  levels(gtype3$Mat))) {
+	      
 	      hets <- which(!gtype3$Pat==gtype3$Mat)
 	      totalhets[snpcount] <- length(hets)
 	      names(totalhets)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
@@ -148,17 +152,22 @@ print(dim(maternal2)[1])
                  names(tvals)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
 	       }
 	       write.table(t(pvals), "pvalues.txt", row.names = F, quote = F)
-	    } else {
-	      totalhets[snpcount] <- NA
-	      names(totalhets)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
-	    }
+#	    } else {
+#	      totalhets[snpcount] <- 'NA'
+#	      names(totalhets)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
+#	    }
 	} else {
 	  print("not 10 people")
-	  if (all.equal(levels(gtype3$Pat),  levels(gtype3$Mat))) {
+	  print(gtype2$Pat)
+	  print(gtype2$Mat)
+#	  gtype3 <- gtype2[match(colnames(maternal424), as.character(gtype2$Findiv)),]
+#          gtype3$GG <- paste(gtype3$Pat, gtype3$Mat, sep=":")
+#	  head(gtype3)
+#	  if (all.equal(levels(gtype3$Pat),  levels(gtype3$Mat))) {
             hets <- which(!gtype3$Pat==gtype3$Mat)
-	    totalhets[snpcount] <- length(hets)
+	    totalhets[snpcount] <- 'NA'
 	    names(totalhets)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
-	  }
+#	  }
 	}
 	snpcount <- snpcount+1
       }
@@ -192,6 +201,6 @@ pp2 <- cbind(names(totalpeople), totalpeople)
 het2 <- cbind(names(totalhets), totalhets)
 #write.table(het2, "hets.txt", quote = F, row.names = F)
 
-all <- cbind(tot2, totalhets, tvals, pvals)
+all <- cbind(pp2, totalhets, tvals, pvals)
 head(all)
 write.table(all, paste("summary_",genes[i],".txt", sep=""), quote = F, row.names = F)

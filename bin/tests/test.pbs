@@ -15,6 +15,6 @@ module load R
 
 #for i in {1..19920}
 #do
-i=19233
+i=7
 Rscript --vanilla /group/ober-resources/users/smozaffari/ASE/bin/tests/flipped.R $i
 #done
