@@ -108,8 +108,8 @@ print(dim(maternal2)[1])
 	  gtype2 <- as.data.frame(gtype[c(lostgt),])
 	  maternal424 <- maternal[,c(which(colnames(maternal)%in%Findiv))]
 	  paternal424 <- paternal[,c(which(colnames(paternal)%in%Findiv))]
-	  lots <- length(which(paternal424[i,]>0))
-	  totalpeople[snpcount] <- length(which(paternal424[i,]>0))
+	  lots <- length(which(paternal424[i,]>=0))
+	  totalpeople[snpcount] <- length(which(paternal424[i,]>=0))
 	  names(totalpeople)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
  	  gtype3 <- gtype2[match(colnames(maternal424), as.character(gtype2$Findiv)),]
           gtype3$GG <- paste(gtype3$Pat, gtype3$Mat, sep=":")

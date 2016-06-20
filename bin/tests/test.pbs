@@ -14,7 +14,8 @@ module load plink
 module load R
 
 #for i in {1..19920}
-#do
-i=7
+for i in {1..500} 
+do
+#i=7
 Rscript --vanilla /group/ober-resources/users/smozaffari/ASE/bin/tests/flipped.R $i
-#done
+done
