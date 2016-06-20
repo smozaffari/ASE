@@ -15,7 +15,7 @@ echo $setup_log
 echo "RUNNING $scriptName as " $(readlink -f $0 ) " on " `date`  | tee  $setup_log
 
 #genes=19919
-genes=100
+genes=200
 jobs=$((genes/50))
 j=1
 
