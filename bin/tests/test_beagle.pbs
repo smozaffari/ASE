@@ -1,0 +1,38 @@
+#PBS -S /bin/bash
+#PBS -N test.pbs
+#PBS -j oe
+#PBS -l mppwidth=32
+#PBS -l walltime=5:00:00
+#PBS -M smozaffari@uchicago.edu
+#PBS -A CI-MCB000155
+
+cd $PBS_O_WORKDIR
+echo $PBS_O_WORKDIR
+
+. /opt/modules/default/init/bash
+if [ ! $(module list -t 2>&1 | grep PrgEnv-gnu) ]; then
+ module swap PrgEnv-cray PrgEnv-gnu
+fi
+
+ASEDIR=/lustre/beagle2/ober/users/smozaffari/ASE
+echo $ASEDIR
+
+echo "$NUM"
+N2=$((NUM+50))
+echo "$N2"
+
+module load python/2.7.6-vanilla
+module load R/3.1.0
+which Rscript
+
+#for i in {1..19920}
+
+
+for ((i=$NUM; i<=N2; i++));
+do
+echo "Rscript --verbose --vanilla  $ASEDIR/bin/tests/flipped_beagle.R --args $i  &"
+Rscript --verbose  --vanilla $ASEDIR/bin/tests/flipped_beagle.R  --args $i &
+done
+
+wait
+echo "%%% Ending at "$(date)
