@@ -13,6 +13,10 @@ bin/scripts/WASP/master/*
 results/
 /bin/tests/*.txt
 Anaconda-2.2.0-Linux-x86_64.sh
+/bin/ref/star/*
+
+
+
 
 /anaconda/*
 
