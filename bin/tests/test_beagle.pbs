@@ -28,10 +28,10 @@ which Rscript
 #for i in {1..19920}
 
 
-for ((i=$NUM; i<=N2; i++));
+for ((i=$NUM; i<N2; i++));
 do
-echo "Rscript --verbose --vanilla  $ASEDIR/bin/tests/flipped_beagle.R --args $i  &"
-Rscript --verbose  --vanilla $ASEDIR/bin/tests/flipped_beagle.R  --args $i &
+echo "aprun -n1 -N1 -d1 Rscript --verbose --vanilla  $ASEDIR/bin/tests/flipped_beagle.R  $i  & >${i}_out 2>${i}_err"
+aprun -n1 -N1 -d1 Rscript --verbose  --vanilla $ASEDIR/bin/tests/flipped_beagle.R  $i & >${i}_out 2>${i}_err
 done
 
 wait
