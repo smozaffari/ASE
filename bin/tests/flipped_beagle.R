@@ -224,3 +224,6 @@ het2 <- cbind(names(totalhets), totalhets)
 all <- cbind(pp2, totalhets, tvals, pvals)
 head(all)
 write.table(all, paste(dir, "/results/tests_flipped/summary_",genes[i],".txt", sep=""), quote = F, row.names = F)
+
+
+system(paste("rm ",dir,"/results/tests_flipped/", chr[m], "_snp*at", names(total)[m], ".*" , sep=""))
