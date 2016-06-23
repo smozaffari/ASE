@@ -62,25 +62,31 @@ print(dim(maternal2)[1])
   print(i)
   print(genes[i])
   genecount <- genecount+1
-  command <- paste("grep -w ",genes[i], " ",dir,"/data/ensemble_table_hg19_05.31  | grep -v \"_\" | cut -f2-5,12 | uniq", sep="")
-  print(command);
-  snps <- try(read.table(text=system(command, intern=TRUE)))
-  head(snps)
-  if (class(snps) =='try-error') {
-    snps=NULL	
-    pvals[snpcount] <- "NA"
-    names(pvals)[snpcount] <- genes[i]
-    tvals[snpcount] <- "NA"
-    names(tvals)[snpcount] <- genes[i]
-    totalsnps[genecount] <- "NA"
-    names(totalsnps)[genecount] <- genes[i]
-    totalpeople[snpcount] <- "NA"
-    names(totalpeople)[snpcount] <- genes[i]
-    totalhets[snpcount] <- "NA"
-    names(totalhets)[snpcount] <- genes[i]
-    snpcount <- snpcount+1
-  }
-  if (!is.null(snps)) {
+#  command <- paste("grep -w ",genes[i], " ",dir,"/data/ensemble_table_hg19_05.31  | grep -v \"_\" | cut -f2-5,12 | uniq", sep="")
+#  print(command);
+  ens <- read.csv("/lustre/beagle2/ober/users/smozaffari/ASE/data/ensembl.txt", sep="\t", header = F, stringsAsFactors=FALSE)
+  snps <- ens[which(ens$V5==genes[i]),] 
+
+#  snps <- try(read.table(text=system(command, intern=TRUE)))
+#  head(snps)
+#  if (class(snps) =='try-error') {
+#    snps=NULL	
+#    pvals[snpcount] <- "NA"
+#    names(pvals)[snpcount] <- genes[i]
+#    tvals[snpcount] <- "NA"
+#    names(tvals)[snpcount] <- genes[i]
+#    totalsnps[genecount] <- "NA"
+#    names(totalsnps)[genecount] <- genes[i]
+#    totalpeople[snpcount] <- "NA"
+#    names(totalpeople)[snpcount] <- genes[i]
+#    totalhets[snpcount] <- "NA"
+#    names(totalhets)[snpcount] <- genes[i]
+#    snpcount <- snpcount+1
+#  }
+ # if (!is.null(snps)) {
+   if (!dim(snps)[1]==0) {
+    snps <- droplevels(snps)
+    snps[,c(3,4)] <- sapply(snps[,c(3,4)], as.numeric)
     total <- split( snps , f = snps$V5 )
     print(total)
     mins <- sapply( total , function(x) min( x$V3 )-250000 )
@@ -155,7 +161,7 @@ print(dim(maternal2)[1])
                  tvals[snpcount] <- 'NA'
                  names(tvals)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
 	       }
-	       write.table(t(pvals), "pvalues.txt", row.names = F, quote = F)
+#	       write.table(t(pvals), "pvalues.txt", row.names = F, quote = F)
 #	    } else {
 #	      totalhets[snpcount] <- 'NA'
 #	      names(totalhets)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
