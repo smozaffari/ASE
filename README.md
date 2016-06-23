@@ -9,7 +9,7 @@
     
 2. Process all the reads (ignore rescued reads) and put into output Directory : 
    * Trim adaptors with cutadapt
-   * Map to hg19 using bowtie2
+   * Map to hg19 using star
    * WASP to remove mapping bias
    * findsnps.py to separate maternal and paternal reads
    * Add back in sex chromosome genes
