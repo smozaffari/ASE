@@ -204,7 +204,7 @@ print(dim(maternal2)[1])
        names(totalhets)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
        snpcount <- snpcount+1
      }
-     system(paste("rm ",dir,"/results/tests_flipped/", chr[m], "_snppat", names(total)[m], ".*" , sep=""))
+     system(paste("rm ",dir,"/results/tests_flipped/", chr[m], "_snp*at", names(total)[m], ".*" , sep=""))
    }
  }
 #}
