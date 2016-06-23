@@ -126,8 +126,6 @@ WASP() { # use WASP to remove mapping bias
     echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/  --readFilesIn $read/${sample}.sorted.remap.fq.gz --readFilesCommand zcat --outFileNamePrefix $read/${sample}.sorted.map2"
     /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/ --readFilesIn $read/${sample}.sorted.remap.fq.gz --readFilesCommand zcat --outFileNamePrefix $read/${sample}.sorted.map2
    wait
-#    samtools view  -b -q 10 $read/$lane/accepted_hits.bam >  $read/${sample}.sorted.remap.bam
-#    echo "samtools view  -b -q 10 $read/$lane/accepted_hits.bam >  $read/${sample}.sorted.remap.bam"
 
     echo "samtools view -S -h -q 10 -b $read/${sample}.sorted.map2Aligned.out.sam > $read/${sample}.sorted.remap.bam"
     samtools view -S -h -q 10 -b $read/${sample}.sorted.map2Aligned.out.sam > $read/${sample}.sorted.remap.bam
@@ -175,7 +173,7 @@ GENECOUNT() {
     sample=$2
 
     samtools view  $read/${sample}.keep.merged.sorted.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes
-    samtools view $read/${sample}.sort.withX.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_withsex
+#    samtools view $read/${sample}.sort.withX.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_withsex
     samtools view  $read/${sample}.keep.merged.sorted.maternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_maternal
     samtools view  $read/${sample}.keep.merged.sorted.paternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_paternal
     samtools view $read/${sample}.keep.merged.sorted.keep.bam | htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_hom
@@ -212,19 +210,19 @@ COUNTREADS() {
     read=$1
     sample=$2
 
-    samtools view -c -F 255 $read/${sample}.sorted.bam > $read/${sample}.sorted.txt
-    echo "samtools view -c -F 255 $read/${sample}.sorted.bam > $read/${sample}.sorted.txt"
-    samtools view -c -F 255 $read/${sample}.sort.withX.bam >>$read/${sample}.sorted.txt
-    echo "samtools view -c -F 255 $read/${sample}.sort.withX.bam >>$read/${sample}.sorted.txt"
+    samtools view -c -F 256 $read/${sample}.sorted.bam > $read/${sample}.sorted.txt
+    echo "samtools view -c -F 256 $read/${sample}.sorted.bam > $read/${sample}.sorted.txt"
+    samtools view -c -F 256 $read/${sample}.sort.withX.bam >>$read/${sample}.sorted.txt
+    echo "samtools view -c -F 256 $read/${sample}.sort.withX.bam >>$read/${sample}.sorted.txt"
 
-    samtools view -c -F 255 $read/${sample}.keep.merged.sorted.bam >>$read/${sample}.sorted.txt
-    echo "samtools view -c -F 255 $read/${sample}.keep.merged.sorted.bam >>$read/${sample}.sorted.txt"
-    samtools view -c -F 255 $read/${sample}.keep.merged.sorted.keep.bam >>$read/${sample}.sorted.txt
-    echo "samtools view -c -F 255 $read/${sample}.keep.merged.sorted.keep.bam >>$read/${sample}.sorted.txt"
-    samtools view -c -F 255 $read/${sample}.keep.merged.sorted.paternal.bam >>$read/${sample}.sorted.txt
-    echo "samtools view -c -F 255 $read/${sample}.keep.merged.sorted.paternal.bam >>$read/${sample}.sorted.txt"
-    samtools view -c -F 255 $read/${sample}.keep.merged.sorted.maternal.bam >>$read/${sample}.sorted.txt
-    echo "samtools view -c -F 255 $read/${sample}.keep.merged.sorted.maternal.bam >>$read/${sample}.sorted.txt"
+    samtools view -c -F 256 $read/${sample}.keep.merged.sorted.bam >>$read/${sample}.sorted.txt
+    echo "samtools view -c -F 256 $read/${sample}.keep.merged.sorted.bam >>$read/${sample}.sorted.txt"
+    samtools view -c -F 256 $read/${sample}.keep.merged.sorted.keep.bam >>$read/${sample}.sorted.txt
+    echo "samtools view -c -F 256 $read/${sample}.keep.merged.sorted.keep.bam >>$read/${sample}.sorted.txt"
+    samtools view -c -F 256 $read/${sample}.keep.merged.sorted.paternal.bam >>$read/${sample}.sorted.txt
+    echo "samtools view -c -F 256 $read/${sample}.keep.merged.sorted.paternal.bam >>$read/${sample}.sorted.txt"
+    samtools view -c -F 256 $read/${sample}.keep.merged.sorted.maternal.bam >>$read/${sample}.sorted.txt
+    echo "samtools view -c -F 256 $read/${sample}.keep.merged.sorted.maternal.bam >>$read/${sample}.sorted.txt"
 }
 
 export -f TRIM_READ

@@ -73,10 +73,10 @@ for dir in $inputDirs;do
 		lane=$(echo $newfile |  cut -d "." -f1)
 		echo $newfile
 		echo $lane
-		if [[ $dir == *"100092"* ]] ; then
+#		if [[ $dir == *"100092"* ]] ; then
 		    qsub -v FLOWCELLFINDIV=$dir,NUM=$count,SCRIPTDIR=$scriptDir,SNP_DIR=$snpDir,INPUTDIR=$outDir,LANE=$lane,FILE=$newfile -N ${dir}_${lane} $scriptDir/second.pbs 2>&1
 		    echo -e "qsub -v FLOWCELLFINDIV=\"$dir\",NUM=\"$count\",SCRIPTDIR=\"$scriptDir\",SNP_DIR=\"$snpDir\",INPUT_DIR=\"$outDir\",LANE=\"$lane\",FILE=\"$newfile\" -N \"${dir}_${lane}\" $scriptDir/second.pbs" | tee -a $setup_log
-		fi
+#		fi
 		((count++))
 		nJobsInRun=0
 	    fi
