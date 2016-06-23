@@ -16,6 +16,28 @@ Anaconda-2.2.0-Linux-x86_64.sh
 /bin/ref/star/*
 
 
+bin/ref/UCSC_Annotation/
+bin/ref/gene_info
+bin/ref/gene_name
+bin/ref/gene_name.gtf
+bin/ref/gene_name_ordered
+bin/ref/hg19/
+bin/ref/hg38/alt/
+bin/ref/hg38/analysisset/README
+bin./ref/hg38/analysisset/README~
+bin/ref/hg38/analysisset/bowtie2Index.err
+bin/ref/hg38/analysisset/bowtie2Index.out
+bin/ref/hg38/analysisset/bowtie2Index/
+bin/ref/hg38/analysisset/hg38.analysisSet.chroms.tar.gz
+bin/ref/hg38/analysisset/hg38.analysisSet.chroms/
+bin/ref/hg38/analysisset/hg38_all.fa
+bin/ref/hg38/analysisset/indexBowtie2.sh.o3577406
+bin/ref/info
+bin/scripts/#master2.sh#
+bin/tests/#*
+
+
+
 
 
 /anaconda/*
