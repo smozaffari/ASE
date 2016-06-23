@@ -2,7 +2,8 @@
 #PBS -N test.pbs
 #PBS -j oe
 #PBS -l mppwidth=32
-#PBS -l walltime=5:00:00
+##PBS -l walltime=5:00:00
+#PBS -l walltime=00:30:00
 #PBS -M smozaffari@uchicago.edu
 #PBS -A CI-MCB000155
 
@@ -21,18 +22,11 @@ echo "$NUM"
 N2=$((NUM+50))
 echo "$N2"
 
+N2=50 
+
 module load python/2.7.6-vanilla
-module load R/3.1.0
-which Rscript
-
-#for i in {1..19920}
+module load R/3.1.3-vanilla
 
 
-for ((i=$NUM; i<N2; i++));
-do
-echo "aprun -n1 -N1 -d1 Rscript --verbose --vanilla  $ASEDIR/bin/tests/flipped_beagle.R  $i  & >${i}_out 2>${i}_err"
-aprun -n1 -N1 -d1 Rscript --verbose  --vanilla $ASEDIR/bin/tests/flipped_beagle.R  $i & >${i}_out 2>${i}_err
-done
+aprun -n 1 -d 32 -N 1  -b $ASEDIR/bin/tests/third.sh $ASEDIR $NUM $N2
 
-wait
-echo "%%% Ending at "$(date)
