@@ -5,56 +5,69 @@ dir <- "/lustre/beagle2/ober/users/smozaffari/ASE"
 maternal <- read.table(paste(dir,"/data/expression/Maternal_gene_normalized.txt", sep=""), check.names = F)
 paternal <- read.table(paste(dir,"/data/expression/Paternal_gene_normalized.txt", sep=""),  check.names = F)
 genes <- rownames(maternal)
-genes[i]
-unknown <- read.table(paste(dir,"/data/expression/Unknown_gene_normalized.txt", sep=""), check.names = F)
-total <- read.table(paste(dir, "/data/expression/Total_gene_normalized.txt", sep=""), check.names = F)                
 
 
 maternal2 <- as.matrix(maternal)
 paternal2 <- as.matrix(paternal)
 
-tstat <- function(tab) {
-  s <- split(tab, tab$V3)
-  het1p <- mean(na.omit(as.numeric(as.character(unlist(s[[1]][1])))))
-  het2p <- mean(na.omit(as.numeric(as.character(unlist(s[[2]][1])))))
-  het1m <- mean(na.omit(as.numeric(as.character(unlist(s[[1]][2])))))
-  het2m <- mean(na.omit(as.numeric(as.character(unlist(s[[2]][2])))))
-
-  T = (het1m-het2p)^2+(het1p-het2m)^2
-  list(h1p=het1p, h2p=het2p, h1m=het1m, h2m=het2m, T=T)
+tstat <- function(obsmean, permean) {
+  odiff <- (obsmean[,1]-obsmean[,2])
+  pdiff <- (permean[,1]-permean[,2])
+  T = (odiff)^2+(pdiff)^2
+  list(odiff=odiff, pdiff=pdiff, T=T)
 }
 
-sig <- function(vec, newstat) {
-  pval <-  (length(which(vec>newstat))+1)/(length(vec)+1)
-  list(p=format(pval, scientific=TRUE), t=newstat)
-}
-
-permute <- function(tab1,tab2, num) {
-  both <-  cbind(maternal,     paternal)
-  l <- apply(both, 1, function(x) length(which(!is.na(x))))
-  tt <- apply(both, 1, function(x) sample(x, size=length(which(!is.na(x))))
-
-  vec <- NULL
-  orig <- tstat(tab)
-  true <- orig$T	
-  for (n in 1:num) {
-    tab1 <- tab[, c(1,2)]
-    tab1 <- cbind(tab1, sample(tab$V3))
-    colnames(tab1)[3] <- "V3"
-    vec <- c(vec, tstat(tab1)$T)
-    tab <- tab1
+sig <- function(ptab, otab) {
+  pval <- c()
+  length(pval) <- dim(ptab)[2]
+  for (d in 1:dim(ptab)[2]) {
+    pval[d] <- as.numeric((length(which(ptab[,d]>otab[d]))+1)/(dim(ptab)[1]+1))
   }
-   sig(vec, true)	   
+  return(pvals=pval)
+#  list(p=format(pval, scientific=TRUE), t=otab[d])
 }
+
+permuted_mean <- function(tab) {
+  tt <- apply(both, 1, function(x) sample(x))
+  ss <- apply(tt, 2, function(x) split(na.omit(x), f=c("mat", "pat")))  
+  m <- do.call(rbind.data.frame, (rapply(ss, function(x){mean(x)}, how="list")))
+  return(m) 
+}
+
+
+permute <- function(tab1, num) {
+  vec <- c()
+  mm2 <- cbind(rowMeans(maternal, na.rm=TRUE), rowMeans(paternal, na.rm=TRUE))
+  diff <- mm2[,1]-mm2[,2]
+  for (n in 1:num) {
+      permean<- permuted_mean(tab1)
+#      vec <- rbind(vec, tstat(mm2, permean)$T)
+       vec <- rbind(vec, (permean[,1]-permean[,2]))
+  }
+  pvals <- sig(vec, (diff))
+  names(pvals) <- rownames(mm2) 
+  dir <- sign(diff)
+  dir[dir==-1] <- "paternal"
+  dir[dir==1] <- "maternal"
+  #if positive = maternal biased
+  #if negative = paternal biased
+  list(pvals=pvals, diff=diff, dir=dir)
+}
+
 
 print(dim(maternal2)[1])
 
 matmeans <- rowMeans(maternal, na.rm=TRUE)
 patmeans <- rowMeans(paternal, na.rm=TRUE)
 
-both <- cbind(maternal, paternal)
-tt <- (apply(both, 1, function(x) sample(x, size=length(!is.na(x)))))
-l <- apply(tt, 2, function(x) length(which(!is.na(x))))
+both <-  cbind(maternal,     paternal)
+l <- apply(both, 1, function(x) length(which(!is.na(x))))
+
+asym <- permute(both, 1000)
+table <- cbind(asym$pvals, asym$diff, asym$dir)
+rownames(table) <- names(asym$pvals)
+write.table(table, "Asymmetry_1000.txt", quote = F, row.names = T, col.names = F)
+
 
 
 

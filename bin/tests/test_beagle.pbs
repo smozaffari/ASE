@@ -3,7 +3,7 @@
 #PBS -j oe
 #PBS -l mppwidth=32
 ##PBS -l walltime=5:00:00
-#PBS -l walltime=02:00:00
+#PBS -l walltime=24:00:00
 #PBS -M smozaffari@uchicago.edu
 #PBS -A CI-MCB000155
 
@@ -22,10 +22,9 @@ echo "$NUM"
 N2=$((NUM+50))
 echo "$N2"
 
-N2=50 
 
 module load python/2.7.6-vanilla
-module load R/3.1.3-vanilla
+module load R/3.2.3-vanilla
 
 
 aprun -n 1 -d 32 -N 1  -b $ASEDIR/bin/tests/third.sh $ASEDIR $NUM $N2

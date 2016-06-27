@@ -106,11 +106,10 @@ print(dim(maternal2)[1])
        	genos <- ((dim(mat)[2]-6)/2)
        	totalsnps[genecount] <-  genos
        	names(totalsnps)[genecount] <- names(total)[m]
+	print(genos);
 	for (g in 1:genos) {
-	  if (g%%2==0) {
-	    g+1
-	  }
-       	  col <- g+6
+	  print(g);
+       	  col <- (g*2)+6
        	  gtype <- cbind(Findiv, as.character(pat[[col]]), as.character(mat[[col]]))
        	  colnames(gtype) <- c("Findiv", "Pat", "Mat")
 	  findiv <- sort(Findiv)
@@ -147,10 +146,6 @@ print(dim(maternal2)[1])
 	         new <- as.data.frame(cbind(unlist(c(maternal424[i,hets])), unlist(c(paternal424[i,hets])),unlist(c(gtype3[hets,"GG"]))))
 #		 write.table(new, "ZDBF2.txt", quote = F)
 	         per <- permute(new, 1000)
-		 print(per$p)
-		 print(format(permute(new, 1000), scientific=TRUE))
-		 print(format(per$p), scientific=TRUE)
-		 print (as.integer(per$p))
 	         pvals[snpcount] <- per$p
 	         names(pvals)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
 	         tvals[snpcount] <- per$t 
@@ -226,4 +221,4 @@ head(all)
 write.table(all, paste(dir, "/results/tests_flipped/summary_",genes[i],".txt", sep=""), quote = F, row.names = F)
 
 
-system(paste("rm ",dir,"/results/tests_flipped/", chr[m], "_snp*at", names(total)[m], ".*" , sep=""))
+system(paste("rm ",dir,"/results/tests_flipped/*_snp*at", names(total)[m], ".*" , sep=""))

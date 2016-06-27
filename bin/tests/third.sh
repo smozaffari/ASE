@@ -32,4 +32,4 @@ R_shell() {
 }
 export -f R_shell
 
-parallel -j 32  R_shell ::: $(seq $NUM $N2)  2>&1
+parallel -j 32  R_shell ::: $(seq $NUM $N2 )  2>&1
