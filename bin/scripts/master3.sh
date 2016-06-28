@@ -6,8 +6,8 @@
 inputDir=$(readlink -f $1)
 #echo "Input files will be searched in " $inputDir
 
-jobsPerNode=10
-NNodes=10
+jobsPerNode=32
+NNodes=4
 #jobsPerNode=$2 #How many jobs per node = 1..32 what parallel gets 1-32 specific to Beagle
 #NNodes=$3 #Number of nodes you want to use /available (for 1000 files, and about 20 jobs/node only need 50 nodes)
 
