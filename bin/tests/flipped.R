@@ -85,8 +85,8 @@ print(dim(maternal2)[1])
     totmatch <- length(total)
     for (m in 1:totmatch) {
       c <- substr(chr[m], 4, nchar(as.character(chr[m])))
-      system(paste("plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_paternal --chr ", c ," --from-bp ", mins[m], " --to-bp ", maxs[m], " --recode --out /group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snppat", names(total)[m] , sep=""))
-      system(paste("plink --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_maternal --chr ", c ," --from-bp ", mins[m], " --to-bp ", maxs[m], " --recode --out /group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], sep=""))
+      system(paste("plink-1.9 --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_paternal --chr ", c ," --from-bp ", mins[m], " --to-bp ", maxs[m], " --recode --out /group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snppat", names(total)[m] , sep=""))
+      system(paste("plink-1.9 --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_maternal --chr ", c ," --from-bp ", mins[m], " --to-bp ", maxs[m], " --recode --out /group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], sep=""))
       file <- paste("/group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], ".map", sep="")
       if (file.exists(file)) {
         pat <- read.table(paste("/group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snppat", names(total)[m], ".ped" , sep=""))

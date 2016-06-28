@@ -21,14 +21,13 @@ sig <- function(ptab, otab) {
   pval <- c()
   length(pval) <- dim(ptab)[2]
   for (d in 1:dim(ptab)[2]) {
-    pval[d] <- as.numeric((length(which(ptab[,d]>otab[d]))+1)/(dim(ptab)[1]+1))
+    pval[d] <- as.numeric((length(which(ptab[,d]>otab[d]))+1)/(dim(ptab)[1]))
   }
   return(pvals=pval)
-#  list(p=format(pval, scientific=TRUE), t=otab[d])
 }
 
 permuted_mean <- function(tab) {
-  tt <- apply(both, 1, function(x) sample(x))
+  tt <- apply(tab, 1, function(x) sample(x))
   ss <- apply(tt, 2, function(x) split(na.omit(x), f=c("mat", "pat")))  
   m <- do.call(rbind.data.frame, (rapply(ss, function(x){mean(x)}, how="list")))
   return(m) 
@@ -41,16 +40,13 @@ permute <- function(tab1, num) {
   diff <- mm2[,1]-mm2[,2]
   for (n in 1:num) {
       permean<- permuted_mean(tab1)
-#      vec <- rbind(vec, tstat(mm2, permean)$T)
        vec <- rbind(vec, (permean[,1]-permean[,2]))
   }
   pvals <- sig(vec, (diff))
   names(pvals) <- rownames(mm2) 
   dir <- sign(diff)
-  dir[dir==-1] <- "paternal"
-  dir[dir==1] <- "maternal"
-  #if positive = maternal biased
-  #if negative = paternal biased
+  dir[dir==-1] <- "paternal" #if negative = paternal biased
+  dir[dir==1] <- "maternal" #if positive = maternal biased
   list(pvals=pvals, diff=diff, dir=dir)
 }
 
@@ -63,10 +59,10 @@ patmeans <- rowMeans(paternal, na.rm=TRUE)
 both <-  cbind(maternal,     paternal)
 l <- apply(both, 1, function(x) length(which(!is.na(x))))
 
-asym <- permute(both, 1000)
+asym <- permute(both, 10000)
 table <- cbind(asym$pvals, asym$diff, asym$dir)
 rownames(table) <- names(asym$pvals)
-write.table(table, "Asymmetry_1000.txt", quote = F, row.names = T, col.names = F)
+write.table(table, "Asymmetry_10000.txt", quote = F, row.names = T, col.names = F)
 
 
 

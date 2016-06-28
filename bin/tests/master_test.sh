@@ -15,9 +15,9 @@ echo $setup_log
 echo "RUNNING $scriptName as " $(readlink -f $0 ) " on " `date`  | tee  $setup_log
 
 #genes=19919
-genes=19919
+genes=10
 jobs=$((genes/50))
-j=7553
+j=1
 
 while [ $j -lt $genes ]; do
     echo "The counter is $j" | tee -a $setup_log
