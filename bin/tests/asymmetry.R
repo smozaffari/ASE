@@ -10,59 +10,62 @@ genes <- rownames(maternal)
 maternal2 <- as.matrix(maternal)
 paternal2 <- as.matrix(paternal)
 
-tstat <- function(obsmean, permean) {
-  odiff <- (obsmean[,1]-obsmean[,2])
-  pdiff <- (permean[,1]-permean[,2])
+tstat <- function(pdiff, odiff) {
   T = (odiff)^2+(pdiff)^2
-  list(odiff=odiff, pdiff=pdiff, T=T)
+  return(T)
 }
 
 sig <- function(ptab, otab) {
   pval <- c()
   length(pval) <- dim(ptab)[2]
   for (d in 1:dim(ptab)[2]) {
-    pval[d] <- as.numeric((length(which(ptab[,d]>otab[d]))+1)/(dim(ptab)[1]))
+    pval[d] <- as.numeric((length(which(ptab[,d]>otab[d])))/(dim(ptab)[1]))
   }
   return(pvals=pval)
 }
 
-permuted_mean <- function(tab) {
-  tt <- apply(tab, 1, function(x) sample(x))
-  ss <- apply(tt, 2, function(x) split(na.omit(x), f=c("mat", "pat")))  
-  m <- do.call(rbind.data.frame, (rapply(ss, function(x){mean(x)}, how="list")))
-  return(m) 
-}
-
-
-permute <- function(tab1, num) {
+permute2 <- function(mtab, ptab, num) {
   vec <- c()
-  mm2 <- cbind(rowMeans(maternal, na.rm=TRUE), rowMeans(paternal, na.rm=TRUE))
+  mm2 <- cbind(rowMeans(mtab, na.rm=TRUE), rowMeans(ptab, na.rm=TRUE))
   diff <- mm2[,1]-mm2[,2]
-  for (n in 1:num) {
-      permean<- permuted_mean(tab1)
-       vec <- rbind(vec, (permean[,1]-permean[,2]))
+  for (i in 1:num) {
+    permean <- permuted_rows_mean(mtab, ptab)
+    vec <- rbind(vec, ((permean$mat-permean$pat)^2))
   }
-  pvals <- sig(vec, (diff))
-  names(pvals) <- rownames(mm2) 
+  pvals <- sig(vec, (diff^2))
+  names(pvals) <- rownames(mm2)
   dir <- sign(diff)
   dir[dir==-1] <- "paternal" #if negative = paternal biased
   dir[dir==1] <- "maternal" #if positive = maternal biased
-  list(pvals=pvals, diff=diff, dir=dir)
+  list(pvals=pvals, T=diff^2, dir=dir)
 }
 
+permuted_rows_mean <- function(mat, pat) {
+  b_mm <- apply(mat, 1, function(x) rbinom(dim(mat)[1], 1, 0.5))
+  b_mp <- 1-b_mm
+  mat2<-(mat*b_mm)+(pat*b_mp)
+  pat2<-(pat*b_mm)+(mat*b_mp)
+  ss_m <- apply(mat2, 1, function(x) mean((x), na.rm=T))
+  ss_p <- apply(pat2, 1, function(x) mean((x), na.rm=T))
+  list(mat=ss_m, pat=ss_p)
+}
 
-print(dim(maternal2)[1])
-
-matmeans <- rowMeans(maternal, na.rm=TRUE)
-patmeans <- rowMeans(paternal, na.rm=TRUE)
-
-both <-  cbind(maternal,     paternal)
-l <- apply(both, 1, function(x) length(which(!is.na(x))))
-
-asym <- permute(both, 10000)
-table <- cbind(asym$pvals, asym$diff, asym$dir)
+asym <- permute2(both, 1000)
+table <- cbind(asym$pvals, asym$T, asym$dir)
 rownames(table) <- names(asym$pvals)
+
 write.table(table, "Asymmetry_10000.txt", quote = F, row.names = T, col.names = F)
+
+sigenes<- rownames(table)[(which(table[,1]==0))]
+
+again_mat <- maternal[genes,]
+again_pat <- paternal[genes,]
+
+asym <- permute2(again_mat,again_pat, 100000)
+table <- cbind(asym$pvals, asym$T, asym$dir)
+rownames(table) <- names(asym$pvals)
+
+write.table(table, "Asymmetry_p0_100000.txt", quote = F, row.names = T, col.names = F)
 
 
 
