@@ -43,14 +43,14 @@ permute2 <- function(mtab, ptab, num) {
 permuted_rows_mean <- function(mat, pat) {
   b_mm <- apply(mat, 1, function(x) rbinom(dim(mat)[1], 1, 0.5))
   b_mp <- 1-b_mm
-  mat2<-(mat*b_mm)+(pat*b_mp)
-  pat2<-(pat*b_mm)+(mat*b_mp)
+  mat2<-(b_mm*mat)+(b_mp*pat)
+  pat2<-(b_mm*pat)+(b_mp*mat)
   ss_m <- apply(mat2, 1, function(x) mean((x), na.rm=T))
   ss_p <- apply(pat2, 1, function(x) mean((x), na.rm=T))
   list(mat=ss_m, pat=ss_p)
 }
 
-asym <- permute2(both, 1000)
+asym <- permute2(maternal, paternal, 1000)
 table <- cbind(asym$pvals, asym$T, asym$dir)
 rownames(table) <- names(asym$pvals)
 
@@ -58,8 +58,8 @@ write.table(table, "Asymmetry_10000.txt", quote = F, row.names = T, col.names = 
 
 sigenes<- rownames(table)[(which(table[,1]==0))]
 
-again_mat <- maternal[genes,]
-again_pat <- paternal[genes,]
+again_mat <- maternal[sigenes,]
+again_pat <- paternal[sigenes,]
 
 asym <- permute2(again_mat,again_pat, 100000)
 table <- cbind(asym$pvals, asym$T, asym$dir)
