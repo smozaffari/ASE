@@ -1,8 +1,8 @@
 #PBS -S /bin/bash
 #PBS -N asym.pbs
 #PBS -j oe
-##PBS -l mppwidth=32
-#PBS -l walltime=12:00:00
+#PBS -l mppwidth=32
+#PBS -l walltime=24:00:00
 #PBS -M smozaffari@uchicago.edu
 #PBS -A CI-MCB000155
 
