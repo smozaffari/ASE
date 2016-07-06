@@ -14,8 +14,7 @@ results/
 /bin/tests/*.txt
 Anaconda-2.2.0-Linux-x86_64.sh
 /bin/ref/star/*
-
-
+bin/scripts/WASP
 bin/ref/UCSC_Annotation/
 bin/ref/gene_info
 bin/ref/gene_name
