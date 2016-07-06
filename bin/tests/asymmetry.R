@@ -50,16 +50,20 @@ permuted_rows_mean <- function(mat, pat) {
   list(mat=ss_m, pat=ss_p)
 }
 
-asym <- permute2(maternal, paternal, 1000)
-table <- cbind(asym$pvals, asym$T, asym$dir)
-rownames(table) <- names(asym$pvals)
+#asym <- permute2(maternal, paternal, 1000)
+#table <- cbind(asym$pvals, asym$T, asym$dir)
+#rownames(table) <- names(asym$pvals)
 
-write.table(table, "Asymmetry_10000.txt", quote = F, row.names = T, col.names = F)
+#write.table(table, "Asymmetry_10000.txt", quote = F, row.names = T, col.names = F)
 
-sigenes<- rownames(table)[(which(table[,1]==0))]
+still0genes <- read.table("/lustre/beagle2/ober/users/smozaffari/ASE/results/tests_asym/still0genes_10000")
+head(still0genes)
 
-again_mat <- maternal[sigenes,]
-again_pat <- paternal[sigenes,]
+#sigenes<- rownames(table)[(which(table[,1]==0))]
+
+
+again_mat <- maternal[which(rownames(maternal)%in%still0genes$V1),]
+again_pat <- paternal[which(rownames(paternal)%in%still0genes$V1),]
 
 asym <- permute2(again_mat,again_pat, 100000)
 table <- cbind(asym$pvals, asym$T, asym$dir)
