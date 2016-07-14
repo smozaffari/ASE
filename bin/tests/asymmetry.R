@@ -1,5 +1,12 @@
 #!/usr/bin/Rscript
 
+library(parallel)
+no_cores <- 32
+print(no_cores)
+cl <- makeCluster(no_cores)
+base <- 2
+clusterExport(cl, "base")
+
 dir <- "/lustre/beagle2/ober/users/smozaffari/ASE"
 
 maternal <- read.table(paste(dir,"/data/expression/Maternal_gene_normalized.txt", sep=""), check.names = F)
@@ -29,6 +36,7 @@ permute2 <- function(mtab, ptab, num) {
   mm2 <- cbind(rowMeans(mtab, na.rm=TRUE), rowMeans(ptab, na.rm=TRUE))
   diff <- mm2[,1]-mm2[,2]
   for (i in 1:num) {
+    print(i);
     permean <- permuted_rows_mean(mtab, ptab)
     vec <- rbind(vec, ((permean$mat-permean$pat)^2))
   }
@@ -41,36 +49,36 @@ permute2 <- function(mtab, ptab, num) {
 }
 
 permuted_rows_mean <- function(mat, pat) {
-  b_mm <- apply(mat, 1, function(x) rbinom(dim(mat)[1], 1, 0.5))
+  b_mm <- parApply(cl, mat, 1, function(x) rbinom(dim(mat)[1], 1, 0.5))
   b_mp <- 1-b_mm
   mat2<-(b_mm*mat)+(b_mp*pat)
   pat2<-(b_mm*pat)+(b_mp*mat)
-  ss_m <- apply(mat2, 1, function(x) mean((x), na.rm=T))
-  ss_p <- apply(pat2, 1, function(x) mean((x), na.rm=T))
+  ss_m <- parApply(cl, mat2, 1, function(x) mean((x), na.rm=T))
+  ss_p <- parApply(cl,pat2, 1, function(x) mean((x), na.rm=T))
   list(mat=ss_m, pat=ss_p)
 }
 
-#asym <- permute2(maternal, paternal, 1000)
-#table <- cbind(asym$pvals, asym$T, asym$dir)
-#rownames(table) <- names(asym$pvals)
+asym <- permute2(maternal, paternal, 10000)
+table <- cbind(asym$pvals, asym$T, asym$dir)
+rownames(table) <- names(asym$pvals)
 
-#write.table(table, "Asymmetry_10000.txt", quote = F, row.names = T, col.names = F)
+write.table(table, "Asymmetry_10000_07.txt", quote = F, row.names = T, col.names = F)
 
-still0genes <- read.table("/lustre/beagle2/ober/users/smozaffari/ASE/results/tests_asym/still0genes_10000")
-head(still0genes)
+#still0genes <- read.table("/lustre/beagle2/ober/users/smozaffari/ASE/results/tests_asym/still0genes_10000")
+#head(still0genes)
 
 #sigenes<- rownames(table)[(which(table[,1]==0))]
 
 
-again_mat <- maternal[which(rownames(maternal)%in%still0genes$V1),]
-again_pat <- paternal[which(rownames(paternal)%in%still0genes$V1),]
+#again_mat <- maternal[which(rownames(maternal)%in%still0genes$V1),]
+#again_pat <- paternal[which(rownames(paternal)%in%still0genes$V1),]
 
-asym <- permute2(again_mat,again_pat, 100000)
-table <- cbind(asym$pvals, asym$T, asym$dir)
-rownames(table) <- names(asym$pvals)
+#asym <- permute2(again_mat,again_pat, 100000)
+#table <- cbind(asym$pvals, asym$T, asym$dir)
+#rownames(table) <- names(asym$pvals)
 
-write.table(table, "Asymmetry_p0_100000.txt", quote = F, row.names = T, col.names = F)
+#write.table(table, "Asymmetry_p0_100000.txt", quote = F, row.names = T, col.names = F)
 
 
-
+stopCluster(cl)
 
