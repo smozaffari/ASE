@@ -1,11 +1,7 @@
 #!/usr/bin/Rscript
 
-library(parallel)
-no_cores <- 32
-print(no_cores)
-cl <- makeCluster(no_cores)
-base <- 2
-clusterExport(cl, "base")
+library(doparallel)
+library(foreach)
 
 dir <- "/lustre/beagle2/ober/users/smozaffari/ASE"
 
@@ -35,7 +31,7 @@ permute2 <- function(mtab, ptab, num) {
   vec <- c()
   mm2 <- cbind(rowMeans(mtab, na.rm=TRUE), rowMeans(ptab, na.rm=TRUE))
   diff <- mm2[,1]-mm2[,2]
-  for (i in 1:num) {
+  foreach(i=1:num, .export=('permuted_rows_mean') ) %dopar% {
     print(i);
     permean <- permuted_rows_mean(mtab, ptab)
     vec <- rbind(vec, ((permean$mat-permean$pat)^2))
@@ -49,16 +45,16 @@ permute2 <- function(mtab, ptab, num) {
 }
 
 permuted_rows_mean <- function(mat, pat) {
-  b_mm <- parApply(cl, mat, 1, function(x) rbinom(dim(mat)[1], 1, 0.5))
+  b_mm <- matrix(rbinom(nrow(mat) * ncol(mat), 1, 0.5), nrow=nrow(mat), ncol=ncol(mat))
   b_mp <- 1-b_mm
   mat2<-(b_mm*mat)+(b_mp*pat)
   pat2<-(b_mm*pat)+(b_mp*mat)
-  ss_m <- parApply(cl, mat2, 1, function(x) mean((x), na.rm=T))
-  ss_p <- parApply(cl,pat2, 1, function(x) mean((x), na.rm=T))
+  ss_m <- apply(cl, mat2, 1, function(x) mean((x), na.rm=T))
+  ss_p <- apply(cl,pat2, 1, function(x) mean((x), na.rm=T))
   list(mat=ss_m, pat=ss_p)
 }
 
-asym <- permute2(maternal, paternal, 10000)
+asym <- permute2(maternal, paternal, 1)
 table <- cbind(asym$pvals, asym$T, asym$dir)
 rownames(table) <- names(asym$pvals)
 
@@ -80,5 +76,4 @@ write.table(table, "Asymmetry_10000_07.txt", quote = F, row.names = T, col.names
 #write.table(table, "Asymmetry_p0_100000.txt", quote = F, row.names = T, col.names = F)
 
 
-stopCluster(cl)
 

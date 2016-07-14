@@ -18,6 +18,8 @@ ASEDIR=/lustre/beagle2/ober/users/smozaffari/ASE
 echo $ASEDIR
 
 
+export R_LIBS="/lustre/beagle2/ober/users/smozaffari/R_libs"
+
 module load python/2.7.6-vanilla
 module load R/3.2.3-vanilla
 
