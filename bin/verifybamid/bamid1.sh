@@ -6,9 +6,9 @@
 inputFile=$(readlink -f $1)
 
 jobsPerNode=32
-NNodes=1
+NNodes=31
 NCoresPerNode=32
-NInputFiles=32
+NInputFiles=989
 echo "Running all " $NInputFiles " fastq files in $inputFile:" | tee -a $setup_log
 filesPerNode=$(( ($NInputFiles+$NNodes-1)/$NNodes))
 echo "Running  $filesPerNode bam files per compute node for a total of " $(($filesPerNode*$NNodes))  | tee -a $setup_log
@@ -54,7 +54,7 @@ while read -r line;do
 	FClist=$FC
     fi
 
-    lane=$(echo $line | cut -f4 -d".")
+    lane=$(echo $line | cut -f3 -d".")
 
     if [ "$lanelist" ]; then
 	lanelist="${lanelist}:${lane}"
@@ -73,7 +73,8 @@ while read -r line;do
 	laneList=""
 	FClist=""
 	lanelist=""
+	FINDIVlist=""
     fi
 
 
-done < /lustre/beagle2/ober/users/smozaffari/ASE/results/989_flowcell_lane_head
+done < $inputFile
