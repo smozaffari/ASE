@@ -25,7 +25,7 @@ echo "RUNNING $scriptName as " $(readlink -f $0 ) " on " `date`  | tee  $setup_l
 echo $FINDIV
 
 echo "aprun -n 1 -N 1 -d 32  -b /lustre/beagle2/ober/users/smozaffari/ASE/bin/verifybamid/bamid3.sh $FINDIV $FC $LANE $JOBSPERNODE"
-aprun -n 1 -N 1 -d 32  -b /lustre/beagle2/ober/users/smozaffari/ASE/bin/verifybamid/bamid3.sh $FINDIV $FC $LANE $JOBSPERNODE
+aprun -n 1 -N 1 -d 32  -b /lustre/beagle2/ober/users/smozaffari/ASE/bin/verifybamid/bamid3.sh $FINDIV $FC $LANE $JOBSPERNODE $COUNT
 
 
 echo "%%% Ending at "$(date)

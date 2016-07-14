@@ -67,8 +67,8 @@ while read -r line;do
 
     if [ "$count" -eq "$filesPerNode" ] || [ "$nTotSubJobs" -eq "$NInputFiles" ]; then
 	echo $count $nTotSubJobs
-	echo -e "qsub -v JOBSPERNODE=$jobsPerNode,FINDIV=$FINDIVlist,FC=$FClist,LANE=$lanelist -N ${count}_${nTotSubJobs} $scriptDir/bamid.pbs" | tee -a $setup_log
-	qsub -v JOBSPERNODE=$jobsPerNode,FINDIV=$FINDIVlist,FC=$FClist,LANE=$lanelist -N ${count}_${nTotSubJobs} $scriptDir/bamid.pbs
+	echo -e "qsub -v JOBSPERNODE=$jobsPerNode,FINDIV=$FINDIVlist,FC=$FClist,LANE=$lanelist,COUNT=$nTotSubJobs -N ${count}_${nTotSubJobs} $scriptDir/bamid.pbs" | tee -a $setup_log
+	qsub -v JOBSPERNODE=$jobsPerNode,FINDIV=$FINDIVlist,FC=$FClist,LANE=$lanelist,COUNT=$nTotSubJobs -N ${count}_${nTotSubJobs} $scriptDir/bamid.pbs
 	count=0
 	laneList=""
 	FClist=""
