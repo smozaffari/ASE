@@ -97,8 +97,8 @@ MAP_AND_SAM() {   # map files using bowtie
     sample=$4
     echo "$input"
     
-    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/  --readFilesIn $input  --outFileNamePrefix $read/$sample"
-    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/ --readFilesIn $input --outFileNamePrefix $read/$sample
+    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang/  --readFilesIn $input  --outFileNamePrefix $read/$sample"
+    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang/ --readFilesIn $input --outFileNamePrefix $read/$sample
 
     echo "samtools view -S -h -q 10 -b $read/${sample}Aligned.out.sam > $read/${sample}.bam"
     samtools view -S -h -q 10 -b $read/${sample}Aligned.out.sam > $read/${sample}.bam
@@ -123,8 +123,8 @@ WASP() { # use WASP to remove mapping bias
     echo "python $WASP/mapping/find_intersecting_snps.py $read/${sample}.sorted.bam  $snp_dir"
 
     #remap files:
-    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/  --readFilesIn $read/${sample}.sorted.remap.fq.gz --readFilesCommand zcat --outFileNamePrefix $read/${sample}.sorted.map2"
-    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/ --readFilesIn $read/${sample}.sorted.remap.fq.gz --readFilesCommand zcat --outFileNamePrefix $read/${sample}.sorted.map2
+    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang/  --readFilesIn $read/${sample}.sorted.remap.fq.gz --readFilesCommand zcat --outFileNamePrefix $read/${sample}.sorted.map2"
+    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang/ --readFilesIn $read/${sample}.sorted.remap.fq.gz --readFilesCommand zcat --outFileNamePrefix $read/${sample}.sorted.map2
    wait
 
     echo "samtools view -S -h -q 10 -b $read/${sample}.sorted.map2Aligned.out.sam > $read/${sample}.sorted.remap.bam"
@@ -240,21 +240,21 @@ echo $SCRIPTDIR
 echo $lane
 echo $LANEWASP
 
-#TRIM_READ $READ $FINDIV $FILE $adaptor $SAMPLE >>$plog 2>&1 
+TRIM_READ $READ $FINDIV $FILE $adaptor $SAMPLE >>$plog 2>&1 
 echo "TRIM_READ $READ $FINDIV $FILE $adaptor $SAMPLE  >>$plog 2>&1"
 
 input=$(echo "$FILE" | sed 's/txt.gz/trim.txt/g')
 echo "$input"
-#MAP_AND_SAM $READ $FINDIV $input $SAMPLE >>$plog 2>&1
+MAP_AND_SAM $READ $FINDIV $input $SAMPLE >>$plog 2>&1
 echo "MAP_AND_SAM $READ $FINDIV $SAMPLE  >>$plog 2>&1"
 
-#WASP $READ $FINDIV $SNP_DIR $SAMPLE $LANEWASP>>$plog 2>&1
+WASP $READ $FINDIV $SNP_DIR $SAMPLE $LANEWASP>>$plog 2>&1
 echo "WASP $READ $FINDIV $SNP_DIR $SAMPLE $LANEWASP>>$plog 2>&1"
 
-#ASE $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1
+ASE $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1
 echo "ASE $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1"
 
-#GENECOUNT $READ $SAMPLE >>$plog 2>&1
+GENECOUNT $READ $SAMPLE >>$plog 2>&1
 echo "GENECOUNT $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1"
 
 SEXGENES $READ  $SAMPLE  >>$plog 2>&1

@@ -4,6 +4,7 @@
 #PBS -j oe 
 #PBS -N $FLOWCELLFINDIV
 #PBS -A CI-MCB000155
+#PBS -l advres=smozaffari.3509
 
 cd $PBS_O_WORKDIR
 echo $PBS_O_WORKDIR
