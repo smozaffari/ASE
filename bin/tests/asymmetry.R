@@ -1,7 +1,16 @@
 #!/usr/bin/Rscript
 
-library(doparallel)
+library(doParallel)
 library(foreach)
+require(doParallel)
+require(foreach)
+
+registerDoParallel()
+getDoParWorkers()
+registerDoSEQ()
+getDoParWorkers()
+cl <- makeCluster(16)
+registerDoParallel(cl)
 
 dir <- "/lustre/beagle2/ober/users/smozaffari/ASE"
 
@@ -20,21 +29,24 @@ tstat <- function(pdiff, odiff) {
 
 sig <- function(ptab, otab) {
   pval <- c()
-  length(pval) <- dim(ptab)[2]
-  for (d in 1:dim(ptab)[2]) {
-    pval[d] <- as.numeric((length(which(ptab[,d]>otab[d])))/(dim(ptab)[1]))
+  print(dim(ptab)[1])
+  length(pval) <- dim(ptab)[1]
+  for (d in 1:dim(ptab)[1]) {
+    pval[d] <- as.numeric((length(which(ptab[d,]>otab[d])))/(dim(ptab)[2]))
   }
   return(pvals=pval)
 }
 
+
 permute2 <- function(mtab, ptab, num) {
   vec <- c()
+  print(num);
   mm2 <- cbind(rowMeans(mtab, na.rm=TRUE), rowMeans(ptab, na.rm=TRUE))
   diff <- mm2[,1]-mm2[,2]
-  foreach(i=1:num, .export=('permuted_rows_mean') ) %dopar% {
-    print(i);
+  print(length(diff))
+  vec<- foreach(i=1:num, .export=("permuted_rows_mean"), .combine=data.frame ) %dopar% {
     permean <- permuted_rows_mean(mtab, ptab)
-    vec <- rbind(vec, ((permean$mat-permean$pat)^2))
+    ((permean$mat-permean$pat)^2)    
   }
   pvals <- sig(vec, (diff^2))
   names(pvals) <- rownames(mm2)
@@ -49,16 +61,16 @@ permuted_rows_mean <- function(mat, pat) {
   b_mp <- 1-b_mm
   mat2<-(b_mm*mat)+(b_mp*pat)
   pat2<-(b_mm*pat)+(b_mp*mat)
-  ss_m <- apply(cl, mat2, 1, function(x) mean((x), na.rm=T))
-  ss_p <- apply(cl,pat2, 1, function(x) mean((x), na.rm=T))
+  ss_m <- apply(mat2, 1, function(x) mean((x), na.rm=T))
+  ss_p <- apply(pat2, 1, function(x) mean((x), na.rm=T))
   list(mat=ss_m, pat=ss_p)
 }
 
-asym <- permute2(maternal, paternal, 1)
+asym <- permute2(maternal, paternal, 10000)
 table <- cbind(asym$pvals, asym$T, asym$dir)
 rownames(table) <- names(asym$pvals)
 
-write.table(table, "Asymmetry_10000_07.txt", quote = F, row.names = T, col.names = F)
+write.table(table, "Asymmetry_10000_07.15.txt", quote = F, row.names = T, col.names = F)
 
 #still0genes <- read.table("/lustre/beagle2/ober/users/smozaffari/ASE/results/tests_asym/still0genes_10000")
 #head(still0genes)
@@ -75,5 +87,5 @@ write.table(table, "Asymmetry_10000_07.txt", quote = F, row.names = T, col.names
 
 #write.table(table, "Asymmetry_p0_100000.txt", quote = F, row.names = T, col.names = F)
 
-
+stopCluster(cl)
 
