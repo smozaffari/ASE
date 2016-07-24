@@ -48,7 +48,7 @@ permute2 <- function(mtab, ptab, num) {
     permean <- permuted_rows_mean(mtab, ptab)
     ((permean$mat-permean$pat)^2)    
   }
-  pvals <- sig(vec, (diff^2))
+  pvals <- sig(vec, diff)
   names(pvals) <- rownames(mm2)
   dir <- sign(diff)
   dir[dir==-1] <- "paternal" #if negative = paternal biased
@@ -57,20 +57,33 @@ permute2 <- function(mtab, ptab, num) {
 }
 
 permuted_rows_mean <- function(mat, pat) {
-  b_mm <- matrix(rbinom(nrow(mat) * ncol(mat), 1, 0.5), nrow=nrow(mat), ncol=ncol(mat))
+  b_mm <- t(matrix(rbinom(nrow(mat) * ncol(mat), 1, 0.5), nrow=nrow(mat), ncol=ncol(mat)))
   b_mp <- 1-b_mm
-  mat2<-(b_mm*mat)+(b_mp*pat)
-  pat2<-(b_mm*pat)+(b_mp*mat)
+  mat2<-(b_mm %*% mat)+(b_mp %*% pat)
+  pat2<-(b_mm %*% pat)+(b_mp %*% mat)
   ss_m <- apply(mat2, 1, function(x) mean((x), na.rm=T))
   ss_p <- apply(pat2, 1, function(x) mean((x), na.rm=T))
   list(mat=ss_m, pat=ss_p)
 }
 
-asym <- permute2(maternal, paternal, 10000)
+asym <- permute2(maternal2, paternal2, 10000)
 table <- cbind(asym$pvals, asym$T, asym$dir)
 rownames(table) <- names(asym$pvals)
 
-write.table(table, "Asymmetry_10000_07.15.txt", quote = F, row.names = T, col.names = F)
+write.table(table, "Asymmetry_10000_07.22.txt", quote = F, row.names = T, col.names = F)
+zero <- which(asym$pvals==0)
+print(length(zero))
+maternal0 <- maternal2[zero,]
+paternal0 <- paternal2[zero,]
+
+asym2 <- permute2(maternal0, paternal0, 1000000)
+table2 <- cbind(asym2$pvals, asym2$T, asym2$dir)
+rownames(table2) <- names(asym2$pvals)
+write.table(table2, "Asymmetry2_1000000_07.22.txt", quote = F, row.names = T, col.names = F)
+
+
+write.table(maternal0, "Maternal0.txt", quote =F, row.names = T, col.names = T)
+write.table(paternal0, "Paternal0.txt", quote =F, row.names = T, col.names = T)
 
 #still0genes <- read.table("/lustre/beagle2/ober/users/smozaffari/ASE/results/tests_asym/still0genes_10000")
 #head(still0genes)
