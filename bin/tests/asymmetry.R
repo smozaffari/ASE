@@ -49,56 +49,63 @@ permute2 <- function(mtab, ptab, num) {
     ((permean$mat-permean$pat)^2)    
   }
   pvals <- sig(vec, diff)
+  length(pvals)
   names(pvals) <- rownames(mm2)
   dir <- sign(diff)
   dir[dir==-1] <- "paternal" #if negative = paternal biased
   dir[dir==1] <- "maternal" #if positive = maternal biased
-  list(pvals=pvals, T=diff^2, dir=dir)
+  list(pvals=pvals, T=diff^2, dir=dir, vec=vec)
 }
 
 permuted_rows_mean <- function(mat, pat) {
-  b_mm <- t(matrix(rbinom(nrow(mat) * ncol(mat), 1, 0.5), nrow=nrow(mat), ncol=ncol(mat)))
+  b_mm <- matrix(rbinom(nrow(mat) * ncol(mat), 1, 0.5), nrow=nrow(mat), ncol=ncol(mat))
   b_mp <- 1-b_mm
-  mat2<-(b_mm %*% mat)+(b_mp %*% pat)
-  pat2<-(b_mm %*% pat)+(b_mp %*% mat)
+  mat2<-(b_mm*mat)+(b_mp*pat)
+  pat2<-(b_mm*pat)+(b_mp*mat)
   ss_m <- apply(mat2, 1, function(x) mean((x), na.rm=T))
   ss_p <- apply(pat2, 1, function(x) mean((x), na.rm=T))
   list(mat=ss_m, pat=ss_p)
 }
 
-asym <- permute2(maternal2, paternal2, 10000)
-table <- cbind(asym$pvals, asym$T, asym$dir)
+
+permutefiltered <- function(mtab, ptab, num, oldvecs, oldpvals, threshold) {
+  vec <- c()
+  print(num);
+  zero <- which(oldpvals<threshold)
+  newmtab <- mtab[zero,]
+  newptab <- ptab[zero,]
+  newvecs <- oldvecs[zero,]
+  mm2 <- cbind(rowMeans(newmtab, na.rm=TRUE), rowMeans(newptab, na.rm=TRUE))
+  diff <- mm2[,1]-mm2[,2]
+  print(length(diff))
+  vec<- foreach(i=1:num, .export=("permuted_rows_mean"), .combine=data.frame ) %dopar% {
+    permean <- permuted_rows_mean(newmtab, newptab)
+    ((permean$mat-permean$pat)^2)
+  }
+  bothvecs <- cbind(newvecs, vec)
+  pvals <- sig(bothvecs, diff)
+  names(pvals) <- rownames(mm2)
+  dir <- sign(diff)
+  dir[dir==-1] <- "paternal" #if negative = paternal biased
+  dir[dir==1] <- "maternal" #if positive = maternal biased
+  list(pvals=pvals, T=diff^2, dir=dir, vec=bothvecs)
+}
+
+asym <- permute2(maternal2, paternal2, 1000)
+table <- cbind(asym$pvals, asym$T, asym$dir, asym$vec)
 rownames(table) <- names(asym$pvals)
+  
+write.table(table, "Asymmetry_1000_07.31_0.txt", quote = F, row.names = T, col.names = F)
 
-write.table(table, "Asymmetry_10000_07.22.txt", quote = F, row.names = T, col.names = F)
-zero <- which(asym$pvals==0)
-print(length(zero))
-maternal0 <- maternal2[zero,]
-paternal0 <- paternal2[zero,]
+asym2 <- asym
 
-asym2 <- permute2(maternal0, paternal0, 1000000)
-table2 <- cbind(asym2$pvals, asym2$T, asym2$dir)
-rownames(table2) <- names(asym2$pvals)
-write.table(table2, "Asymmetry2_1000000_07.22.txt", quote = F, row.names = T, col.names = F)
-
-
-write.table(maternal0, "Maternal0.txt", quote =F, row.names = T, col.names = T)
-write.table(paternal0, "Paternal0.txt", quote =F, row.names = T, col.names = T)
-
-#still0genes <- read.table("/lustre/beagle2/ober/users/smozaffari/ASE/results/tests_asym/still0genes_10000")
-#head(still0genes)
-
-#sigenes<- rownames(table)[(which(table[,1]==0))]
-
-
-#again_mat <- maternal[which(rownames(maternal)%in%still0genes$V1),]
-#again_pat <- paternal[which(rownames(paternal)%in%still0genes$V1),]
-
-#asym <- permute2(again_mat,again_pat, 100000)
-#table <- cbind(asym$pvals, asym$T, asym$dir)
-#rownames(table) <- names(asym$pvals)
-
-#write.table(table, "Asymmetry_p0_100000.txt", quote = F, row.names = T, col.names = F)
+#for (t in 1:5) {
+while (length(asym2$pvals) > 500) {
+  asym2 <- permutefiltered(maternal2, paternal2, 1000, asym2$vec, asym2$pvals, 0.5)
+  table <- cbind(asym2$pvals, asym2$T, asym2$dir, asym2$vec)
+  rownames(table) <- names(asym2$pvals)
+  t <- length(asym2$pvals)
+  write.table(table, paste("Asymmetry_1000_07.31_",t,".txt",sep="") , quote = F, row.names = T, col.names = F)
+}
 
 stopCluster(cl)
-
