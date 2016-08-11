@@ -88,24 +88,26 @@ permutefiltered <- function(mtab, ptab, num, oldvecs, oldpvals, threshold) {
   dir <- sign(diff)
   dir[dir==-1] <- "paternal" #if negative = paternal biased
   dir[dir==1] <- "maternal" #if positive = maternal biased
-  list(pvals=pvals, T=diff^2, dir=dir, vec=bothvecs)
+  list(pvals=pvals, T=diff^2, dir=dir, vec=bothvecs, newmaternal=newmtab, newpaternal=newptab)
 }
 
-asym <- permute2(maternal2, paternal2, 1000)
+asym <- permute2(maternal2, paternal2, 10000)
 table <- cbind(asym$pvals, asym$T, asym$dir, asym$vec)
 rownames(table) <- names(asym$pvals)
   
-write.table(table, "Asymmetry_1000_07.31_0.txt", quote = F, row.names = T, col.names = F)
+write.table(table, "Asymmetry_10000_08.08_11_all.txt", quote = F, row.names = T, col.names = F)
 
+asym$newmaternal <- maternal2
+asym$newpaternal <- paternal2
 asym2 <- asym
 
 #for (t in 1:5) {
-while (length(asym2$pvals) > 500) {
-  asym2 <- permutefiltered(maternal2, paternal2, 1000, asym2$vec, asym2$pvals, 0.5)
+while (length(asym2$pvals) > 10) {
+  asym2 <- permutefiltered(asym2$newmaternal, asym2$newpaternal, 10000, asym2$vec, asym2$pvals, 0.5)
   table <- cbind(asym2$pvals, asym2$T, asym2$dir, asym2$vec)
-  rownames(table) <- names(asym2$pvals)
+  rownames(table) <- names(asym2$T)
   t <- length(asym2$pvals)
-  write.table(table, paste("Asymmetry_1000_07.31_",t,".txt",sep="") , quote = F, row.names = T, col.names = F)
+  write.table(table, paste("Asymmetry_10000_08.11_",t,".txt",sep="") , quote = F, row.names = T, col.names = F)
 }
 
 stopCluster(cl)
