@@ -1,14 +1,14 @@
 #!/bin/bash
 # Author: SVM 
-# Purpose: loop through RNAseq data and check if genotypes match individual
+\# Purpose: loop through RNAseq data and check if genotypes match individual
 
 
 inputFile=$(readlink -f $1)
 
-jobsPerNode=32
-NNodes=31
-NCoresPerNode=32
-NInputFiles=989
+jobsPerNode=2
+NNodes=1
+NCoresPerNode=2
+NInputFiles=2
 echo "Running all " $NInputFiles " fastq files in $inputFile:" | tee -a $setup_log
 filesPerNode=$(( ($NInputFiles+$NNodes-1)/$NNodes))
 echo "Running  $filesPerNode bam files per compute node for a total of " $(($filesPerNode*$NNodes))  | tee -a $setup_log
@@ -67,8 +67,8 @@ while read -r line;do
 
     if [ "$count" -eq "$filesPerNode" ] || [ "$nTotSubJobs" -eq "$NInputFiles" ]; then
 	echo $count $nTotSubJobs
-	echo -e "qsub -v JOBSPERNODE=$jobsPerNode,FINDIV=$FINDIVlist,FC=$FClist,LANE=$lanelist,COUNT=$nTotSubJobs -N ${count}_${nTotSubJobs} $scriptDir/bamid.pbs" | tee -a $setup_log
-	qsub -v JOBSPERNODE=$jobsPerNode,FINDIV=$FINDIVlist,FC=$FClist,LANE=$lanelist,COUNT=$nTotSubJobs -N ${count}_${nTotSubJobs} $scriptDir/bamid.pbs
+	echo -e "qsub -v JOBSPERNODE=$jobsPerNode,FINDIV=$FINDIVlist,FC=$FClist,LANE=$lanelist,COUNT=$nTotSubJobs -N swap1_${nTotSubJobs} $scriptDir/bamid.pbs" | tee -a $setup_log
+	qsub -v JOBSPERNODE=$jobsPerNode,FINDIV=$FINDIVlist,FC=$FClist,LANE=$lanelist,COUNT=$nTotSubJobs -N swap1_${nTotSubJobs} $scriptDir/bamid.pbs
 	count=0
 	laneList=""
 	FClist=""
