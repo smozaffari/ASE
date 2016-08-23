@@ -2,7 +2,7 @@
 #PBS -N asym.pbs
 #PBS -j oe
 #PBS -l mppwidth=32
-#PBS -l walltime=00:30:00
+#PBS -l walltime=90:00:00
 #PBS -M smozaffari@uchicago.edu
 #PBS -A CI-MCB000155
 
@@ -25,4 +25,4 @@ module load R/3.2.3-vanilla
 
 
 aprun -n 1 -d 32 -N 1  -b Rscript $ASEDIR/bin/tests/asymmetry.R 
-
+#aprun -n 1 -d 32 -N 1 -b Rscript $ASEDIR/bin/tests/asymmetry_roundtwo.R
