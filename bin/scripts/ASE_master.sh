@@ -1,8 +1,9 @@
 #!/bin/bash
 # Author: SVM 
 # Date: 09/20/16
-# Purpose: put together ASE for all of the files. 
+# Purpose: put together ASE for all of the files - file with file path names hardcoded
 # reads from 989_star_overhang_ASE_info - but this file may be too big (submit too many jobs here - consider splitting into two)
+# Usage: bash ASE_master.sh
 
 setup_log=${scriptName}_${LOGNAME}_${timeTag}.log
 echo $setup_log
