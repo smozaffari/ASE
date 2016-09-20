@@ -10,6 +10,7 @@ bin/scripts/WASP/master/*
 /bin/plotscripts/*.ped
 /bin/plotscripts/*.log
 /bin/plotscripts/*.map
+/bin/plotscripts/*.csv
 results/
 /bin/tests/*.txt
 Anaconda-2.2.0-Linux-x86_64.sh
