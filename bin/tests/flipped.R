@@ -93,7 +93,7 @@ print(dim(maternal2)[1])
        	mat <- read.table(paste("/group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], ".ped" , sep=""))
        	map <- read.table(paste("/group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], ".map" , sep=""))
        	Findiv <- substr(as.numeric(mat$V2), 1, nchar(mat$V2)-1)
-       	genos <- ((dim(mat)[2])/2)
+       	genos <- ((dim(mat)[2]-6)/2)
        	totalsnps[genecount] <-  genos
        	names(totalsnps)[genecount] <- names(total)[m]
 	for (g in 1:genos) {
@@ -179,8 +179,9 @@ print(dim(maternal2)[1])
 	    names(totalhets)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
 #	  }
 	}
-	snpcount <- snpcount+1
-      }
+       }	
+
+       snpcount <- snpcount+1      
      } else {
        totalsnps[genecount] <- 0
        names(totalsnps)[genecount] <- names(total)[m]
