@@ -1,5 +1,6 @@
 #!/bin/bash
-# Author: SVM 
+
+# Author: Sahar Mozaffari
 # Date: 09/20/16
 # Purpose: put together ASE for all of the files - file with file path names hardcoded
 # reads from 989_star_overhang_ASE_info - but this file may be too big (submit too many jobs here - consider splitting into two)
