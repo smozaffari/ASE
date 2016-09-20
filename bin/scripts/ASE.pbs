@@ -4,6 +4,11 @@
 #PBS -j oe 
 #PBS -A CI-MCB000155
 
+# Author: Sahar Mozaffari
+# Date: 09/20/16
+# Purpose: get ASE for all individuals and put it together
+# Usage: qsubbed from ASE_master.sh (look there for usage)
+
 cd $PBS_O_WORKDIR
 echo $PBS_O_WORKDIR
 . /opt/modules/default/init/bash
