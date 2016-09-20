@@ -13,8 +13,8 @@ do
     echo $i
 #    echo "grep -w \"FlowCell${i}\" newqcsorted > FC${i}_mapped"
 #    grep -w "FlowCell${i}" newqcsorted > FC${i}_mapped
-    echo "grep -w "FlowCell${i}" 989_sorted | sort > FC${i}_mapped"
-    grep -w "FlowCell${i}" 989_sorted |  sort > FC${i}_mapped  
+    echo "grep -w "FlowCell${i}" 989_star_overhang_sorted | sort > FC${i}_mapped"
+    grep -w "FlowCell${i}" 989_star_overhang_sorted |  sort > FC${i}_mapped  
     mkdir map_FC${i}
     echo "for file in `cat FC${i}_mapped`; do cp "$file" map_FC${i}/  ; done "
 

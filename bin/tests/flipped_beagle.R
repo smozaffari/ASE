@@ -1,6 +1,10 @@
+#!/usr/bin/Rscript
+
 args = commandArgs(trailingOnly=TRUE)
 i <- as.numeric(args[1])
+dir <- "/lustre/beagle2/ober/users/smozaffari/ASE"
 print(i)
+print(getwd())
 pvals <- c()
 totalsnps <- c()
 totalpeople <- c()
@@ -11,12 +15,12 @@ mm <- 0
 snpcount <- 1;
 genecount <- 0;
 
-maternal <- read.table("/group/ober-resources/users/smozaffari/ASE/data/expression/Maternal_gene_normalized.txt", check.names = F)
-paternal <- read.table("/group/ober-resources/users/smozaffari/ASE/data/expression/Paternal_gene_normalized.txt", check.names = F)
+maternal <- read.table(paste(dir,"/data/expression/Maternal_gene_normalized.txt", sep=""), check.names = F)
+paternal <- read.table(paste(dir,"/data/expression/Paternal_gene_normalized.txt", sep=""),  check.names = F)
 genes <- rownames(maternal)
 genes[i]
-unknown <- read.table("/group/ober-resources/users/smozaffari/ASE/data/expression/Unknown_gene_normalized.txt", check.names = F)
-total <- read.table("/group/ober-resources/users/smozaffari/ASE/data/expression/Total_gene_normalized.txt", check.names = F)                
+unknown <- read.table(paste(dir,"/data/expression/Unknown_gene_normalized.txt", sep=""), check.names = F)
+total <- read.table(paste(dir, "/data/expression/Total_gene_normalized.txt", sep=""), check.names = F)                
 
 
 maternal2 <- as.matrix(maternal)
@@ -58,25 +62,31 @@ print(dim(maternal2)[1])
   print(i)
   print(genes[i])
   genecount <- genecount+1
-  command <- paste("grep -w ",genes[i], " /group/ober-resources/users/smozaffari/ASE/data/ensemble_table_hg19_05.31  | grep -v \"_\" | cut -f2-5,12 | uniq", sep="")
-  print(command);
-  snps <- try(read.table(text=system(command, intern=TRUE)))
-  head(snps)
-  if (class(snps) =='try-error') {
-    snps=NULL	
-    pvals[snpcount] <- "NA"
-    names(pvals)[snpcount] <- genes[i]
-    tvals[snpcount] <- "NA"
-    names(tvals)[snpcount] <- genes[i]
-    totalsnps[genecount] <- "NA"
-    names(totalsnps)[genecount] <- genes[i]
-    totalpeople[snpcount] <- "NA"
-    names(totalpeople)[snpcount] <- genes[i]
-    totalhets[snpcount] <- "NA"
-    names(totalhets)[snpcount] <- genes[i]
-    snpcount <- snpcount+1
-  }
-  if (!is.null(snps)) {
+#  command <- paste("grep -w ",genes[i], " ",dir,"/data/ensemble_table_hg19_05.31  | grep -v \"_\" | cut -f2-5,12 | uniq", sep="")
+#  print(command);
+  ens <- read.csv("/lustre/beagle2/ober/users/smozaffari/ASE/data/ensembl.txt", sep="\t", header = F, stringsAsFactors=FALSE)
+  snps <- ens[which(ens$V5==genes[i]),] 
+
+#  snps <- try(read.table(text=system(command, intern=TRUE)))
+#  head(snps)
+#  if (class(snps) =='try-error') {
+#    snps=NULL	
+#    pvals[snpcount] <- "NA"
+#    names(pvals)[snpcount] <- genes[i]
+#    tvals[snpcount] <- "NA"
+#    names(tvals)[snpcount] <- genes[i]
+#    totalsnps[genecount] <- "NA"
+#    names(totalsnps)[genecount] <- genes[i]
+#    totalpeople[snpcount] <- "NA"
+#    names(totalpeople)[snpcount] <- genes[i]
+#    totalhets[snpcount] <- "NA"
+#    names(totalhets)[snpcount] <- genes[i]
+#    snpcount <- snpcount+1
+#  }
+ # if (!is.null(snps)) {
+   if (!dim(snps)[1]==0) {
+    snps <- droplevels(snps)
+    snps[,c(3,4)] <- sapply(snps[,c(3,4)], as.numeric)
     total <- split( snps , f = snps$V5 )
     print(total)
     mins <- sapply( total , function(x) min( x$V3 )-250000 )
@@ -85,22 +95,21 @@ print(dim(maternal2)[1])
     totmatch <- length(total)
     for (m in 1:totmatch) {
       c <- substr(chr[m], 4, nchar(as.character(chr[m])))
-      system(paste("plink-1.9 --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_paternal --chr ", c ," --from-bp ", mins[m], " --to-bp ", maxs[m], " --recode --out /group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snppat", names(total)[m] , sep=""))
-      system(paste("plink-1.9 --bfile /group/ober-resources/users/smozaffari/ASE/data/plinkfiles/Hutterite_maternal --chr ", c ," --from-bp ", mins[m], " --to-bp ", maxs[m], " --recode --out /group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], sep=""))
-      file <- paste("/group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], ".map", sep="")
+      system(paste("plink-1.9 --bfile ",dir,"/data/plinkfiles/Hutterite_paternal --chr ", c ," --from-bp ", mins[m], " --to-bp ", maxs[m], " --recode --out ",dir,"/results/tests_flipped/", chr[m], "_snppat", names(total)[m] , sep=""))
+      system(paste("plink-1.9 --bfile ",dir,"/data/plinkfiles/Hutterite_maternal --chr ", c ," --from-bp ", mins[m], " --to-bp ", maxs[m], " --recode --out ",dir,"/results/tests_flipped/", chr[m], "_snpmat", names(total)[m], sep=""))
+      file <- paste(dir,"/results/tests_flipped/", chr[m], "_snpmat", names(total)[m], ".map", sep="")
       if (file.exists(file)) {
-        pat <- read.table(paste("/group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snppat", names(total)[m], ".ped" , sep=""))
-       	mat <- read.table(paste("/group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], ".ped" , sep=""))
-       	map <- read.table(paste("/group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snpmat", names(total)[m], ".map" , sep=""))
+        pat <- read.table(paste(dir, "/results/tests_flipped/", chr[m], "_snppat", names(total)[m], ".ped" , sep=""))
+       	mat <- read.table(paste(dir, "/results/tests_flipped/", chr[m], "_snpmat", names(total)[m], ".ped" , sep=""))
+       	map <- read.table(paste(dir, "/results/tests_flipped/", chr[m], "_snpmat", names(total)[m], ".map" , sep=""))
        	Findiv <- substr(as.numeric(mat$V2), 1, nchar(mat$V2)-1)
        	genos <- ((dim(mat)[2]-6)/2)
        	totalsnps[genecount] <-  genos
        	names(totalsnps)[genecount] <- names(total)[m]
+	print(genos);
 	for (g in 1:genos) {
-	  if (g%%2==0) {
-	    g+1
-	  }
-       	  col <- g+6
+	  print(g);
+       	  col <- (g*2)+6
        	  gtype <- cbind(Findiv, as.character(pat[[col]]), as.character(mat[[col]]))
        	  colnames(gtype) <- c("Findiv", "Pat", "Mat")
 	  findiv <- sort(Findiv)
@@ -135,12 +144,8 @@ print(dim(maternal2)[1])
 	      names(totalhets)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
 	       if (length(hets) > 10) {
 	         new <- as.data.frame(cbind(unlist(c(maternal424[i,hets])), unlist(c(paternal424[i,hets])),unlist(c(gtype3[hets,"GG"]))))
-		 write.table(new, "ZDBF2.txt", quote = F)
+#		 write.table(new, "ZDBF2.txt", quote = F)
 	         per <- permute(new, 1000)
-		 print(per$p)
-		 print(format(permute(new, 1000), scientific=TRUE))
-		 print(format(per$p), scientific=TRUE)
-		 print (as.integer(per$p))
 	         pvals[snpcount] <- per$p
 	         names(pvals)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
 	         tvals[snpcount] <- per$t 
@@ -151,7 +156,7 @@ print(dim(maternal2)[1])
                  tvals[snpcount] <- 'NA'
                  names(tvals)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
 	       }
-	       write.table(t(pvals), "pvalues.txt", row.names = F, quote = F)
+#	       write.table(t(pvals), "pvalues.txt", row.names = F, quote = F)
 #	    } else {
 #	      totalhets[snpcount] <- 'NA'
 #	      names(totalhets)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
@@ -179,9 +184,8 @@ print(dim(maternal2)[1])
 	    names(totalhets)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
 #	  }
 	}
-       }	
-
-       snpcount <- snpcount+1      
+	snpcount <- snpcount+1
+      }
      } else {
        totalsnps[genecount] <- 0
        names(totalsnps)[genecount] <- names(total)[m]
@@ -195,7 +199,7 @@ print(dim(maternal2)[1])
        names(totalhets)[snpcount] <- (paste(names(total)[m], map$V1[g], map$V4[g], sep="_"))
        snpcount <- snpcount+1
      }
-     system(paste("rm /group/ober-resources/users/smozaffari/ASE/data/tests_flipped/", chr[m], "_snppat", names(total)[m], ".*" , sep=""))
+     system(paste("rm ",dir,"/results/tests_flipped/", chr[m], "_snp*at", names(total)[m], ".*" , sep=""))
    }
  }
 #}
@@ -214,4 +218,7 @@ het2 <- cbind(names(totalhets), totalhets)
 
 all <- cbind(pp2, totalhets, tvals, pvals)
 head(all)
-write.table(all, paste("summary_",genes[i],".txt", sep=""), quote = F, row.names = F)
+write.table(all, paste(dir, "/results/tests_flipped/summary_",genes[i],".txt", sep=""), quote = F, row.names = F)
+
+
+system(paste("rm ",dir,"/results/tests_flipped/*_snp*at", names(total)[m], ".*" , sep=""))

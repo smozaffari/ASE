@@ -1,16 +1,18 @@
+#!/usr/bin/Rscript
+
 ##  Sahar Mozaffari
 ## 4.8.16
 ## To get gene count matrix for gene count for components
 
 # Folder output of RNAseq data is in
-path="withoutsaved"
+path="star_overhang"
 
 # pattern = ending of file 
 patterns = c("withsex", "hom", "genes_maternal", "genes_paternal")
 ending = c(14, 17, 22, 22)
 
-#for (val  in 1:length(patterns)) {
-val <- 2
+for (val  in 1:length(patterns)) {
+#val <- 2
     	print (val);
 	print (patterns[val]);
 	file.names<-  list.files(path,recursive=T,pattern=patterns[val],full.names=T)
@@ -41,4 +43,4 @@ val <- 2
 	rownames(outputfile) <- genes
 
 	write.table(outputfile, paste(path, "genecount", patterns[val], sep="_"), row.names = T, col.names = T, quote = F)
-#}
+}

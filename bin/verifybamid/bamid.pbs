@@ -1,0 +1,35 @@
+#!/bin/bash
+#PBS -l mppwidth=32
+#PBS -l walltime=12:00:00
+#PBS -j oe 
+#PBS -N bamid_$FI
+## Beagle specific
+#PBS -A CI-MCB000155
+
+cd $PBS_O_WORKDIR
+echo $PBS_O_WORKDIR
+
+scriptName=$(basename ${0})
+echo $scriptName
+scriptName=${scriptName%\.sh}
+echo $scriptName
+scriptDir=$(readlink -f "$(dirname "$0")")
+echo $scriptDir
+
+timeTag=$(date "+%y_%m_%d_%H_%M_%S")
+
+setup_log=${scriptName}_${LOGNAME}_${timeTag}.log
+echo $setup_log
+echo "RUNNING $scriptName as " $(readlink -f $0 ) " on " `date`  | tee  $setup_log
+
+echo $FINDIV
+
+echo "aprun -n 1 -N 1 -d 32  -b /lustre/beagle2/ober/users/smozaffari/ASE/bin/verifybamid/bamid3.sh $FINDIV $FC $LANE $JOBSPERNODE"
+aprun -n 1 -N 1 -d 32  -b /lustre/beagle2/ober/users/smozaffari/ASE/bin/verifybamid/bamid3.sh $FINDIV $FC $LANE $JOBSPERNODE $COUNT
+
+
+echo "%%% Ending at "$(date)
+
+
+
+

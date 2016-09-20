@@ -8,63 +8,25 @@ fi
 
 export PATH="/lustre/beagle2/ober/users/smozaffari/miniconda2/bin:$PATH"
 
+export $SCRIPTDIR=$1
+export $INPUTDIR=$3
+export $SNP_DIR=$4
+
 module load bcftools
 module load samtools/1.1
-
-SCRIPTDIR=$1
-FLOWCELLFINDIV=$2
-export INPUTDIR=$3
-export SNP_DIR=$4
-export WASP=$SCRIPTDIR/WASP
-export lane=$5
-export file=$6
-echo $file 
-echo $lane
 
 scriptName=$(basename ${0})
 echo $scriptName
 scriptName=${scriptName%\.sh}
 echo $scriptName
 
-#timeTag=$(date "+%y_%m_%d_%H_%M_%S")
-ID=$(echo "$FLOWCELLFINDIV" | sed 's/\//./g')
-FINDIV=$(echo "$FLOWCELLFINDIV" | awk -F'/' '{print $2}')
-echo $ID
-echo $FINDIV
-
-plog=$PWD/PO_${LOGNAME}_${FINDIV}_${lane}_star.log
+timeTag=$(date "+%y_%m_%d_%H_%M_%S")                                                                                                                                                                                                                                      
+export plog=$PWD/PO_${LOGNAME}_${timeTag}_star.log
 echo $plog
 maplog=$PWD/mapping.log
 echo $maplog
 
 echo "RUNNING $scriptName as " $(readlink -f $0 ) " on " `date`  | tee  $plog
-
-#timeTag=$(date "+%y_%m_%d_%H_%M_%S")
-
-echo "RUNNING $scriptName as " $(readlink -f $0 ) " on " `date`  | tee  $plog
-#plog=$inputDir/python_WASP_$num
-
-echo "SCRIPTDIR:" $SCRIPTDIR
-declare -A adaptor_index
-adaptor_index=( [1]="ATCACG" [2]="CGATGT" [3]="TTAGGC" [4]="TGACCA" [5]="ACAGTG" [6]="GCCAAT" [7]="CAGATC" [8]="ACTTGA" [9]="GATCAG" [10]="TAGCTT" [11]="GGCTAC" [12]="CTTGTA" [13]="AGTCAA" [14]="AGTTCC" [15]="ATGTCA" [16]="CCGTCC" [18]="GTCCGC" [19]="GTGAAA" [20]="GTGGCC" [21]="GTTTCG" [22]="CGTACG" [23]="GAGTGG" [25]="ACTGAT" [27]="ATTCCT")
-
-echo ${adaptor_index[1]}
-
-READ=$INPUTDIR/$FLOWCELLFINDIV
-echo "$READ"
-FILE=$READ/$file
-
-IFS='.'
-array=( $file )
-indexnum=${array[1]}
-IFS='_'
-array2=( $indexnum )
-index=${array2[1]}
-echo "$FINDIV $index"
-IFS=''
-
-adaptor=$(echo ${adaptor_index[$index]} )
-echo $adaptor
 
 TRIM_READ() { # trim adaptors
     read=$1
@@ -97,8 +59,10 @@ MAP_AND_SAM() {   # map files using bowtie
     sample=$4
     echo "$input"
     
-    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang/  --readFilesIn $input  --outFileNamePrefix $read/$sample"
-    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang/ --readFilesIn $input --outFileNamePrefix $read/$sample
+    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang/  --readFilesIn $input  --runThreadN 3 --outFileNamePrefix $read/$sample"
+
+    /lustre/beagle2/ober/users/smozaffari/STAR/STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang/ --readFilesIn $input --runThreadN 3 --outFileNamePrefix $read/$sample
+
 
     echo "samtools view -S -h -q 10 -b $read/${sample}Aligned.out.sam > $read/${sample}.bam"
     samtools view -S -h -q 10 -b $read/${sample}Aligned.out.sam > $read/${sample}.bam
@@ -124,7 +88,9 @@ WASP() { # use WASP to remove mapping bias
 
     #remap files:
     echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang/  --readFilesIn $read/${sample}.sorted.remap.fq.gz --readFilesCommand zcat --outFileNamePrefix $read/${sample}.sorted.map2"
-    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang/ --readFilesIn $read/${sample}.sorted.remap.fq.gz --readFilesCommand zcat --outFileNamePrefix $read/${sample}.sorted.map2
+
+    /lustre/beagle2/ober/users/smozaffari/STAR/STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang/ --readFilesIn $read/${sample}.sorted.remap.fq.gz --readFilesCommand zcat --outFileNamePrefix $read/${sample}.sorted.map2
+
    wait
 
     echo "samtools view -S -h -q 10 -b $read/${sample}.sorted.map2Aligned.out.sam > $read/${sample}.sorted.remap.bam"
@@ -231,14 +197,61 @@ export -f WASP
 export -f ASE
 export -f GENECOUNT
 
+
+PROCESS_SHELL() {
+
+echo $SCRIPTDIR
+export FLOWCELLFINDIV=$1
+echo $INPUTDIR
+echo $SNP_DIR
+WASP=$SCRIPTDIR/WASP
+export lane=$2
+export index=$3
+echo "index:" $index
+echo "lane:" $lane
+
+file=${lane}.${index}.sequence.txt.gz
+echo "file:" $file
+ID=$(echo "$FLOWCELLFINDIV" | sed 's/\//./g')
+#lane=$(echo "$file" | cut -f1 -d".")
+echo "lane:" $lane
+FINDIV=$(echo "$FLOWCELLFINDIV" | awk -F'/' '{print $2}')
+echo $ID
+echo $FINDIV
+
+echo "SCRIPTDIR:" $SCRIPTDIR
+declare -A adaptor_index
+adaptor_index=( [1]="ATCACG" [2]="CGATGT" [3]="TTAGGC" [4]="TGACCA" [5]="ACAGTG" [6]="GCCAAT" [7]="CAGATC" [8]="ACTTGA" [9]="GATCAG" [10]="TAGCTT" [11]="GGCTAC" [12]="CTTGTA" [13]="AGTCAA" [14]="AGTTCC" [15]="ATGTCA" [16]="CCGTCC" [18]="GTCCGC" [1\
+9]="GTGAAA" [20]="GTGGCC" [21]="GTTTCG" [22]="CGTACG" [23]="GAGTGG" [25]="ACTGAT" [27]="ATTCCT")
+
+echo ${adaptor_index[1]}
+
+READ=$INPUTDIR/$FLOWCELLFINDIV
+echo "dir of read:" $READ
+FILE=$READ/$file
+echo "dir of read with file:" $FILE
+
 SAMPLE=${FINDIV}_${lane}
 LANEWASP=${lane}_WASP
 echo $SAMPLE
 echo $FILE
-echo $SNP_DIR 
+echo $SNP_DIR
 echo $SCRIPTDIR
 echo $lane
 echo $LANEWASP
+
+IFS='.'
+array=( $file )
+indexnum=${array[1]}
+IFS='_'
+array2=( $indexnum )
+index=${array2[1]}
+echo "$FINDIV $index"
+IFS=''
+
+adaptor=$(echo ${adaptor_index[$index]} )
+echo $adaptor
+
 
 TRIM_READ $READ $FINDIV $FILE $adaptor $SAMPLE >>$plog 2>&1 
 echo "TRIM_READ $READ $FINDIV $FILE $adaptor $SAMPLE  >>$plog 2>&1"
@@ -246,7 +259,7 @@ echo "TRIM_READ $READ $FINDIV $FILE $adaptor $SAMPLE  >>$plog 2>&1"
 input=$(echo "$FILE" | sed 's/txt.gz/trim.txt/g')
 echo "$input"
 MAP_AND_SAM $READ $FINDIV $input $SAMPLE >>$plog 2>&1
-echo "MAP_AND_SAM $READ $FINDIV $SAMPLE  >>$plog 2>&1"
+echo "MAP_AND_SAM $READ $FINDIV $input $SAMPLE  >>$plog 2>&1"
 
 WASP $READ $FINDIV $SNP_DIR $SAMPLE $LANEWASP>>$plog 2>&1
 echo "WASP $READ $FINDIV $SNP_DIR $SAMPLE $LANEWASP>>$plog 2>&1"
@@ -262,3 +275,11 @@ echo "SEXGENES $READ  $SAMPLE >>$plog 2>&1"
 
 COUNTREADS $READ $SAMPLE >>$plog 2>&1
 echo "COUNTREADS $READ $SAMPLE >>$plog 2>&1"
+
+}
+
+export -f PROCESS_SHELL
+
+echo "parallel --xapply -d \":\" -j 10 PROCESS_SHELL  ::: $2 ::: $5 ::: $6 2>&1" | tee $plog
+#parallel --xapply -d ":" -j 10 PROCESS_SHELL ::: $SCRIPTDIR ::: $FLOWCELLFINDIV ::: $INPUTDIR ::: $SNPDIR ::: $FILE  2>&1
+parallel --xapply -d ":" -j 10 PROCESS_SHELL  ::: $2 ::: $5 ::: $6 2>&1
