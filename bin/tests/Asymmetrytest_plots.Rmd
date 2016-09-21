@@ -1,0 +1,149 @@
+---
+title: "Update_08.23"
+author: "Sahar Mozaffari"
+date: "August 23, 2016"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+dir <- "~"
+
+maternal <- read.table(paste(dir,"/Maternal_gene_normalized.txt", sep=""), check.names = F)
+paternal <- read.table(paste(dir,"/Paternal_gene_normalized.txt", sep=""),  check.names = F)
+genes <- rownames(maternal)
+
+
+maternal2 <- as.matrix(maternal)
+paternal2 <- as.matrix(paternal)
+
+taball <- read.table("08.24_all.txt")
+tabp <- read.table("~/08.30p_2781")
+tabm <- read.table("~/08.30m_2538")
+```
+
+```{r means}
+mat <- maternal2
+pat <- paternal2
+b_mm <- matrix(rbinom(nrow(mat) * ncol(mat), 1, 0.5), nrow=nrow(mat), ncol=ncol(mat))
+b_mp <- 1-b_mm
+mat2<-(b_mm*mat)+(b_mp*pat)
+pat2<-(b_mm*pat)+(b_mp*mat)
+ss_m <- apply(mat2, 1, function(x) mean((x), na.rm=T))
+ss_p <- apply(pat2, 1, function(x) mean((x), na.rm=T))
+
+head(ss_m)
+head(ss_p)
+
+```
+
+
+
+```{r pressure, echo=FALSE}
+plot(taball$V3,-log10(taball$V2), xlab = "Tstatistic", ylab="-log10(pvalue)", main = "Asymmetry Test")
+
+plot(tabp$V3,-log10(tabp$V2), xlab = "Tstatistic", ylab="-log10(pvalue)", main = "Asymmetry Test")
+plot(tabm$V3,-log10(tabm$V2), xlab = "Tstatistic", ylab="-log10(pvalue)", main = "Asymmetry Test")
+
+
+x<- 4
+plot(maternal2[x,], paternal2[x,], xlab = "Maternal", ylab="Paternal", main = "A1CF expression")
+points(mean(maternal2[x,]), mean(paternal2[x,]), col="red",pch=19)
+points(ss_m[x], ss_p[x], col="blue",pch=19)
+
+
+plot(maternal2[10,], paternal2[10,], xlab = "Maternal", ylab="Paternal", main = "A4GNT expression: Tstat = 4.387129e-08")
+
+tabm0 <- tabm[which(tabm$V2==0),]
+tail(tabm0[order(tabm0$V3),],20)
+
+tabp0 <- tabp[which(tabp$V2==0),]
+tail(tabp0[order(tabp0$V3),],20)
+
+
+grep("KCNQ1", genes)
+genes[grep("KCNQ1", genes)]
+
+plot(maternal2[8196,], paternal2[8196,], xlab = "Maternal", ylab="Paternal", main = "KCNQ1 expression: Tstat=0.024, P=0", xlim=c(0,7), ylim=c(0,7))
+
+
+plot(maternal2[15615,], paternal2[15615,], xlab = "Maternal", ylab="Paternal", main = "SEC22B expression: Tstat=2.5, P=0", xlim=c(0,80), ylim=c(0,80))
+
+plot(maternal2[19919,], paternal2[19919,], xlab = "Maternal", ylab="Paternal", main = "ZNF597 expression",xlim=c(0,1.1), ylim=c(0,1.1))
+points(mean(maternal2[19919,]), mean(paternal2[19919,]), col="red",pch=19)
+points(ss_m[19919], ss_p[19919], col="blue",pch=19)
+
+```
+
+
+```{r}
+
+plot(maternal2[126,], paternal2[126,], xlab = "Maternal", ylab="Paternal", main = "CXCL5 expression: Tstat=0")
+
+plot(maternal2[12778,], paternal2[12778,], xlab = "Maternal", ylab="Paternal", main = "OR5K4 expression: Tstat=2.780869e-07")
+
+
+plot(maternal2[7517,], paternal2[7517,], xlab = "Maternal", ylab="Paternal", main = "HSPA8 expression : Tstat =10.9397662", xlim=c(0,250), ylim=c(0,250))
+
+x <- 19481
+plot(maternal2[x,], paternal2[x,], xlab = "Maternal", ylab="Paternal", main = "ZDBF2 expression ",xlim=c(0,5), ylim=c(0,5))
+points(mean(maternal2[x,]), mean(paternal2[x,]), col="red",pch=19)
+points(ss_m[x], ss_p[x], col="blue",pch=19)
+
+```
+
+
+Smallest and largest p-value 
+```{r pvals, echo=FALSE}
+head(tab7663[order(tab7663$V2),])
+
+tail(tab7663[order(tab7663$V2),])
+
+```
+
+
+Smallest and largest T statistic
+```{r zeros, echo=FALSE}
+
+head(tab7663[order(tab7663$V3),])
+tail(tab7663[order(tab7663$V3),])
+
+
+```
+
+
+
+```{r zdbf2, echo=FALSE}
+
+z <- read.table("ZDBF2_08.23")
+z2 <- z[1,-c(1:4)]
+hist(as.numeric(z2), xlim=c(0,0.1), main= "Tstats of ZDBF2")
+abline(v=z[1,3], col="red")
+
+
+```
+
+
+```{r hlaf, echo=FALSE}
+
+z <- read.table("HLA-F_08.23")
+z2 <- z[1,-c(1:4)]
+hist(as.numeric(z2),  main= "Tstats of HLA-F")
+abline(v=z[1,3], col="red")
+
+
+```
+
+
+
+```{r or5k4, echo=FALSE}
+
+z <- read.table("OR5K4_08.23")
+z2 <- z[1,-c(1:4)]
+hist(as.numeric(z2),  main= "Tstats of OR5K4")
+abline(v=z[1,3], col="red")
+
+
+```
+
+
+
