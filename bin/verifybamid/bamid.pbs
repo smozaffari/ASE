@@ -6,6 +6,13 @@
 ## Beagle specific
 #PBS -A CI-MCB000155
 
+# Sahar Mozaffari
+# 8/23/16
+
+# PURPOSE: verifybamid, second part of script for beagle
+# INPUT: from bamid1.sh
+# USAGE: qsub -v JOBSPERNODE=$jobsPerNode,FINDIV=$FINDIVlist,FC=$FClist,LANE=$lanelist,COUNT=$nTotSubJobs -N swap1_${nTotSubJobs} $scriptDir/bamid.pbs
+
 cd $PBS_O_WORKDIR
 echo $PBS_O_WORKDIR
 
