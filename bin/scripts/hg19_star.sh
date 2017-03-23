@@ -9,7 +9,7 @@ fi
 export PATH="/lustre/beagle2/ober/users/smozaffari/miniconda2/bin:$PATH"
 
 module load bcftools
-module load samtools/1.1
+module load samtools/1.3
 
 SCRIPTDIR=$1
 FLOWCELLFINDIV=$2
@@ -103,9 +103,13 @@ MAP_AND_SAM() {   # map files using bowtie
     echo "samtools view -q 10 -b $read/${sample}Aligned.out.sam > $read/${sample}.bam"
 #    samtools view -q 10 -b $read/${sample}Aligned.out.sam > $read/${sample}.bam
 
-     echo "samtools sort $read/${sample}.bam $read/${sample}.sorted"
-    samtools sort $read/${sample}.bam $read/${sample}.sorted
+#     echo "samtools sort $read/${sample}.bam $read/${sample}.sorted"
+#    samtools sort $read/${sample}.bam $read/${sample}.sorted
  
+   echo "samtools sort -o  $read/${sample}.sorted.bam $read/${sample}.bam"
+    samtools sort -o  $read/${sample}.sorted.bam $read/${sample}.bam
+
+
     echo "samtools view -c -F 255 $read/${sample}.sorted.bam > $read/${sample}.sorted.txt"
     samtools view -c -F 255 $read/${sample}.sorted.bam > $read/${sample}.sorted.txt
     echo "samtools index $read/${sample}.sorted.bam"
@@ -132,8 +136,11 @@ WASP() { # use WASP to remove mapping bias
     echo "samtools view -q 10 -b $read/${sample}.sorted.map2Aligned.out.sam > $read/${sample}.sorted.remap.bam"
     samtools view -q 10 -b $read/${sample}.sorted.map2Aligned.out.sam > $read/${sample}.sorted.remap.bam
 
-    echo "samtools sort $read/${sample}.sorted.remap.bam $read/${sample}.sorted.remap.sorted.bam"
-    samtools sort $read/${sample}.sorted.remap.bam $read/${sample}.sorted.remap.sorted.bam
+#    echo "samtools sort $read/${sample}.sorted.remap.bam $read/${sample}.sorted.remap.sorted.bam"
+#    samtools sort $read/${sample}.sorted.remap.bam $read/${sample}.sorted.remap.sorted.bam
+
+    echo "samtools sort $read/${sample}.sorted.remap.sorted.bam $read/${sample}.sorted.remap.bam"
+    samtools sort -o  $read/${sample}.sorted.remap.sorted.bam $read/${sample}.sorted.remap.bam
 
     echo "samtools index $read/${sample}.sorted.remap.sorted.bam"
     samtools index $read/${sample}.sorted.remap.sorted.bam
@@ -149,8 +156,15 @@ WASP() { # use WASP to remove mapping bias
     #merged bamfile:
     samtools merge $read/${sample}.keep.merged.bam $read/${sample}.sorted.keep.bam $read/${sample}.sorted.remap.keep.bam
     echo "samtools merge $read/${sample}.keep.merged.bam $read/${sample}.sorted.keep.bam $read/${sample}.sorted.remap.keep.bam"
-    samtools sort $read/${sample}.keep.merged.bam $read/${sample}.keep.merged.sorted
-    echo "samtools sort $read/${sample}.keep.merged.bam $read/${sample}.keep.merged.sorted"
+
+
+#    samtools sort $read/${sample}.keep.merged.bam $read/${sample}.keep.merged.sorted
+#    echo "samtools sort $read/${sample}.keep.merged.bam $read/${sample}.keep.merged.sorted"
+
+   samtools sort -o $read/${sample}.keep.merged.sorted.bam $read/${sample}.keep.merged.bam
+    echo "samtools -o sort $read/${sample}.keep.merged.sorted.bam $read/${sample}.keep.merged.bam"
+
+
     samtools index $read/${sample}.keep.merged.sorted.bam
     echo "samtools index $read/${sample}.keep.merged.sorted.bam"
 
@@ -263,14 +277,14 @@ echo "MAP_AND_SAM $READ $FINDIV $SAMPLE  >>$plog 2>&1"
 WASP $READ $FINDIV $SNP_DIR $SAMPLE $LANEWASP>>$plog 2>&1
 echo "WASP $READ $FINDIV $SNP_DIR $SAMPLE $LANEWASP>>$plog 2>&1"
 
-ASE $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1
+#ASE $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1
 echo "ASE $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1"
 
-GENECOUNT $READ $SAMPLE >>$plog 2>&1
+#GENECOUNT $READ $SAMPLE >>$plog 2>&1
 echo "GENECOUNT $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1"
 
-SEXGENES $READ  $SAMPLE  >>$plog 2>&1
+#SEXGENES $READ  $SAMPLE  >>$plog 2>&1
 echo "SEXGENES $READ  $SAMPLE >>$plog 2>&1"
 
-COUNTREADS $READ $SAMPLE >>$plog 2>&1
+#COUNTREADS $READ $SAMPLE >>$plog 2>&1
 echo "COUNTREADS $READ $SAMPLE >>$plog 2>&1"
