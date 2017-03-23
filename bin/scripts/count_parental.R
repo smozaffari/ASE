@@ -5,7 +5,7 @@
 ## To get gene count matrix for gene count for components
 
 # Folder output of RNAseq data is in
-path="star_overhang"
+path="star_overhang_v19"
 
 # pattern = ending of file 
 patterns = c("withsex", "hom", "genes_maternal", "genes_paternal")
