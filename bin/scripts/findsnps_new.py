@@ -79,8 +79,9 @@ class DataFiles(object):
         else:
             self.bam_sort_filename = self.bam_filename
 
-        self.maternal_filename = self.prefix + ".maternalnew.bam"
-        self.paternal_filename = self.prefix + ".paternalnew.bam"
+        self.maternal_filename = self.prefix + ".maternalnew100.bam"
+        self.paternal_filename = self.prefix + ".paternalnew100.bam"
+        self.hom_filename = self.prefix + ".homnew100.bam"
 
         sys.stderr.write("reading reads from:\n  %s\n" %
                          self.bam_sort_filename)
@@ -89,15 +90,17 @@ class DataFiles(object):
         
 
         self.input_bam = pysam.Samfile(self.bam_sort_filename, "rb")
+        self.hom_bam = pysam.Samfile(self.hom_filename, "wb",
+                                  template=self.input_bam)
+
         self.maternal_bam = pysam.Samfile(self.maternal_filename, "wb",
                                       template=self.input_bam)
         self.paternal_bam = pysam.Samfile(self.paternal_filename, "wb",
                                        template=self.input_bam)
-        self.hom_bam = pysam.Samfile(self.hom_filename, "wb",
-                                  template=self.input_bam)
-        sys.stderr.write("  %s\n  %s\n" % (self.maternal_filename,
-                                           self.paternal_filename,
-                                           self.hom_filename))
+
+        sys.stderr.write("  %s\n  %s\n %s\n" % (self.hom_filename, 
+                                           self.maternal_filename,
+                                           self.paternal_filename))                         
 
 
     
@@ -145,7 +148,7 @@ class ReadStats(object):
         self.paternal_single = 0
 
         # number of homozygous reads
-        self.paternal_single = 0
+        self.hom_single = 0
 
 
     def write(self, file_handle):
@@ -166,8 +169,8 @@ class ReadStats(object):
                           self.discard_excess_snps,
                           self.discard_excess_reads,
                           self.maternal_single,
-                          self.paternal_single.
-                          self.hom_signle))
+                          self.paternal_single,
+                          self.hom_single))
 
         file_handle.write("read SNP mat matches: %d\n" % self.mat_count)
         file_handle.write("read SNP pat matches: %d\n" % self.pat_count)
@@ -306,7 +309,7 @@ def parse_options():
         
 
 
-def count_ref_alt_matches(read, read_stats, snp_tab, snp_idx, read_pos):
+def count_ref_alt_matches(read, read_stats, snp_tab, snp_idx, read_pos, files):
     mat_alleles = snp_tab.snp_allele1[snp_idx]
     pat_alleles = snp_tab.snp_allele2[snp_idx]
     
@@ -314,7 +317,7 @@ def count_ref_alt_matches(read, read_stats, snp_tab, snp_idx, read_pos):
         if mat_alleles[i] == pat_alleles[i]:
             #if maternal = paternal it is a homozygous read
             read_stats.hom_count +=1
-            files.hom_count.write(read)
+            files.hom_bam.write(read)
         else:
             if mat_alleles[i] == read.query_sequence[read_pos[i]-1]:
                 # read matches reference allele
@@ -380,15 +383,10 @@ def filter_reads(files, max_seqs=MAX_SEQS_DEFAULT, max_snps=MAX_SNPS_DEFAULT,
 
             # use HDF5 files if they are provided, otherwise use text
             # files from SNP dir
-            if files.snp_tab_h5:
-                sys.stderr.write("reading SNPs from file '%s'\n" %
-                                 files.snp_tab_h5.filename)
-                snp_tab.read_h5(files.snp_tab_h5, files.snp_index_h5,
-                                files.hap_h5, cur_chrom, samples)
-            else:
-                snp_filename = "%s/%s.snps.txt.gz" % (files.snp_dir, cur_chrom)
-                sys.stderr.write("reading SNPs from file '%s'\n" % snp_filename)
-                snp_tab.read_file(snp_filename)
+            
+            snp_filename = "%s/%s.snps.txt.gz" % (files.snp_dir, cur_chrom)
+            sys.stderr.write("reading SNPs from file '%s'\n" % snp_filename)
+            snp_tab.read_file(snp_filename)
             
             sys.stderr.write("processing reads\n")
 
@@ -398,62 +396,10 @@ def filter_reads(files, max_seqs=MAX_SEQS_DEFAULT, max_snps=MAX_SNPS_DEFAULT,
             read_stats.discard_secondary += 1
             continue
 
-        if read.is_paired:
-            if read.mate_is_unmapped:
-                # other side of pair not mapped
-                # we could process as single... but these not likely
-                # useful so discard
-                # process_single_read(read, read_stats, files,
-                #                     snp_tab, max_seqs, max_snps)
-                read_stats.discard_mate_unmapped += 1
-            elif(read.next_reference_name == cur_chrom or
-                 read.next_reference_name == "="):
-                # other pair mapped to same chrom
 
-                # sys.stderr.write("flag: %s" % read.flag)
-                if not read.is_proper_pair:
-                    # sys.stderr.write(' => improper\n')
-                    read_stats.discard_improper_pair += 1
-                    continue
-                # sys.stderr.write(' => proper\n')
-
-                if read.qname in read_pair_cache:
-                    # we already saw prev pair, retrieve from cache
-                    read1 = read_pair_cache[read.qname]
-                    read2 = read
-                    del read_pair_cache[read.qname]
-                    cache_size -= 1
-
-                    if read2.next_reference_start != read1.reference_start:
-                        sys.stderr.write("WARNING: read pair positions "
-                                         "do not match for pair %s\n" %
-                                         read.qname)
-                    else:
-                        process_paired_read(read1, read2, read_stats,
-                                            files, snp_tab, max_seqs,
-                                            max_snps)
-                else:
-                    # we need to wait for next pair
-                    read_pair_cache[read.qname] = read
-
-                    cache_size += 1
-
-                    
-            else:
-                # other side of pair mapped to different
-                # chromosome, discard this read
-                read_stats.discard_different_chromosome += 1
-
-        else:
-            process_single_read(read, read_stats, files, snp_tab,
-                                max_seqs, max_snps)
-
-    if len(read_pair_cache) != 0:
-        sys.stderr.write("WARNING: failed to find pairs for %d "
-                         "reads on this chromosome\n" %
-                         len(read_pair_cache))
-        read_stats.discard_missing_pair += len(read_pair_cache)
-    
+        process_single_read(read, read_stats, files, snp_tab,
+                            max_seqs, max_snps)
+        
     read_stats.write(sys.stderr)
                      
 
@@ -475,13 +421,11 @@ def process_single_read(read, read_stats, files, snp_tab, max_seqs,
         return
 
     if len(snp_idx) > 0:
-        print snp_tab.snp_allele1[snp_idx]
-        print snp_tab.snp_allele2[snp_idx]
         mat_alleles = snp_tab.snp_allele1[snp_idx]
         pat_alleles = snp_tab.snp_allele2[snp_idx]
 
         count_ref_alt_matches(read, read_stats, snp_tab, snp_idx,
-                              snp_read_pos)
+                              snp_read_pos, files)
 
         # limit recursion here by discarding reads that
         # overlap too many SNPs
@@ -489,13 +433,7 @@ def process_single_read(read, read_stats, files, snp_tab, max_seqs,
             read_stats.discard_excess_snps += 1
             return
 
-        if files.hap_h5:
-            read_seqs = generate_haplo_reads(read.query_sequence, snp_idx,
-                                             snp_read_pos,
-                                             mat_alleles, pat_alleles,
-                                             snp_tab.haplotypes)
-        else:
-            mat_seqs, pat_seqs = generate_reads(read.query_sequence,  0)
+#        mat_seqs, pat_seqs = generate_reads(read.query_sequence,  0)
 
         # make set of unique reads, we don't want to remap
         # duplicates, or the read that matches original
@@ -506,8 +444,8 @@ def process_single_read(read, read_stats, files, snp_tab, max_seqs,
 #        if len(unique_reads) == 0:
             # only read generated matches original read,
             # so keep original
-            files.maternal_bam.write(mat_seqs)
-            read_stats.maternal_single += 1
+#            files.maternal_bam.write(mat_seqs)
+#            read_stats.maternal_single += 1
 #        elif len(unique_reads) < max_seqs:
 #            # write read to fastq file for remapping
 #            write_fastq(files.fastq_single, read, unique_reads)
@@ -515,8 +453,8 @@ def process_single_read(read, read_stats, files, snp_tab, max_seqs,
             # write read to 'to remap' BAM
             # this is probably not necessary with new implmentation
             # but kept for consistency with previous version of script
-            files.paternal_bam.write(pat_seqs)
-            read_stats.paternal_single += 1
+#            files.paternal_bam.write(pat_seqs)
+#            read_stats.paternal_single += 1
 #        else:
             # discard read
 #            read_stats.discard_excess_reads += 1
@@ -531,22 +469,16 @@ def process_single_read(read, read_stats, files, snp_tab, max_seqs,
 
 
         
-def main(bam_filenames, is_paired_end=False,
+def main(bam_filenames,
          is_sorted=False, max_seqs=MAX_SEQS_DEFAULT,
          max_snps=MAX_SNPS_DEFAULT, output_dir=None,
-         snp_dir=None, snp_tab_filename=None,
-         snp_index_filename=None,
-         haplotype_filename=None, samples=None):
+         snp_dir=None):
 
-    files = DataFiles(bam_filenames,  is_sorted, is_paired_end,
+    files = DataFiles(bam_filenames,  is_sorted, 
                       output_dir=output_dir,
-                      snp_dir=snp_dir,
-                      snp_tab_filename=snp_tab_filename,
-                      snp_index_filename=snp_index_filename,
-                      haplotype_filename=haplotype_filename)
+                      snp_dir=snp_dir)
     
-    filter_reads(files, max_seqs=max_seqs, max_snps=max_snps,
-                 samples=samples)
+    filter_reads(files, max_seqs=max_seqs, max_snps=max_snps)
 
     files.close()
     
@@ -560,16 +492,11 @@ if __name__ == '__main__':
     util.check_pysam_version()
         
     options = parse_options()
-    samples = parse_samples(options.samples)
     
     main(options.bam_filename,
-         is_paired_end=options.is_paired_end, is_sorted=options.is_sorted,
+         is_sorted=options.is_sorted,
          max_seqs=options.max_seqs, max_snps=options.max_snps,
          output_dir=options.output_dir,
-         snp_dir=options.snp_dir,
-         snp_tab_filename=options.snp_tab,
-         snp_index_filename=options.snp_index,
-         haplotype_filename=options.haplotype,
-         samples=samples)
+         snp_dir=options.snp_dir)
          
     
