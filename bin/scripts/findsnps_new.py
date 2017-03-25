@@ -79,9 +79,9 @@ class DataFiles(object):
         else:
             self.bam_sort_filename = self.bam_filename
 
-        self.maternal_filename = self.prefix + ".maternalnew100.bam"
-        self.paternal_filename = self.prefix + ".paternalnew100.bam"
-        self.hom_filename = self.prefix + ".homnew100.bam"
+        self.maternal_filename = self.prefix + ".maternal.bam"
+        self.paternal_filename = self.prefix + ".paternal.bam"
+        self.hom_filename = self.prefix + ".hom.bam"
 
         sys.stderr.write("reading reads from:\n  %s\n" %
                          self.bam_sort_filename)
@@ -309,7 +309,7 @@ def parse_options():
         
 
 
-def count_ref_alt_matches(read, read_stats, snp_tab, snp_idx, read_pos, files):
+def count_ref_alt_matches(read, read_stats, snp_tab, snp_idx, read_pos, files, cur_chrom):
     mat_alleles = snp_tab.snp_allele1[snp_idx]
     pat_alleles = snp_tab.snp_allele2[snp_idx]
     
@@ -318,17 +318,20 @@ def count_ref_alt_matches(read, read_stats, snp_tab, snp_idx, read_pos, files):
             #if maternal = paternal it is a homozygous read
             read_stats.hom_count +=1
             files.hom_bam.write(read)
+            print  cur_chrom, snp_idx,  read.query_sequence[read_pos[i]-1], i, "hom", read_pos, read.query_sequence
         else:
             if mat_alleles[i] == read.query_sequence[read_pos[i]-1]:
                 # read matches reference allele
                 read_stats.mat_count += 1
                 #output to maternal.bam file.
                 files.maternal_bam.write(read)
+                print  cur_chrom, snp_idx,  mat_alleles[i], i, "mat", read_pos, read.query_sequence
             elif pat_alleles[i] == read.query_sequence[read_pos[i]-1]:
                 # read matches non-reference allele
                 read_stats.pat_count += 1
                 #output to maternal.bam file.
                 files.paternal_bam.write(read)
+                print  cur_chrom, snp_idx,  pat_alleles[i], i, "pat", read_pos, read.query_sequence
                 
             else:
                 # read matches neither ref nor other
@@ -363,7 +366,6 @@ def filter_reads(files, max_seqs=MAX_SEQS_DEFAULT, max_snps=MAX_SNPS_DEFAULT,
         if (cur_tid is None) or (read.tid != cur_tid):
             # this is a new chromosome
             cur_chrom = files.input_bam.getrname(read.tid)
-
             if len(read_pair_cache) != 0:
                 sys.stderr.write("WARNING: failed to find pairs for %d "
                                  "reads on this chromosome\n" %
@@ -398,13 +400,13 @@ def filter_reads(files, max_seqs=MAX_SEQS_DEFAULT, max_snps=MAX_SNPS_DEFAULT,
 
 
         process_single_read(read, read_stats, files, snp_tab,
-                            max_seqs, max_snps)
+                            max_seqs, max_snps, cur_chrom)
         
     read_stats.write(sys.stderr)
                      
 
 def process_single_read(read, read_stats, files, snp_tab, max_seqs,
-                        max_snps):
+                        max_snps, cur_chrom):
     """Check if a single read overlaps SNPs or indels, and writes
     this read (or generated read pairs) to appropriate output files"""
                 
@@ -425,7 +427,7 @@ def process_single_read(read, read_stats, files, snp_tab, max_seqs,
         pat_alleles = snp_tab.snp_allele2[snp_idx]
 
         count_ref_alt_matches(read, read_stats, snp_tab, snp_idx,
-                              snp_read_pos, files)
+                              snp_read_pos, files, cur_chrom)
 
         # limit recursion here by discarding reads that
         # overlap too many SNPs
