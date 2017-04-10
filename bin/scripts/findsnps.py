@@ -834,7 +834,8 @@ def main():
         pref = name_split[0]
     
     if not options.is_sorted:
-        pysam.sort(infile, pref + ".sort")
+#switched order of infile and pref.sort
+        pysam.sort("-o", pref + ".sort", infile)
         infile = pref + ".sort"
         sort_file_name = pref + ".sort.bam"
     else:
