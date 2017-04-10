@@ -101,7 +101,7 @@ MAP_AND_SAM() {   # map files using bowtie
 #    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/ --readFilesIn $input --outFileNamePrefix $read/$sample
 
     echo "samtools view -q 10 -b $read/${sample}Aligned.out.sam > $read/${sample}.bam"
-#    samtools view -q 10 -b $read/${sample}Aligned.out.sam > $read/${sample}.bam
+    samtools view -q 10 -b $read/${sample}Aligned.out.sam > $read/${sample}.bam
 
 #     echo "samtools sort $read/${sample}.bam $read/${sample}.sorted"
 #    samtools sort $read/${sample}.bam $read/${sample}.sorted
@@ -110,8 +110,8 @@ MAP_AND_SAM() {   # map files using bowtie
     samtools sort -o  $read/${sample}.sorted.bam $read/${sample}.bam
 
 
-    echo "samtools view -c -F 255 $read/${sample}.sorted.bam > $read/${sample}.sorted.txt"
-    samtools view -c -F 255 $read/${sample}.sorted.bam > $read/${sample}.sorted.txt
+ #   echo "samtools view -c -F 255 $read/${sample}.sorted.bam > $read/${sample}.sorted.txt"
+ #   samtools view -c -F 255 $read/${sample}.sorted.bam > $read/${sample}.sorted.txt
     echo "samtools index $read/${sample}.sorted.bam"
     samtools index $read/${sample}.sorted.bam 
 
@@ -168,7 +168,7 @@ WASP() { # use WASP to remove mapping bias
     samtools index $read/${sample}.keep.merged.sorted.bam
     echo "samtools index $read/${sample}.keep.merged.sorted.bam"
 
-    python $WASP/mapping/rmdup.py $read/${sample}.keep.merged.sorted.bam $read/${sample}.afterWASP.bam
+#    python $WASP/mapping/rmdup.py $read/${sample}.keep.merged.sorted.bam $read/${sample}.afterWASP.bam
 
 #    samtools index $read/${sample}.afterWASP.bam
 #    echo "samtools index $read/${sample}.afterWASP.bam"
@@ -190,41 +190,47 @@ ASE() {
     findiv=$2
     scriptdir=$3
     sample=$4
-    echo "python $scriptdir/findsnps.py $read/${sample}.afterWASP.bam /lustre/beagle2/ober/users/smozaffari/ASE/data/genotypes/$findiv > $read/${sample}_ASE_info"
-    python $scriptdir/findsnps.py $read/${sample}.afterWASP.bam /lustre/beagle2/ober/users/smozaffari/ASE/data/genotypes/$findiv > $read/${sample}_ASE_info
+#    echo "python $scriptdir/findsnps_new.py --snp_dir /lustre/beagle2/ober/users/smozaffari/ASE/data/genotypes/$findiv > $read/${sample}_ASE_info $read/${sample}.afterWASP.bam"
+#    python $scriptdir/findsnps_new.py --snp_dir /lustre/beagle2/ober/users/smozaffari/ASE/data/genotypes/$findiv $read/${sample}.afterWASP.bam #> $read/${sample}_ASE_info
+     echo "python $scriptdir/findsnps_new.py  --is_sorted --snp_dir  /lustre/beagle2/ober/users/smozaffari/ASE/data/swapped_genotypes/$findiv $read/${sample}.keep.merged.sorted.bam > $read/${sample}_ASE_info"
+     python $scriptdir/findsnps_new.py  --is_sorted --snp_dir  /lustre/beagle2/ober/users/smozaffari/ASE/data/swapped_genotypes/$findiv $read/${sample}.keep.merged.sorted.bam > $read/${sample}_ASE_info
+
 }
 
 GENECOUNT() {
     read=$1
     sample=$2
 
-    samtools view  $read/${sample}.afterWASP.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes
+    samtools view  $read/${sample}.keep.merged.sorted.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes
 #    samtools view $read/${sample}.sort.withX.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_withsex
-    samtools view  $read/${sample}.afterWASP.maternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_maternal
-    samtools view  $read/${sample}.afterWASP.paternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_paternal
-    samtools view $read/${sample}.afterWASP.keep.bam | htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_hom
+    samtools view  $read/${sample}.keep.merged.sorted.maternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_maternal
+    samtools view  $read/${sample}.keep.merged.sorted.paternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_paternal
+    samtools view $read/${sample}.keep.merged.sorted.hom.bam | htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_hom
 
 }
 
 SEXGENES() {
     read=$1
     sample=$2
-    samtools index $read/${sample}.afterWASP.bam
-    echo "samtools index $read/${sample}.afterWASP.bam"
-    samtools view $read/${sample}.afterWASP.bam chrX -b > $read/${sample}.chrX.bam
-    echo "samtools view $read/${sample}.afterWASP.bam chrX -b > $read/${sample}.chrX.bam"
+    samtools index $read/${sample}.keep.merged.sorted.bam
+    echo "samtools index $read/${sample}.keep.merged.sorted.bam"
+    samtools view $read/${sample}.keep.merged.sorted.bam chrX -b > $read/${sample}.chrX.bam
+    echo "samtools view $read/${sample}.keep.merged.sorted.bam chrX -b > $read/${sample}.chrX.bam"
 
-    samtools view $read/${sample}.afterWASP.bam chrY -b > $read/${sample}.chrY.bam
-    echo "samtools view $read/${sample}.afterWASP.bam chrY -b > $read/${sample}.chrY.bam"
+    samtools view $read/${sample}.keep.merged.sorted.bam chrY -b > $read/${sample}.chrY.bam
+    echo "samtools view $read/${sample}.keep.merged.sorted.bam chrY -b > $read/${sample}.chrY.bam"
 
-    samtools view $read/${sample}.afterWASP.bam chrM -b > $read/${sample}.chrM.bam
-    echo "samtools view $read/${sample}.afterWASP.bam chrM -b > $read/${sample}.chrM.bam"
+    samtools view $read/${sample}.keep.merged.sorted.bam chrM -b > $read/${sample}.chrM.bam
+    echo "samtools view $read/${sample}.keep.merged.sorted.bam chrM -b > $read/${sample}.chrM.bam"
 
 
     samtools merge $read/${sample}.withX.bam $read/${sample}.keep.merged.bam $read/${sample}.chrX.bam $read/${sample}.chrY.bam $read/${sample}.chrM.bam
     echo "samtools merge $read/${sample}.withX.bam $read/${sample}.keep.merged.bam $read/${sample}.chrX.bam $read/${sample}.chrY.bam $read/${sample}.chrM.bam"
-    samtools sort $read/${sample}.withX.bam $read/${sample}.sort.withX
-    echo "samtools sort $read/${sample}.withX.bam $read/${sample}.sort.withX"
+#    samtools sort $read/${sample}.withX.bam $read/${sample}.sort.withX
+#    echo "samtools sort $read/${sample}.withX.bam $read/${sample}.sort.withX"
+    samtools sort -o $read/${sample}.sort.withX.bam $read/${sample}.withX.bam
+    echo "samtools sort -o $read/${sample}.sort.withX.bam $read/${sample}.withX.bam"
+
     samtools index $read/${sample}.sort.withX.bam
     echo "samtools index $read/${sample}.sort.withX.bam"
 
@@ -241,14 +247,14 @@ COUNTREADS() {
     samtools view -c -F 256 $read/${sample}.sort.withX.bam >>$read/${sample}.sorted.txt
     echo "samtools view -c -F 256 $read/${sample}.sort.withX.bam >>$read/${sample}.sorted.txt"
 
-    samtools view -c -F 256 $read/${sample}.afterWASP.bam >>$read/${sample}.sorted.txt
+    samtools view -c -F 256 $read/${sample}.keep.merged.sorted.bam >>$read/${sample}.sorted.txt
     echo "samtools view -c -F 256 $read/${sample}.keep.merged.sorted.bam >>$read/${sample}.sorted.txt"
-    samtools view -c -F 256 $read/${sample}.afterWASP.keep.bam >>$read/${sample}.sorted.txt
-    echo "samtools view -c -F 256 $read/${sample}.afterWASP.keep.bam >>$read/${sample}.sorted.txt"
-    samtools view -c -F 256 $read/${sample}.afterWASP.bam >>$read/${sample}.sorted.txt
-    echo "samtools view -c -F 256 $read/${sample}.afterWASP.paternal.bam >>$read/${sample}.sorted.txt"
-    samtools view -c -F 256 $read/${sample}.afterWASP.maternal.bam >>$read/${sample}.sorted.txt
-    echo "samtools view -c -F 256 $read/${sample}.afterWASP.maternal.bam >>$read/${sample}.sorted.txt"
+    samtools view -c -F 256 $read/${sample}.keep.merged.sorted.hom.bam >>$read/${sample}.sorted.txt
+    echo "samtools view -c -F 256 $read/${sample}.keep.merged.sorted.hom.bam >>$read/${sample}.sorted.txt"
+    samtools view -c -F 256 $read/${sample}.keep.merged.sorted.paternal.bam >>$read/${sample}.sorted.txt
+    echo "samtools view -c -F 256 $read/${sample}.keep.merged.sorted.paternal.bam >>$read/${sample}.sorted.txt"
+    samtools view -c -F 256 $read/${sample}.keep.merged.sorted.maternal.bam >>$read/${sample}.sorted.txt
+    echo "samtools view -c -F 256 $read/${sample}.keep.merged.sorted.maternalbam >>$read/${sample}.sorted.txt"
 }
 
 export -f TRIM_READ
@@ -274,17 +280,17 @@ echo "$input"
 #MAP_AND_SAM $READ $FINDIV $input $SAMPLE >>$plog 2>&1
 echo "MAP_AND_SAM $READ $FINDIV $SAMPLE  >>$plog 2>&1"
 
-WASP $READ $FINDIV $SNP_DIR $SAMPLE $LANEWASP>>$plog 2>&1
+#WASP $READ $FINDIV $SNP_DIR $SAMPLE $LANEWASP>>$plog 2>&1
 echo "WASP $READ $FINDIV $SNP_DIR $SAMPLE $LANEWASP>>$plog 2>&1"
 
-#ASE $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1
+ASE $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1
 echo "ASE $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1"
 
-#GENECOUNT $READ $SAMPLE >>$plog 2>&1
+GENECOUNT $READ $SAMPLE >>$plog 2>&1
 echo "GENECOUNT $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1"
 
-#SEXGENES $READ  $SAMPLE  >>$plog 2>&1
+SEXGENES $READ  $SAMPLE  >>$plog 2>&1
 echo "SEXGENES $READ  $SAMPLE >>$plog 2>&1"
 
-#COUNTREADS $READ $SAMPLE >>$plog 2>&1
+COUNTREADS $READ $SAMPLE >>$plog 2>&1
 echo "COUNTREADS $READ $SAMPLE >>$plog 2>&1"
