@@ -310,34 +310,37 @@ def parse_options():
 
 
 def count_ref_alt_matches(read, read_stats, snp_tab, snp_idx, read_pos, files, cur_chrom):
-    mat_alleles = snp_tab.snp_allele1[snp_idx]
-    pat_alleles = snp_tab.snp_allele2[snp_idx]
-    
-    for i in range(len(snp_idx)):
-        if mat_alleles[i] == pat_alleles[i]:
-            #if maternal = paternal it is a homozygous read
-            read_stats.hom_count +=1
-            files.hom_bam.write(read)
-            print  cur_chrom, snp_idx,  read.query_sequence[read_pos[i]-1], i, "hom", read_pos, read.query_sequence
-        else:
-            if mat_alleles[i] == read.query_sequence[read_pos[i]-1]:
-                # read matches reference allele
-                read_stats.mat_count += 1
+    pat_alleles = snp_tab.snp_allele1[snp_idx]
+    mat_alleles = snp_tab.snp_allele2[snp_idx]
+#if all SNPs in the read are equal th entire read will go to homozgyous count 
+    if np.array_equal(mat_alleles, pat_alleles):
+        read_stats.hom_count +=1
+        files.hom_bam.write(read)
+        for i in range(len(snp_idx)):
+            print  len(snp_idx), cur_chrom, snp_idx[i], snp_tab.snp_pos[snp_idx][i], mat_alleles[i], pat_alleles[i], i,  "hom", read_pos[i], read.query_sequence
+    else:
+            # if they are not equal it means there is a read that could be used to "assign" the read.
+            # loop through the SNPs to see which one it is, and then assign it.
+        for i in range(len(snp_idx)):
+            if mat_alleles[i] != pat_alleles[i]:
+                if pat_alleles[i] == read.query_sequence[read_pos[i]-1]:
+                    # read matches reference allele
+                    read_stats.pat_count += 1
+                #output to paternal.bam file.
+                    files.paternal_bam.write(read)
+                    print  len(snp_idx), cur_chrom, snp_idx[i],  snp_tab.snp_pos[snp_idx][i],  mat_alleles[i], pat_alleles[i], i, "pat", read_pos[i], read.query_sequence
+                elif mat_alleles[i] == read.query_sequence[read_pos[i]-1]:
+                    # read matches non-reference allele
+                    read_stats.mat_count += 1
                 #output to maternal.bam file.
-                files.maternal_bam.write(read)
-                print  cur_chrom, snp_idx,  mat_alleles[i], i, "mat", read_pos, read.query_sequence
-            elif pat_alleles[i] == read.query_sequence[read_pos[i]-1]:
-                # read matches non-reference allele
-                read_stats.pat_count += 1
-                #output to maternal.bam file.
-                files.paternal_bam.write(read)
-                print  cur_chrom, snp_idx,  pat_alleles[i], i, "pat", read_pos, read.query_sequence
-                
-            else:
-                # read matches neither ref nor other
-                read_stats.other_count += 1
-                
-    
+                    files.maternal_bam.write(read)
+                    print  len(snp_idx), cur_chrom, snp_idx[i],  snp_tab.snp_pos[snp_idx][i], mat_alleles[i], pat_alleles[i], i, "mat", read_pos[i], read.query_sequence
+                else:
+                    # read matches neither ref nor other
+                    read_stats.other_count += 1
+                    print  cur_chrom, snp_idx[i],  snp_tab.snp_pos[snp_idx][i], mat_alleles[i], pat_alleles[i], i, "other", read_pos[i], read.query_sequence
+
+                    
 def filter_reads(files, max_seqs=MAX_SEQS_DEFAULT, max_snps=MAX_SNPS_DEFAULT,
                  samples=None):
     cur_chrom = None
