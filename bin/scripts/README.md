@@ -11,10 +11,10 @@
    * Trim adaptors with cutadapt (keep reads > 5bp)
    * Map to hg19 using star
    * WASP to remove mapping bias
-   * findsnps.py to separate maternal and paternal reads
+   * findsnps_new.py to separate maternal and paternal reads
    * Add back in sex chromosome genes
    * HTSeq-count to count genes
-   * `../bin/scripts/master2.sh /lustre/beagle2/ober/resources/RNASeq__500HT star_overhang/ ../data/SNP_files/ FlowCell2`
+   * `../bin/scripts/master2.sh /lustre/beagle2/ober/resources/RNASeq__500HT star_overhang_v19/ ../data/SNP_files/ FlowCell2`
 
 2. Get gene count matrix
     `qsub analysis_1.pbs`
