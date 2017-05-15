@@ -10,6 +10,7 @@ export PATH="/lustre/beagle2/ober/users/smozaffari/miniconda2/bin:$PATH"
 
 module load bcftools
 module load samtools/1.3
+module load bedtools
 
 SCRIPTDIR=$1
 FLOWCELLFINDIV=$2
@@ -209,6 +210,29 @@ GENECOUNT() {
 
 }
 
+ALTGENECOUNT() {
+    read=$1
+    sample=$2
+#    bedtools bamtofastq -i $read/${sample}.keep.merged.sorted.bam -fq $read/${sample}.keep.merged.sorted.fq
+    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.fq  --outFileNamePrefix $read/${sample}_genesaltcount  --quantMode GeneCounts"
+#    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.fq  --outFileNamePrefix $read/${sample}_genesaltcount  --quantMode GeneCounts
+
+    bedtools bamtofastq -i $read/${sample}.keep.merged.sorted.maternal.bam -fq $read/${sample}.keep.merged.sorted.maternal.fq
+    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.maternal.fq  --outFileNamePrefix $read/${sample}_genes_maternalaltcount  --quantMode GeneCounts "
+    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.maternal.fq  --outFileNamePrefix $read/${sample}_genes_maternalaltcount  --quantMode GeneCounts
+
+   bedtools bamtofastq -i $read/${sample}.keep.merged.sorted.hom.bam -fq $read/${sample}.keep.merged.sorted.hom.fq
+    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.hom.fq  --outFileNamePrefix $read/${sample}_genes_homaltcount  --quantMode GeneCounts "
+    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.hom.fq  --outFileNamePrefix $read/${sample}_genes_homaltcount  --quantMode GeneCounts
+
+   bedtools bamtofastq -i $read/${sample}.keep.merged.sorted.paternal.bam -fq $read/${sample}.keep.merged.sorted.paternal.fq
+    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.paternal.fq  --outFileNamePrefix $read/${sample}_genes_paternalaltcount  --quantMode GeneCounts "
+    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.paternal.fq  --outFileNamePrefix $read/${sample}_genes_paternalaltcount  --quantMode GeneCounts
+
+
+}
+
+
 SEXGENES() {
     read=$1
     sample=$2
@@ -262,6 +286,7 @@ export -f MAP_AND_SAM
 export -f WASP
 export -f ASE
 export -f GENECOUNT
+export -f ALTGENECOUNT
 
 SAMPLE=${FINDIV}_${lane}
 LANEWASP=${lane}_WASP
@@ -283,14 +308,18 @@ echo "MAP_AND_SAM $READ $FINDIV $SAMPLE  >>$plog 2>&1"
 #WASP $READ $FINDIV $SNP_DIR $SAMPLE $LANEWASP>>$plog 2>&1
 echo "WASP $READ $FINDIV $SNP_DIR $SAMPLE $LANEWASP>>$plog 2>&1"
 
-ASE $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1
+#ASE $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1
 echo "ASE $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1"
 
-GENECOUNT $READ $SAMPLE >>$plog 2>&1
+#GENECOUNT $READ $SAMPLE >>$plog 2>&1
 echo "GENECOUNT $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1"
 
-SEXGENES $READ  $SAMPLE  >>$plog 2>&1
+ALTGENECOUNT $READ $SAMPLE >>$plog 2>&1
+echo "GENECOUNT $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1"
+
+
+#SEXGENES $READ  $SAMPLE  >>$plog 2>&1
 echo "SEXGENES $READ  $SAMPLE >>$plog 2>&1"
 
-COUNTREADS $READ $SAMPLE >>$plog 2>&1
+#COUNTREADS $READ $SAMPLE >>$plog 2>&1
 echo "COUNTREADS $READ $SAMPLE >>$plog 2>&1"
