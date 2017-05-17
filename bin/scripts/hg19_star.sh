@@ -102,7 +102,7 @@ MAP_AND_SAM() {   # map files using bowtie
 #    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/ --readFilesIn $input --outFileNamePrefix $read/$sample
 
     echo "samtools view -q 10 -b $read/${sample}Aligned.out.sam > $read/${sample}.bam"
-    samtools view -q 10 -b $read/${sample}Aligned.out.sam > $read/${sample}.bam
+#    samtools view -q 10 -b $read/${sample}Aligned.out.sam > $read/${sample}.bam
 
 #     echo "samtools sort $read/${sample}.bam $read/${sample}.sorted"
 #    samtools sort $read/${sample}.bam $read/${sample}.sorted
@@ -133,16 +133,19 @@ WASP() { # use WASP to remove mapping bias
     /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/ --readFilesIn $read/${sample}.sorted.remap.fq.gz --readFilesCommand zcat --outFileNamePrefix $read/${sample}.sorted.map2
    wait
    
-    
+    rm $read/${sample}.sorted.remap.bam
+
     echo "samtools view -q 10 -b $read/${sample}.sorted.map2Aligned.out.sam > $read/${sample}.sorted.remap.bam"
     samtools view -q 10 -b $read/${sample}.sorted.map2Aligned.out.sam > $read/${sample}.sorted.remap.bam
 
 #    echo "samtools sort $read/${sample}.sorted.remap.bam $read/${sample}.sorted.remap.sorted.bam"
 #    samtools sort $read/${sample}.sorted.remap.bam $read/${sample}.sorted.remap.sorted.bam
 
+    rm $read/${sample}.sorted.remap.sorted.bam
     echo "samtools sort $read/${sample}.sorted.remap.sorted.bam $read/${sample}.sorted.remap.bam"
     samtools sort -o  $read/${sample}.sorted.remap.sorted.bam $read/${sample}.sorted.remap.bam
-
+    
+    
     echo "samtools index $read/${sample}.sorted.remap.sorted.bam"
     samtools index $read/${sample}.sorted.remap.sorted.bam
 
@@ -153,7 +156,8 @@ WASP() { # use WASP to remove mapping bias
     python $WASP/mapping/filter_remapped_reads.py $read/${sample}.sorted.to.remap.bam $read/${sample}.sorted.remap.sorted.bam $read/${sample}.sorted.remap.keep.bam #$read/${sample}.sorted.to.remap.num.gz
     echo "python $WASP/mapping/filter_remapped_reads.py $read/${sample}.sorted.to.remap.bam $read/${sample}.sorted.remap.sorted.bam $read/${sample}.sorted.remap.keep.bam #$read/${sample}.sorted.to.remap.num.gz"
     wait
-
+    
+    rm $read/${sample}.keep.merged.bam
     #merged bamfile:
     samtools merge $read/${sample}.keep.merged.bam $read/${sample}.sorted.keep.bam $read/${sample}.sorted.remap.keep.bam
     echo "samtools merge $read/${sample}.keep.merged.bam $read/${sample}.sorted.keep.bam $read/${sample}.sorted.remap.keep.bam"
@@ -162,7 +166,8 @@ WASP() { # use WASP to remove mapping bias
 #    samtools sort $read/${sample}.keep.merged.bam $read/${sample}.keep.merged.sorted
 #    echo "samtools sort $read/${sample}.keep.merged.bam $read/${sample}.keep.merged.sorted"
 
-   samtools sort -o $read/${sample}.keep.merged.sorted.bam $read/${sample}.keep.merged.bam
+    rm $read/${sample}.keep.merged.sorted.bam
+    samtools sort -o $read/${sample}.keep.merged.sorted.bam $read/${sample}.keep.merged.bam
     echo "samtools -o sort $read/${sample}.keep.merged.sorted.bam $read/${sample}.keep.merged.bam"
 
 
@@ -193,8 +198,8 @@ ASE() {
     sample=$4
 #    echo "python $scriptdir/findsnps_new.py --snp_dir /lustre/beagle2/ober/users/smozaffari/ASE/data/genotypes/$findiv > $read/${sample}_ASE_info $read/${sample}.afterWASP.bam"
 #    python $scriptdir/findsnps_new.py --snp_dir /lustre/beagle2/ober/users/smozaffari/ASE/data/genotypes/$findiv $read/${sample}.afterWASP.bam #> $read/${sample}_ASE_info
-     echo "python $scriptdir/findsnps_new.py  --is_sorted --max_snps 20 --snp_dir  /lustre/beagle2/ober/users/smozaffari/ASE/data/swapped_genotypes/$findiv $read/${sample}.keep.merged.sorted.bam > $read/${sample}_ASE_info"
-     python $scriptdir/findsnps_new.py  --is_sorted --max_snps 20 --snp_dir  /lustre/beagle2/ober/users/smozaffari/ASE/data/swapped_genotypes/$findiv $read/${sample}.keep.merged.sorted.bam > $read/${sample}_ASE_info
+     echo "python $scriptdir/findsnps_new.py  --is_sorted --max_snps 20 --snp_dir  /lustre/beagle2/ober/users/smozaffari/genotypes/$findiv $read/${sample}.keep.merged.sorted.bam > $read/${sample}_ASE_info"
+     python $scriptdir/findsnps_new.py  --is_sorted --max_snps 20 --snp_dir  /lustre/beagle2/ober/users/smozaffari/genotypes/$findiv $read/${sample}.keep.merged.sorted.bam > $read/${sample}_ASE_info
 
 }
 
@@ -213,9 +218,9 @@ GENECOUNT() {
 ALTGENECOUNT() {
     read=$1
     sample=$2
-#    bedtools bamtofastq -i $read/${sample}.keep.merged.sorted.bam -fq $read/${sample}.keep.merged.sorted.fq
+    bedtools bamtofastq -i $read/${sample}.keep.merged.sorted.bam -fq $read/${sample}.keep.merged.sorted.fq
     echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.fq  --outFileNamePrefix $read/${sample}_genesaltcount  --quantMode GeneCounts"
-#    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.fq  --outFileNamePrefix $read/${sample}_genesaltcount  --quantMode GeneCounts
+    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.fq  --outFileNamePrefix $read/${sample}_genesaltcount  --quantMode GeneCounts
 
     bedtools bamtofastq -i $read/${sample}.keep.merged.sorted.maternal.bam -fq $read/${sample}.keep.merged.sorted.maternal.fq
     echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.maternal.fq  --outFileNamePrefix $read/${sample}_genes_maternalaltcount  --quantMode GeneCounts "
@@ -247,11 +252,14 @@ SEXGENES() {
     samtools view $read/${sample}.keep.merged.sorted.bam chrM -b > $read/${sample}.chrM.bam
     echo "samtools view $read/${sample}.keep.merged.sorted.bam chrM -b > $read/${sample}.chrM.bam"
 
+    rm $read/${sample}.withX.bam 
 
     samtools merge $read/${sample}.withX.bam $read/${sample}.keep.merged.bam $read/${sample}.chrX.bam $read/${sample}.chrY.bam $read/${sample}.chrM.bam
     echo "samtools merge $read/${sample}.withX.bam $read/${sample}.keep.merged.bam $read/${sample}.chrX.bam $read/${sample}.chrY.bam $read/${sample}.chrM.bam"
 #    samtools sort $read/${sample}.withX.bam $read/${sample}.sort.withX
 #    echo "samtools sort $read/${sample}.withX.bam $read/${sample}.sort.withX"
+
+    rm $read/${sample}.sort.withX.bam
     samtools sort -o $read/${sample}.sort.withX.bam $read/${sample}.withX.bam
     echo "samtools sort -o $read/${sample}.sort.withX.bam $read/${sample}.withX.bam"
 
@@ -302,24 +310,24 @@ echo "TRIM_READ $READ $FINDIV $FILE $adaptor $SAMPLE  >>$plog 2>&1"
 
 input=$(echo "$FILE" | sed 's/txt.gz/trim.txt/g')
 echo "$input"
-#MAP_AND_SAM $READ $FINDIV $input $SAMPLE >>$plog 2>&1
+MAP_AND_SAM $READ $FINDIV $input $SAMPLE >>$plog 2>&1
 echo "MAP_AND_SAM $READ $FINDIV $SAMPLE  >>$plog 2>&1"
 
-#WASP $READ $FINDIV $SNP_DIR $SAMPLE $LANEWASP>>$plog 2>&1
+WASP $READ $FINDIV $SNP_DIR $SAMPLE $LANEWASP>>$plog 2>&1
 echo "WASP $READ $FINDIV $SNP_DIR $SAMPLE $LANEWASP>>$plog 2>&1"
 
-#ASE $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1
+ASE $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1
 echo "ASE $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1"
 
-#GENECOUNT $READ $SAMPLE >>$plog 2>&1
+GENECOUNT $READ $SAMPLE >>$plog 2>&1
 echo "GENECOUNT $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1"
 
 ALTGENECOUNT $READ $SAMPLE >>$plog 2>&1
 echo "GENECOUNT $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1"
 
 
-#SEXGENES $READ  $SAMPLE  >>$plog 2>&1
+SEXGENES $READ  $SAMPLE  >>$plog 2>&1
 echo "SEXGENES $READ  $SAMPLE >>$plog 2>&1"
 
-#COUNTREADS $READ $SAMPLE >>$plog 2>&1
+COUNTREADS $READ $SAMPLE >>$plog 2>&1
 echo "COUNTREADS $READ $SAMPLE >>$plog 2>&1"
