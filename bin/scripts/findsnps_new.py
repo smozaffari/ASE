@@ -321,24 +321,31 @@ def count_ref_alt_matches(read, read_stats, snp_tab, snp_idx, read_pos, files, c
     else:
             # if they are not equal it means there is a read that could be used to "assign" the read.
             # loop through the SNPs to see which one it is, and then assign it.
+        assign = 0
         for i in range(len(snp_idx)):
             if mat_alleles[i] != pat_alleles[i]:
                 if pat_alleles[i] == read.query_sequence[read_pos[i]-1]:
                     # read matches reference allele
-                    read_stats.pat_count += 1
+                    if assign==0:
+                        read_stats.pat_count += 1
+                        assign +=1
                 #output to paternal.bam file.
-                    files.paternal_bam.write(read)
+                        files.paternal_bam.write(read)
                     print  len(snp_idx), cur_chrom, snp_idx[i],  snp_tab.snp_pos[snp_idx][i],  mat_alleles[i], pat_alleles[i], i, "pat", read_pos[i], read.query_sequence
                 elif mat_alleles[i] == read.query_sequence[read_pos[i]-1]:
                     # read matches non-reference allele
-                    read_stats.mat_count += 1
+                    if assign==0:
+                        read_stats.mat_count += 1
+                        assign+=1
                 #output to maternal.bam file.
-                    files.maternal_bam.write(read)
+                        files.maternal_bam.write(read)
                     print  len(snp_idx), cur_chrom, snp_idx[i],  snp_tab.snp_pos[snp_idx][i], mat_alleles[i], pat_alleles[i], i, "mat", read_pos[i], read.query_sequence
                 else:
                     # read matches neither ref nor other
-                    read_stats.other_count += 1
-                    print  cur_chrom, snp_idx[i],  snp_tab.snp_pos[snp_idx][i], mat_alleles[i], pat_alleles[i], i, "other", read_pos[i], read.query_sequence
+                    if assign==0:
+                        assign +=1
+                        read_stats.other_count += 1
+                    print  len(snp_idx), cur_chrom, snp_idx[i],  snp_tab.snp_pos[snp_idx][i], mat_alleles[i], pat_alleles[i], i, "other", read_pos[i], read.query_sequence
 
                     
 def filter_reads(files, max_seqs=MAX_SEQS_DEFAULT, max_snps=MAX_SNPS_DEFAULT,
