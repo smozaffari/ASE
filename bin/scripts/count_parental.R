@@ -8,7 +8,7 @@
 path="star_overhang_v19"
 
 # pattern = ending of file 
-patterns = c( "genes_hom", "genes_maternal", "genes_paternal")
+patterns = c( "homaltcountReadsPerGene.out.tab", "maternalaltcountReadsPerGene.out.tab", "paternalaltcountReadsPerGene.out.tab", "allcountReadsPerGene.out.tab", "genesaltcountReadsPerGene.out.tab","withsexReadsPerGene.out.tab")
 ending = c( 17, 22, 22)
 
 for (val  in 1:length(patterns)) {
