@@ -345,7 +345,7 @@ def count_ref_alt_matches(read, read_stats, snp_tab, snp_idx, read_pos, files, c
                     if assign==0:
                         assign +=1
                         read_stats.other_count += 1
-                    print  len(snp_idx), cur_chrom, snp_idx[i],  snp_tab.snp_pos[snp_idx][i], mat_alleles[i], pat_alleles[i], i, "other", read_pos[i], read.query_sequence
+                    print  len(snp_idx), cur_chrom, snp_idx[i], snp_tab.snp_pos[snp_idx][i], mat_alleles[i], pat_alleles[i], i, "other", read_pos[i], read.query_sequence, read.query_sequence[read_pos[i]-1]
 
                     
 def filter_reads(files, max_seqs=MAX_SEQS_DEFAULT, max_snps=MAX_SNPS_DEFAULT,
