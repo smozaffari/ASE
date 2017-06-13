@@ -14,8 +14,8 @@ registerDoParallel(cl)
 
 dir <- "/lustre/beagle2/ober/users/smozaffari/ASE"
 
-maternal <- read.table(paste(dir,"/data/expression/Maternal_gene_normalized.txt", sep=""), check.names = F)
-paternal <- read.table(paste(dir,"/data/expression/Paternal_gene_normalized.txt", sep=""),  check.names = F)
+maternal <- read.table(paste(dir,"/data/expression/Maternal_gene_normalized_v19.txt", sep=""), check.names = F)
+paternal <- read.table(paste(dir,"/data/expression/Paternal_gene_normalized_v19.txt", sep=""),  check.names = F)
 genes <- rownames(maternal)
 
 
@@ -111,7 +111,7 @@ asym <- permute2(maternal2, paternal2, 10000)
 table <- cbind(asym$pvals, asym$T, asym$dir, asym$vec)
 rownames(table) <- names(asym$pvals)
   
-write.table(table, "Asymmetry_10000_08.30m_all.txt", quote = F, row.names = T, col.names = F)
+write.table(table, "Asymmetry_10000_05.30.17m_all.txt", quote = F, row.names = T, col.names = F)
 
 asym$newmaternal <- maternal2
 asym$newpaternal <- paternal2
@@ -123,7 +123,7 @@ while (length(asym2$pvals) > 10) {
   table <- cbind(asym2$pvals, asym2$T, asym2$dir, asym2$vec)
   rownames(table) <- names(asym2$T)
   t <- length(asym2$pvals)
-  write.table(table, paste("Asymmetry_10000_08.30m_",t,".txt",sep="") , quote = F, row.names = T, col.names = F)
+  write.table(table, paste("Asymmetry_10000_05.30.17m_",t,".txt",sep="") , quote = F, row.names = T, col.names = F)
 }
 
 stopCluster(cl)
