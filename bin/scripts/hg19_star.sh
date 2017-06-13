@@ -99,17 +99,14 @@ MAP_AND_SAM() {   # map files using bowtie
     echo "$input"
     
     echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $input  --outFileNamePrefix $read/$sample"
-#    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/ --readFilesIn $input --outFileNamePrefix $read/$sample
+    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/ --readFilesIn $input --outFileNamePrefix $read/$sample
 
     echo "samtools view -q 10 -b $read/${sample}Aligned.out.sam > $read/${sample}.bam"
-#    samtools view -q 10 -b $read/${sample}Aligned.out.sam > $read/${sample}.bam
-
-#     echo "samtools sort $read/${sample}.bam $read/${sample}.sorted"
-#    samtools sort $read/${sample}.bam $read/${sample}.sorted
- 
-   echo "samtools sort -o  $read/${sample}.sorted.bam $read/${sample}.bam"
+    samtools view -q 10 -b $read/${sample}Aligned.out.sam > $read/${sample}.bam
+    
+    echo "samtools sort -o  $read/${sample}.sorted.bam $read/${sample}.bam"
     samtools sort -o  $read/${sample}.sorted.bam $read/${sample}.bam
-
+    
 
  #   echo "samtools view -c -F 255 $read/${sample}.sorted.bam > $read/${sample}.sorted.txt"
  #   samtools view -c -F 255 $read/${sample}.sorted.bam > $read/${sample}.sorted.txt
@@ -138,8 +135,6 @@ WASP() { # use WASP to remove mapping bias
     echo "samtools view -q 10 -b $read/${sample}.sorted.map2Aligned.out.sam > $read/${sample}.sorted.remap.bam"
     samtools view -q 10 -b $read/${sample}.sorted.map2Aligned.out.sam > $read/${sample}.sorted.remap.bam
 
-#    echo "samtools sort $read/${sample}.sorted.remap.bam $read/${sample}.sorted.remap.sorted.bam"
-#    samtools sort $read/${sample}.sorted.remap.bam $read/${sample}.sorted.remap.sorted.bam
 
     rm $read/${sample}.sorted.remap.sorted.bam
     echo "samtools sort $read/${sample}.sorted.remap.sorted.bam $read/${sample}.sorted.remap.bam"
@@ -158,13 +153,11 @@ WASP() { # use WASP to remove mapping bias
     wait
     
     rm $read/${sample}.keep.merged.bam
+
     #merged bamfile:
     samtools merge $read/${sample}.keep.merged.bam $read/${sample}.sorted.keep.bam $read/${sample}.sorted.remap.keep.bam
     echo "samtools merge $read/${sample}.keep.merged.bam $read/${sample}.sorted.keep.bam $read/${sample}.sorted.remap.keep.bam"
 
-
-#    samtools sort $read/${sample}.keep.merged.bam $read/${sample}.keep.merged.sorted
-#    echo "samtools sort $read/${sample}.keep.merged.bam $read/${sample}.keep.merged.sorted"
 
     rm $read/${sample}.keep.merged.sorted.bam
     samtools sort -o $read/${sample}.keep.merged.sorted.bam $read/${sample}.keep.merged.bam
@@ -198,60 +191,11 @@ ASE() {
     sample=$4
 #    echo "python $scriptdir/findsnps_new.py --snp_dir /lustre/beagle2/ober/users/smozaffari/ASE/data/genotypes/$findiv > $read/${sample}_ASE_info $read/${sample}.afterWASP.bam"
 #    python $scriptdir/findsnps_new.py --snp_dir /lustre/beagle2/ober/users/smozaffari/ASE/data/genotypes/$findiv $read/${sample}.afterWASP.bam #> $read/${sample}_ASE_info
-     echo "python $scriptdir/findsnps_new.py  --is_sorted --max_snps 20 --snp_dir  /lustre/beagle2/ober/users/smozaffari/ASE_swappedgenotypes/$findiv $read/${sample}.keep.merged.sorted.bam > $read/${sample}_ASE_info"
-     python $scriptdir/findsnps_new.py  --is_sorted --max_snps 20 --snp_dir  /lustre/beagle2/ober/users/smozaffari/ASE_swappedgenotypes/$findiv $read/${sample}.keep.merged.sorted.bam > $read/${sample}_ASE_info
+     echo "python $scriptdir/findsnps_new.py  --is_sorted --max_snps 20 --snp_dir  /lustre/beagle2/ober/users/smozaffari/po_genotypes/$findiv $read/${sample}.keep.merged.sorted.bam > $read/${sample}_ASE_info"
+     python $scriptdir/findsnps_new.py  --is_sorted --max_snps 20 --snp_dir  /lustre/beagle2/ober/users/smozaffari/po_genotypes/$findiv $read/${sample}.keep.merged.sorted.bam > $read/${sample}_ASE_info
 
+#ASE_swappedgenotypes
 }
-
-GENECOUNT() {
-    read=$1
-    sample=$2
-
-    samtools view  $read/${sample}.keep.merged.sorted.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes
-#    samtools view $read/${sample}.sort.withX.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_withsex
-    samtools view  $read/${sample}.keep.merged.sorted.maternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_maternal
-    samtools view  $read/${sample}.keep.merged.sorted.paternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_paternal
-    samtools view $read/${sample}.keep.merged.sorted.hom.bam | htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_hom
-
-}
-
-ALTGENECOUNT() {
-    read=$1
-    sample=$2
-
-    samtools merge $read/${sample}.all.bam $read/${sample}.sort.withX.bam $read/${sample}.keep.merged.sorted.maternal.bam $read/${sample}.keep.merged.sorted.paternal.bam $read/${sample}.keep.merged.sorted.hom.bam
-
-
-    bedtools bamtofastq -i $read/${sample}.keep.merged.sorted.bam -fq $read/${sample}.keep.merged.sorted.fq
-    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.fq  --outFileNamePrefix $read/${sample}_genesaltcount  --quantMode GeneCounts"
-    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.fq  --outFileNamePrefix $read/${sample}_genesaltcount  --quantMode GeneCounts
-
-    bedtools bamtofastq -i $read/${sample}.sort.withX.bam -fq $read/${sample}.sort.withX.fq
-    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/ --readFilesIn $read/${sample}.sort.withX.fq  --outFileNamePrefix $read/${sample}_genes_withsex  --quantMode GeneCounts"
-   /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.sort.withX.fq  --outFileNamePrefix $read/${sample}_genes_withsex  --quantMode GeneCounts
-
-
-    bedtools bamtofastq -i $read/${sample}.all.bam -fq $read/${sample}.all.fq
-    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/ --readFilesIn $read/${sample}.all.fq  --outFileNamePrefix $read/${sample}_genes_allcount  --quantMode GeneCounts"
-    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.all.fq  --outFileNamePrefix $read/${sample}_genes_allcount  --quantMode GeneCounts
-
-
-
-    bedtools bamtofastq -i $read/${sample}.keep.merged.sorted.maternal.bam -fq $read/${sample}.keep.merged.sorted.maternal.fq
-    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.maternal.fq  --outFileNamePrefix $read/${sample}_genes_maternalaltcount  --quantMode GeneCounts "
-    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.maternal.fq  --outFileNamePrefix $read/${sample}_genes_maternalaltcount  --quantMode GeneCounts
-
-   bedtools bamtofastq -i $read/${sample}.keep.merged.sorted.hom.bam -fq $read/${sample}.keep.merged.sorted.hom.fq
-    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.hom.fq  --outFileNamePrefix $read/${sample}_genes_homaltcount  --quantMode GeneCounts "
-    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.hom.fq  --outFileNamePrefix $read/${sample}_genes_homaltcount  --quantMode GeneCounts
-
-   bedtools bamtofastq -i $read/${sample}.keep.merged.sorted.paternal.bam -fq $read/${sample}.keep.merged.sorted.paternal.fq
-    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.paternal.fq  --outFileNamePrefix $read/${sample}_genes_paternalaltcount  --quantMode GeneCounts "
-    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.paternal.fq  --outFileNamePrefix $read/${sample}_genes_paternalaltcount  --quantMode GeneCounts
-
-
-}
-
 
 SEXGENES() {
     read=$1
@@ -304,6 +248,52 @@ COUNTREADS() {
     echo "samtools view -c -F 256 $read/${sample}.keep.merged.sorted.maternalbam >>$read/${sample}.sorted.txt"
 }
 
+GENECOUNT() {
+    read=$1
+    sample=$2
+
+    samtools view  $read/${sample}.keep.merged.sorted.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes
+#    samtools view $read/${sample}.sort.withX.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_withsex                                                                                                  
+    samtools view  $read/${sample}.keep.merged.sorted.maternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_maternal
+    samtools view  $read/${sample}.keep.merged.sorted.paternal.bam |  htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_paternal
+    samtools view $read/${sample}.keep.merged.sorted.hom.bam | htseq-count -s no -m intersection-nonempty -a 30 - /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/hg19/Annotation/genes.gtf > $read/${sample}_genes_hom
+
+}
+
+
+ALTGENECOUNT() {
+    read=$1
+    sample=$2
+
+ #   samtools merge $read/${sample}.all.bam $read/${sample}.sort.withX.bam $read/${sample}.keep.merged.sorted.maternal.bam $read/${sample}.keep.merged.sorted.paternal.bam $read/${sample}.keep.merged.sorted.hom.bam
+
+
+    bedtools bamtofastq -i $read/${sample}.keep.merged.sorted.bam -fq $read/${sample}.keep.merged.sorted.fq
+    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.fq  --outFileNamePrefix $read/${sample}_genesaltcount  --quantMode GeneCounts"
+    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.fq  --outFileNamePrefix $read/${sample}_genesaltcount  --quantMode GeneCounts
+
+    bedtools bamtofastq -i $read/${sample}.sort.withX.bam -fq $read/${sample}.sort.withX.fq
+    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/ --readFilesIn $read/${sample}.sort.withX.fq  --outFileNamePrefix $read/${sample}_genes_withsex  --quantMode GeneCounts"
+   /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.sort.withX.fq  --outFileNamePrefix $read/${sample}_genes_withsex  --quantMode GeneCounts
+
+
+    bedtools bamtofastq -i $read/${sample}.keep.merged.sorted.maternal.bam -fq $read/${sample}.keep.merged.sorted.maternal.fq
+    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.maternal.fq  --outFileNamePrefix $read/${sample}_genes_maternalaltcount  --quantMode GeneCounts "
+    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.maternal.fq  --outFileNamePrefix $read/${sample}_genes_maternalaltcount  --quantMode GeneCounts
+
+   bedtools bamtofastq -i $read/${sample}.keep.merged.sorted.hom.bam -fq $read/${sample}.keep.merged.sorted.hom.fq
+    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.hom.fq  --outFileNamePrefix $read/${sample}_genes_homaltcount  --quantMode GeneCounts "
+    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.hom.fq  --outFileNamePrefix $read/${sample}_genes_homaltcount  --quantMode GeneCounts
+
+   bedtools bamtofastq -i $read/${sample}.keep.merged.sorted.paternal.bam -fq $read/${sample}.keep.merged.sorted.paternal.fq
+    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.paternal.fq  --outFileNamePrefix $read/${sample}_genes_paternalaltcount  --quantMode GeneCounts "
+    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.keep.merged.sorted.paternal.fq  --outFileNamePrefix $read/${sample}_genes_paternalaltcount  --quantMode GeneCounts
+
+
+}
+
+
+
 export -f TRIM_READ
 export -f MAP_AND_SAM
 export -f WASP
@@ -334,15 +324,14 @@ echo "WASP $READ $FINDIV $SNP_DIR $SAMPLE $LANEWASP>>$plog 2>&1"
 ASE $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1
 echo "ASE $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1"
 
-GENECOUNT $READ $SAMPLE >>$plog 2>&1
-echo "GENECOUNT $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1"
-
-ALTGENECOUNT $READ $SAMPLE >>$plog 2>&1
-echo "GENECOUNT $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1"
-
-
 SEXGENES $READ  $SAMPLE  >>$plog 2>&1
 echo "SEXGENES $READ  $SAMPLE >>$plog 2>&1"
 
 COUNTREADS $READ $SAMPLE >>$plog 2>&1
 echo "COUNTREADS $READ $SAMPLE >>$plog 2>&1"
+
+GENECOUNT $READ $SAMPLE >>$plog 2>&1
+echo "GENECOUNT $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1"
+
+ALTGENECOUNT $READ $SAMPLE >>$plog 2>&1
+echo "GENECOUNT $READ $FINDIV $SCRIPTDIR $SAMPLE >>$plog 2>&1"
