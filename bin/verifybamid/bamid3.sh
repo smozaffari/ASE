@@ -2,6 +2,7 @@
 
 # Sahar Mozaffari
 # 8/23/2016
+# updated: 6/15/2017
 
 # PURPOSE: verify bam id on everyone, this runs one person, one flowcell/lane at a time (depending on input file for bamid1.sh)
 # INPUT: from bamid1.sh
@@ -27,7 +28,7 @@ module load python/2.7.6-vanilla
 #loaded to run plink-1.99
 
 # mv to tmp because we are going to run against everyone, so better storage of file than to read it again and again
-dd bs=8M if=/lustre/beagle2/ober/users/smozaffari/ASE/results/genotype_against_all/test.vcf of=/tmp/test.vcf
+dd bs=8M if=/lustre/beagle2/ober/users/smozaffari/ASE/results/verifybamid_v19/test.vcf of=/tmp/test.vcf
 
 F=$(echo $2 | tr ':' '\n' | sort -nu)
 echo $F
@@ -38,25 +39,6 @@ echo $F
 # FlowCell8.122462.lane_5
 # FlowCell8.122462.lane_4
 # FlowCell8.108861.lane_1
-
-
-#for item in $F; do
-#    if [ ! -e "${item}.vcf" ] 
-#    then          
-#        echo $item
-#	grep $item ../989_flowcell_lane_3 | cut -f2 -d"." | sort | uniq | awk '{print "HUTTERITES "$1}' > ${item}_${NUM}.txt
-
-#copied plink files from tarbell to Beagle - give location of these files    
-#      echo "plink-1.9 --bfile /lustre/beagle2/ober/users/smozaffari/Hutterites/PRIMAL/data-sets/qc/qc --keep-allele-order --keep ${item}_${NUM}.txt --recode vcf --out ${item}_${NUM}" | tee $plog          
-#      plink-1.9 --bfile /lustre/beagle2/ober/users/smozaffari/Hutterites/PRIMAL/data-sets/qc/qc --keep-allele-order --keep ${item}_${NUM}.txt --recode vcf --out ${item}_${NUM}
-#      echo "cp ${item}_${NUM}.vcf /dev/shm/${item}_${NUM}.vcf"
-#      cp ${item}_${NUM}.vcf /dev/shm/${item}_${NUM}.vcf
-#    fi      
-#done
-
-
-#grep FlowCell1 ../989_flowcell_lane_3 | cut -f2 -d"." | sort | uniq | wc -l
-
 
 
 scriptName=$(basename ${0})
