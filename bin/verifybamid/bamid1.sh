@@ -19,10 +19,10 @@ inputFile=$(readlink -f $1)
 
 
 # this will change depending on how many people you are checking.
-jobsPerNode=2
+jobsPerNode=30
 NNodes=1
-NCoresPerNode=2
-NInputFiles=2
+NCoresPerNode=32
+NInputFiles=30
 echo "Running all " $NInputFiles " fastq files in $inputFile:" | tee -a $setup_log
 filesPerNode=$(( ($NInputFiles+$NNodes-1)/$NNodes))
 echo "Running  $filesPerNode bam files per compute node for a total of " $(($filesPerNode*$NNodes))  | tee -a $setup_log

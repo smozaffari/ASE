@@ -94,8 +94,8 @@ GENOTYPES() {
 #    /lustre/beagle2/ober/users/smozaffari/verifyBamID/verifyBamID/bin/verifyBamID --vcf /tmp/test.vcf --bam /lustre/beagle2/ober/users/smozaffari/ASE/results/star/$FC/$FINDIV/${FINDIV}_${LANE}.sorted.bam  --ignoreRG --smID HUTTERITES_${FINDIV} --self --verbose --out ${FINDIV}_${FC}_${LANE}_allself
 
 # To run one person against everybody:
-    echo "/lustre/beagle2/ober/users/smozaffari/verifyBamID/verifyBamID/bin/verifyBamID --vcf /tmp/test.vcf --bam /lustre/beagle2/ober/users/smozaffari/ASE/results/star/$FC/$FINDIV/${FINDIV}_${LANE}.sorted.bam  --ignoreRG  --best --verbose --out ${FINDIV}_${FC}_${LANE}_allbest" | tee $plog
-    /lustre/beagle2/ober/users/smozaffari/verifyBamID/verifyBamID/bin/verifyBamID --vcf /tmp/test.vcf --bam /lustre/beagle2/ober/users/smozaffari/ASE/results/star/$FC/$FINDIV/${FINDIV}_${LANE}.sorted.bam  --ignoreRG  --best --verbose --out ${FINDIV}_${FC}_${LANE}_allbest
+    echo "/lustre/beagle2/ober/users/smozaffari/verifyBamID/verifyBamID/bin/verifyBamID --vcf /tmp/test.vcf --bam /lustre/beagle2/ober/users/smozaffari/ASE/results/star_overhang_v19/$FC/$FINDIV/${FINDIV}_${LANE}.sorted.bam  --ignoreRG  --best --verbose --out ${FINDIV}_${FC}_${LANE}_allbest" | tee $plog
+    /lustre/beagle2/ober/users/smozaffari/verifyBamID/verifyBamID/bin/verifyBamID --vcf /tmp/test.vcf --bam /lustre/beagle2/ober/users/smozaffari/ASE/results/star_overhang_v19/$FC/$FINDIV/${FINDIV}_${LANE}.sorted.bam  --ignoreRG  --best --verbose --out ${FINDIV}_${FC}_${LANE}_allbest
 
 }
 
