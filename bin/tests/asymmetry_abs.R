@@ -14,8 +14,8 @@ registerDoParallel(cl)
 
 dir <- "/lustre/beagle2/ober/users/smozaffari/ASE"
 
-maternal <- read.table(paste(dir,"/data/expression/Maternal_gene_normalized_v19.txt", sep=""), check.names = F)
-paternal <- read.table(paste(dir,"/data/expression/Paternal_gene_normalized_v19.txt", sep=""),  check.names = F)
+maternal <- read.table(paste(dir,"/data/expression/Maternal_gene_normalized.txt", sep=""), check.names = F)
+paternal <- read.table(paste(dir,"/data/expression/Paternal_gene_normalized.txt", sep=""),  check.names = F)
 genes <- rownames(maternal)
 
 
@@ -55,12 +55,12 @@ sig <- function(ptab, otab) {
 permute2 <- function(mtab, ptab, num) {
   vec <- c()
   print(num);
-  mm2 <- cbind(rowMeans(mtab, na.rm=TRUE), rowMeans(ptab, na.rm=TRUE))
-  diff <- (mm2[,1]-mm2[,2])
+  mm2 <- cbind(rowMeans(ptab, na.rm=TRUE), rowMeans(mtab, na.rm=TRUE))
+  diff <- abs(mm2[,1]-mm2[,2])
   print(length(diff))
   vec<- foreach(i=1:num, .export=("permuted_rows_mean"), .combine=data.frame ) %dopar% {
     permean <- permuted_rows_mean(mtab, ptab)
-    ((permean$mat-permean$pat))    
+    (abs(permean$pat-permean$mat))    
   }
   pvals <- sig(vec, diff)
   length(pvals)
@@ -89,14 +89,14 @@ permutefiltered <- function(mtab, ptab, num, oldvecs, oldpvals, threshold) {
   newmtab <- mtab[zero,]
   newptab <- ptab[zero,]
   newvecs <- oldvecs[zero,]
-  mm2 <- cbind(rowMeans(newmtab, na.rm=TRUE), rowMeans(newptab, na.rm=TRUE))
-  diff <- (mm2[,1]-mm2[,2])
+  mm2 <- cbind(rowMeans(newptab, na.rm=TRUE), rowMeans(newmtab, na.rm=TRUE))
+  diff <- abs(mm2[,1]-mm2[,2])
   print(length(diff))
   print(length(zero))
   print(dim(newmtab))
   vec<- foreach(i=1:num, .export=("permuted_rows_mean"), .combine=data.frame ) %dopar% {
     permean <- permuted_rows_mean(newmtab, newptab)
-    ((permean$mat-permean$pat))
+    (abs(permean$pat-permean$mat))
   }
   bothvecs <- cbind(newvecs, vec)
   pvals <- sig(bothvecs, diff)
@@ -111,7 +111,7 @@ asym <- permute2(maternal2, paternal2, 10000)
 table <- cbind(asym$pvals, asym$T, asym$dir, asym$vec)
 rownames(table) <- names(asym$pvals)
   
-write.table(table, "Asymmetry_10000_05.30.17m_all.txt", quote = F, row.names = T, col.names = F)
+write.table(table, "Asymmetry_10000_08.30_abs_all.txt", quote = F, row.names = T, col.names = F)
 
 asym$newmaternal <- maternal2
 asym$newpaternal <- paternal2
@@ -123,7 +123,7 @@ while (length(asym2$pvals) > 10) {
   table <- cbind(asym2$pvals, asym2$T, asym2$dir, asym2$vec)
   rownames(table) <- names(asym2$T)
   t <- length(asym2$pvals)
-  write.table(table, paste("Asymmetry_10000_05.30.17m_",t,".txt",sep="") , quote = F, row.names = T, col.names = F)
+  write.table(table, paste("Asymmetry_10000_08.30_abs_",t,".txt",sep="") , quote = F, row.names = T, col.names = F)
 }
 
 stopCluster(cl)

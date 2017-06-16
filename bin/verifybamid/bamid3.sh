@@ -1,7 +1,13 @@
 #!/bin/bash
-# verify bam id on everyone
-# this runs one person, one flowcell/lane at a time ?
-# change first four lines
+
+# Sahar Mozaffari
+# 8/23/2016
+# updated: 6/15/2017
+
+# PURPOSE: verify bam id on everyone, this runs one person, one flowcell/lane at a time (depending on input file for bamid1.sh)
+# INPUT: from bamid1.sh
+# USAGE : aprun -n 1 -N 1 -d 32  -b /lustre/beagle2/ober/users/smozaffari/ASE/bin/verifybamid/bamid3.sh $FINDIV $FC $LANE $JOBSPERNODE $COUNT
+
 # load plink
 # load verifyBamID / to download latest version: from John:
 ### Clone from GitHub using SSH (can alternatively use HTTPS)
@@ -21,33 +27,18 @@ fi
 module load python/2.7.6-vanilla
 #loaded to run plink-1.99
 
-dd bs=8M if=/lustre/beagle2/ober/users/smozaffari/ASE/results/genotype_against_all/test.vcf of=/tmp/test.vcf
-#mv /lustre/beagle2/ober/users/smozaffari/ASE/results/genotype_against_all/EXP.vcf /dev/shm/vcffile$$.vcf
-
-NUM=$5
-
-export NUM=$5
+# mv to tmp because we are going to run against everyone, so better storage of file than to read it again and again
+dd bs=8M if=/lustre/beagle2/ober/users/smozaffari/ASE/results/verifybamid_v19/test.vcf of=/tmp/test.vcf
 
 F=$(echo $2 | tr ':' '\n' | sort -nu)
 echo $F
 
-#for item in $F; do
-#    if [ ! -e "${item}.vcf" ] 
-#    then          
-#        echo $item
-#	grep $item ../989_flowcell_lane_3 | cut -f2 -d"." | sort | uniq | awk '{print "HUTTERITES "$1}' > ${item}_${NUM}.txt
 
-#copied plink files from tarbell to Beagle - give location of these files                                                                                                                                                                                     
-#      echo "plink-1.9 --bfile /lustre/beagle2/ober/users/smozaffari/Hutterites/PRIMAL/data-sets/qc/qc --keep-allele-order --keep ${item}_${NUM}.txt --recode vcf --out ${item}_${NUM}" | tee $plog          
-#      plink-1.9 --bfile /lustre/beagle2/ober/users/smozaffari/Hutterites/PRIMAL/data-sets/qc/qc --keep-allele-order --keep ${item}_${NUM}.txt --recode vcf --out ${item}_${NUM}
-#      echo "cp ${item}_${NUM}.vcf /dev/shm/${item}_${NUM}.vcf"
-#      cp ${item}_${NUM}.vcf /dev/shm/${item}_${NUM}.vcf
-#    fi      
-#done
-
-
-#grep FlowCell1 ../989_flowcell_lane_3 | cut -f2 -d"." | sort | uniq | wc -l
-
+# this is for running one person against their own:
+# grab information from file 989_flowcell_lane_3 which looks like regular input file:
+# FlowCell8.122462.lane_5
+# FlowCell8.122462.lane_4
+# FlowCell8.108861.lane_1
 
 
 scriptName=$(basename ${0})
@@ -77,13 +68,16 @@ GENOTYPES() {
 #    fi 
     FC=$2
     LANE=$3
-#    NUM=$4
 
 #path to verifyBamID
+
+# To run one person against themselves:
 #    echo "/lustre/beagle2/ober/users/smozaffari/verifyBamID/verifyBamID/bin/verifyBamID --vcf /tmp/test.vcf --bam /lustre/beagle2/ober/users/smozaffari/ASE/results/star/$FC/$FINDIV/${FINDIV}_${LANE}.sorted.bam  --ignoreRG --smID HUTTERITES_${FINDIV} --self --verbose --out ${FINDIV}_${FC}_${LANE}_allself" | tee $plog
 #    /lustre/beagle2/ober/users/smozaffari/verifyBamID/verifyBamID/bin/verifyBamID --vcf /tmp/test.vcf --bam /lustre/beagle2/ober/users/smozaffari/ASE/results/star/$FC/$FINDIV/${FINDIV}_${LANE}.sorted.bam  --ignoreRG --smID HUTTERITES_${FINDIV} --self --verbose --out ${FINDIV}_${FC}_${LANE}_allself
-    echo "/lustre/beagle2/ober/users/smozaffari/verifyBamID/verifyBamID/bin/verifyBamID --vcf /tmp/test.vcf --bam /lustre/beagle2/ober/users/smozaffari/ASE/results/star/$FC/$FINDIV/${FINDIV}_${LANE}.sorted.bam  --ignoreRG  --best --verbose --out ${FINDIV}_${FC}_${LANE}_allbest" | tee $plog
-    /lustre/beagle2/ober/users/smozaffari/verifyBamID/verifyBamID/bin/verifyBamID --vcf /tmp/test.vcf --bam /lustre/beagle2/ober/users/smozaffari/ASE/results/star/$FC/$FINDIV/${FINDIV}_${LANE}.sorted.bam  --ignoreRG  --best --verbose --out ${FINDIV}_${FC}_${LANE}_allbest
+
+# To run one person against everybody:
+    echo "/lustre/beagle2/ober/users/smozaffari/verifyBamID/verifyBamID/bin/verifyBamID --vcf /tmp/test.vcf --bam /lustre/beagle2/ober/users/smozaffari/ASE/results/star_overhang_v19/$FC/$FINDIV/${FINDIV}_${LANE}.sorted.bam  --ignoreRG  --best --verbose --out ${FINDIV}_${FC}_${LANE}_allbest" | tee $plog
+    /lustre/beagle2/ober/users/smozaffari/verifyBamID/verifyBamID/bin/verifyBamID --vcf /tmp/test.vcf --bam /lustre/beagle2/ober/users/smozaffari/ASE/results/star_overhang_v19/$FC/$FINDIV/${FINDIV}_${LANE}.sorted.bam  --ignoreRG  --best --verbose --out ${FINDIV}_${FC}_${LANE}_allbest
 
 }
 

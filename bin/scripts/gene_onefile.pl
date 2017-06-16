@@ -17,15 +17,16 @@ my %gene;
 my %rs;
 my %ann;
 
-open (ANN, "/lustre/beagle2/ober/users/smozaffari/ASE/data/all12_imputed_cgi.annovar_plink_annotations.hg19_multianno_Hutterite_AAF.txt") || die "nope: $!";
+#open (ANN, "/lustre/beagle2/ober/users/smozaffari/ASE/data/all12_imputed_cgi.annovar_plink_annotations.hg19_multianno_Hutterite_AAF.txt") || die "nope: $!";
+open (ANN, "/lustre/beagle2/ober/users/cigartua/Hutterite_annotation/VEP_variant_files/VEP_annovar_1-22_simplified.txt") || die "nope: $!";   
 my $f = <ANN>;
 while (my $line = <ANN>) {
     my @line = split "\t", $line;
     my $chr = $line[0];
     my $loc = $line[1];
     $rs{$chr}{$loc} = $line[14];
-    $gene{$chr}{$loc} = $line[6];
-    $ann{$chr}{$loc} = $line[5];
+    $gene{$chr}{$loc} = $line[7];
+    $ann{$chr}{$loc} = $line[6];
 }
 
 #open (FILES, "/lustre/beagle2/ober/users/smozaffari/ASE/results/test_ASE") || die "nope: $!";
@@ -36,7 +37,7 @@ print ("$findiv \n");
 
 my $name = $findiv_lane[1].'_'.$findiv_lane[3];
 my $outfile = "out_$name.txt";
-open (OUT, ">summarystats_star/$outfile") || die "nope: $!";
+open (OUT, ">summarystats_star_v19/$outfile") || die "nope: $!";
 open (ASE, $inputfile) || die "nope: $!";
 #open (ASE, "/lustre/beagle2/ober/users/smozafari/ASE/results/withoutsaved/FlowCell8/122462/122462_lane_5_ASE_info") || die "nope: $!";
 #open (ASE, "test_5") || die "nope: $!";                                                                                                        

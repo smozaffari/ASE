@@ -21,6 +21,6 @@ aprun -N 1 -n 1 -d 1 Rscript /lustre/beagle2/ober/users/smozaffari/ASE/bin/scrip
 
 
 # get number of mapped reads: BeforeWASP/AfterWASPwithsexchromosomes/AfterWASP/Uknown/Paternal/Maternal 
-aprun -N 1 -n 1 -d 1  /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/order_maps.sh
+#aprun -N 1 -n 1 -d 1  /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/order_maps.sh
 
 

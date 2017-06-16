@@ -3,6 +3,8 @@
 bin/ref/*.fa
 /lustre/beagle2/ober/users/smozaffari/ASE/ref/*
 bin/scripts/WASP/*
+bin/scripts/WASP
+./WASP/
 bin/scripts/WASP/master/*
 /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/WASP/*
 /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/WASP/master/
@@ -43,3 +45,4 @@ bin/tests/#*
 /anaconda/*
 
 *.*~
+WASP

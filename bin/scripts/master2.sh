@@ -67,14 +67,14 @@ for dir in $inputDirs;do
 	for file in $(echo "$inputFiles" | grep $dir); do
 	    if [[ $file != *"saved"* ]] ; then
 		fileName=$dir/$(basename $file)
-		ln -s $file "$outDir/$dir"
+#		ln -s $file "$outDir/$dir"
 		echo "$file"
 		echo "$fileName"
 		newfile=$(echo $fileName | cut -d "/" -f3)
 		lane=$(echo $newfile |  cut -d "." -f1)
 		echo $newfile
 		echo $lane
-#		if [[ $dir == *"161142"* ]] ; then
+#		if [[ $dir == *"158841"* ]] ; then
 		    qsub -v FLOWCELLFINDIV=$dir,NUM=$count,SCRIPTDIR=$scriptDir,SNP_DIR=$snpDir,INPUTDIR=$outDir,LANE=$lane,FILE=$newfile -N ${dir}_${lane} $scriptDir/second.pbs 2>&1
 		    echo -e "qsub -v FLOWCELLFINDIV=\"$dir\",NUM=\"$count\",SCRIPTDIR=\"$scriptDir\",SNP_DIR=\"$snpDir\",INPUT_DIR=\"$outDir\",LANE=\"$lane\",FILE=\"$newfile\" -N \"${dir}_${lane}\" $scriptDir/second.pbs" | tee -a $setup_log
 #		fi

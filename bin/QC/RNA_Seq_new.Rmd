@@ -1,10 +1,12 @@
 ---
-title: "RNA-seq"
+title: "RNAseq_QC_v19"
 author: "Sahar Mozaffari"
-date: "August 8, 2016"
-output: pdf_document
-geometry: margin=3cm
+date: "3/26/2017"
+output:
+  pdf_document: default
+  html_document: default
 ---
+
 
 R Markdown for RNA-seq data
 
@@ -12,7 +14,9 @@ R Markdown for RNA-seq data
 * genes in rows, individuals/samples by lane and flowcell in columns
 
 ```{r Genecountmatrix, echo=FALSE}
-count <- read.table("~/star_overhang_genecount_withsex", check.names = F)
+library(plyr)
+library(dplyr)
+count <- read.table("~/star_overhang_v19_genecount_withsex", check.names = F)
 count[1:5,1:3]
 ```
 * There are a total of $`r dim(count)[1]-5`$ genes and $`r dim(count)[2]`$ samples
@@ -20,34 +24,138 @@ count[1:5,1:3]
 ##Covariates
 * covariate file has number of reads from total, maternal, and paternal; flowcell, findiv, lane, and adaptor index
 
+```{r sampleswaps, echo = FALSE}
+
+colnames(count)[which(colnames(count)=="9_106451_lane_4")] <- "9_106581_lane_4"
+colnames(count)[which(colnames(count)=="9_106451_lane_5")] <- "9_106581_lane_5"
+
+colnames(count)[which(colnames(count)=="5_106581_lane_3")] <- "5_106451_lane_3"
+colnames(count)[which(colnames(count)=="5_106581_lane_4")] <- "5_106451_lane_4"
+
+colnames(count)[which(colnames(count)=="7_160591_lane_7")] <- "7_106972_lane_7"
+colnames(count)[which(colnames(count)=="7_160591_lane_8")] <- "7_106972_lane_8"
+
+colnames(count)[which(colnames(count)=="7_106952_lane_7")]  <- "7_160591_lane_7"
+colnames(count)[which(colnames(count)=="7_106952_lane_8")]  <- "7_160591_lane_8"
+
+count[,which(colnames(count)=="7_106972_lane_7")]  <- NULL
+count[,which(colnames(count)=="7_106972_lane_8")]  <- NULL
+
+count[,which(colnames(count)=="7_158841_lane_4")] <- NULL
+count[,which(colnames(count)=="7_158841_lane_5")] <- NULL
+
+count[,which(colnames(count)=="11_108211_lane_3")]  <- NULL
+count[,which(colnames(count)=="11_108211_lane_4")]  <- NULL
+
+count[,which(colnames(count)=="4_160462_lane_1")]  <- NULL
+count[,which(colnames(count)=="4_160462_lane_2")]  <- NULL
+
+
+count[,which(colnames(count)=="11_110432_lane_3")]  <- NULL
+count[,which(colnames(count)=="11_110432_lane_4")]  <- NULL
+
+
+```
+
+
+
 ```{r lane, echo=FALSE}
 #File that has flowcell, lane & adaptor index
-laneindex <- read.table("~/li_6")
+laneindex <- read.table("~/li_6_v19")
 colnames(laneindex) <- c("Flowcell", "FINDIV", "Lane", "Adaptor_index")
 
 ```
+
+```{r sampleswaps2, echo = FALSE}
+
+laneindex[which(laneindex$Flowcell==5 & laneindex$FINDIV==106581 & laneindex$Lane==3),"FINDIV"] <- 106451
+laneindex[which(laneindex$Flowcell==5 & laneindex$FINDIV==106581 & laneindex$Lane==4),"FINDIV"] <- 106451
+
+laneindex[which(laneindex$Flowcell==9 & laneindex$FINDIV==106451 & laneindex$Lane==4),"FINDIV"] <- 106581
+laneindex[which(laneindex$Flowcell==9 & laneindex$FINDIV==106451 & laneindex$Lane==5),"FINDIV"] <- 106581
+
+laneindex[which(laneindex$Flowcell==7 & laneindex$FINDIV==160591 & laneindex$Lane==7),"FINDIV"] <- 106972
+laneindex[which(laneindex$Flowcell==7 & laneindex$FINDIV==160591 & laneindex$Lane==8),"FINDIV"] <- 106972
+
+laneindex[which(laneindex$Flowcell==7 & laneindex$FINDIV==106952 & laneindex$Lane==7),"FINDIV"] <- 160591
+laneindex[which(laneindex$Flowcell==7 & laneindex$FINDIV==106952 & laneindex$Lane==8),"FINDIV"] <- 160591
+
+
+laneindex[which(laneindex$Flowcell==7 & laneindex$FINDIV==158841 & laneindex$Lane==4),"FINDIV"] <- 158471
+laneindex[which(laneindex$Flowcell==7 & laneindex$FINDIV==158841 & laneindex$Lane==5),"FINDIV"] <- 158471
+
+remove <- c(which(laneindex$Flowcell==11 & laneindex$FINDIV==108211 & laneindex$Lane==3),
+            which(laneindex$Flowcell==11 & laneindex$FINDIV==108211 & laneindex$Lane==4),
+            which(laneindex$Flowcell==4 & laneindex$FINDIV==160462 & laneindex$Lane==1),
+            which(laneindex$Flowcell==4 & laneindex$FINDIV==160462 & laneindex$Lane==2),
+            which(laneindex$Flowcell==11 & laneindex$FINDIV==110432 & laneindex$Lane==3),
+            which(laneindex$Flowcell==11 & laneindex$FINDIV==110432 & laneindex$Lane==4),
+            which(laneindex$Flowcell==7 & laneindex$FINDIV==106972 & laneindex$Lane==7),
+            which(laneindex$Flowcell==7 & laneindex$FINDIV==106972 & laneindex$Lane==8))
+
+laneindex <- laneindex[-remove,]
+
+```
+
+
 
 ```{r covs, echo=FALSE}
 ###Merged covariate file with total reads
 cov<- c()
 fcmap <- c()
+
+#fix 11 and 1 - 2/1 samples lines didn't work
 for (i in 1:11) {
-  fcreads <- read.table(paste("~/new_FC_",i,sep=""))
+  fcreads <- read.table(paste("~/new_FC_",i,"_v19",sep=""))
   fcreads <- cbind(fcreads,
                    FC_findiv_lane=c(paste(i, fcreads$V1, sep="_")))
   fcmap <- rbind(fcmap, fcreads)
 }
+
   colnames(fcmap)[1:7] <- c("findiv_lane", "beforeWASP", "afterWASPwithXY", "afterWASP", "Unknown", "Maternal", "Paternal")
   fccount <- count[,which(colnames(count)%in%fcmap$findiv_lane)]
   findiv <- sapply(strsplit(colnames(fccount), "_"), "[", 1)
   lane <- sapply(strsplit(colnames(fccount), "_"), "[", 3)
 
+fcmap <- data.frame(fcmap, stringsAsFactors=FALSE)
+fcmap$FC_findiv_lane <- as.character(fcmap$FC_findiv_lane)
+fcmap[which(fcmap$FC_findiv_lane=="9_106451_lane_4"), "FC_findiv_lane"] <- "9_106581_lane_4"
+fcmap[which(fcmap$FC_findiv_lane=="9_106451_lane_5"), "FC_findiv_lane"] <- "9_106581_lane_5"
+
+fcmap[which(fcmap$FC_findiv_lane=="5_106581_lane_3"), "FC_findiv_lane"] <- "5_106451_lane_3"
+fcmap[which(fcmap$FC_findiv_lane=="5_106581_lane_4"), "FC_findiv_lane"] <- "5_106451_lane_4"
+
+fcmap[which(fcmap$FC_findiv_lane=="7_160591_lane_7"), "FC_findiv_lane"] <- "7_106972_lane_7"
+fcmap[which(fcmap$FC_findiv_lane=="7_160591_lane_8"), "FC_findiv_lane"] <- "7_106972_lane_8"
+
+fcmap[which(fcmap$FC_findiv_lane=="7_106952_lane_7"), "FC_findiv_lane"]  <- "7_160591_lane_7"
+fcmap[which(fcmap$FC_findiv_lane=="7_106952_lane_8"), "FC_findiv_lane"]  <- "7_160591_lane_8"
+
+fcmap[which(fcmap$FC_findiv_lane=="7_158841_lane_4"), "FC_findiv_lane"] <- "7_158471_lane_4"
+fcmap[which(fcmap$FC_findiv_lane=="7_158841_lane_5"), "FC_findiv_lane"] <- "7_158471_lane_5"
+
+remove <- c(which(fcmap$FC_findiv_lane=="7_106972_lane_7"),
+            which(fcmap$FC_findiv_lane=="7_106972_lane_8"),
+            which(fcmap$FC_findiv_lane=="11_108211_lane_3"),
+            which(fcmap$FC_findiv_lane=="11_108211_lane_4"),
+            which(fcmap$FC_findiv_lane=="4_160462_lane_1"),
+            which(fcmap$FC_findiv_lane=="4_160462_lane_2"),
+            which(fcmap$FC_findiv_lane=="11_110432_lane_3"),
+            which(fcmap$FC_findiv_lane=="11_110432_lane_4"))
+fcmap <- fcmap[-remove,]
+#fcmap$FC_findiv_lane <- as.factor(fcmap$FC_findiv_lane)
+#fcmap$FC_findiv_lane <- as.character(fcmap$FC_findiv_lane)
+cc <- ldply(strsplit(fcmap$FC_findiv_lane,  "_"))[,2:4]
+fcmap$findiv_lane<- paste(cc$V2, cc$V3, cc$V4, sep="_")
+  
+fcmap$FC_findiv_lane <- as.factor(fcmap$FC_findiv_lane)
 laneindex <- cbind(laneindex, 
                    FC_findiv_lane =c(paste(laneindex$Flowcell,
                                            laneindex$FINDIV, 
                                            "lane",
                                            laneindex$Lane,
                                            sep="_")))
+
 
 cov <- merge(fcmap, laneindex, by="FC_findiv_lane")
 head(cov[,-c(2,3,5,6)])
@@ -61,8 +169,7 @@ extra.htseq.output <-count[23368:23373,]
 res <- count[-c(23368:23373),]
 enough.reads <- cov$afterWASPwithXY>10000000
 table(enough.reads)
-res2<- res
-CS=colSums(res2)
+CS=colSums(res)
 barplot(sort(CS), ylim=c(0, 40000000), main="Total mapped read counts")
 abline(h=5000000, col="red")
 text(50,1e07, "5,000,000", col="red")
@@ -72,9 +179,9 @@ text(50,1e07, "5,000,000", col="red")
 * The distribution of Counts Per Million:
 
 ```{r CPM, echo=FALSE, fig.height=5, fig.width=10}
-counts1 = res2+1
-CPM = apply(counts1, 2, function(x) (x*1000000)/sum(x))
-hist(log2(CPM), main = "CPM")
+counts1 = res+1
+CPM_beforesumlane = apply(counts1, 2, function(x) (x*1000000)/sum(x))
+hist(log2(CPM_beforesumlane), main = "CPM")
 
 ```
 
@@ -82,8 +189,7 @@ hist(log2(CPM), main = "CPM")
 ###Sex assigned by ratio of XIST to EIF1AY gene
 
 ```{r sex, echo=FALSE, fig.height=3, fig.width=10}
-newres <- res2
-sexRatio = log2(newres["XIST",]+1) - log2(newres["EIF1AY",]+1)
+sexRatio = log2(res["XIST",]+1) - log2(res["EIF1AY",]+1)
 # if this is > 0, Female, < 0, male based on expression
 callSex= ifelse(sexRatio >0, "F", "M")
 table(callSex)
@@ -94,7 +200,7 @@ table(callSex)
 
 ```{r gender, echo=FALSE}
 ###Actual gender, 1 = Male, 2 = Female
-findivs <- sapply(strsplit(colnames(newres), "_"), "[", 2)
+findivs <- sapply(strsplit(colnames(res), "_"), "[", 2)
 names(sexRatio) <- findivs
 gender <- sapply(findivs, function(x) substr(x, nchar(x), nchar(x)))
 table(gender)
@@ -111,14 +217,13 @@ plot( as.factor(gender), unlist(sexRatio), ylab = "log2(XIST)- log2(EIF1AY)", ma
 
 ```{r combinelanes1, echo=FALSE}
 #Combining gene count matrix
-beforesumlane <- newres
-res3 <- as.matrix(newres)
-var <- res3
-findivs <- sapply(strsplit(colnames(var), "_"), "[", 2)
-colnames(var) <- findivs
-nms <- colnames(var)
-aftersumlane2 <- var %*% sapply(unique(nms), "==", nms)
-aftersumlane<- aftersumlane2[,order(colnames(aftersumlane2))]
+beforesumlane <- res
+res.matrix<- as.matrix(res)
+findivs <- sapply(strsplit(colnames(res.matrix), "_"), "[", 2)
+colnames(res.matrix) <- findivs
+nms <- colnames(res.matrix)
+aftersumlane_mismatch <- res.matrix %*% sapply(unique(nms), "==", nms)
+aftersumlane<- aftersumlane_mismatch[,order(colnames(aftersumlane_mismatch))]
 aftersumlane[1:5,1:5]
 ```
 
@@ -132,15 +237,15 @@ findivs <- sapply(strsplit(as.character(cov$findiv_lane), "_"), "[", 1)
 combinecov <- as.matrix(t(cov[,3:8]))
 colnames(combinecov) <- findivs
 nms <- colnames(combinecov)
-aftersumlanecov2 <- as.data.frame(t(combinecov %*% sapply(unique(nms), "==", nms)))
+aftersumlanecov_mismatch <- as.data.frame(t(combinecov %*% sapply(unique(nms), "==", nms)))
 #dim(aftersumlanecov)
-aftersumlanecov<- aftersumlanecov2[order(rownames(aftersumlanecov2)),]
+aftersumlanecov<- aftersumlanecov_mismatch[order(rownames(aftersumlanecov_mismatch)),]
 aftersumlanecov[1:5,c(2,4:6)]
 
 #enough.reads <- aftersumlanecov$afterWASPwithXY>10000000
 #table(enough.reads)
 #after2<-aftersumlane[,enough.reads]
-after2 <- aftersumlane
+#after2 <- aftersumlane
 
 CS=colSums(aftersumlane)
 barplot(sort(CS), ylim=c(0, 100000000), main="Total mapped read counts")
@@ -157,21 +262,21 @@ toofewreads <- rownames(aftersumlanecov[which(aftersumlanecov$afterWASPwithXY<10
 * The distribution of Counts Per Million after combining replicates:
 
 ```{r CPMaftercombine, echo=FALSE, fig.height=5, fig.width=10}
-counts1 = after2+1
-CPM2 = apply(counts1, 2, function(x) (x*1000000)/sum(x))
-hist(log2(CPM2), main = "CPM")
+counts1 = aftersumlane+1
+CPM_aftersumlane = apply(counts1, 2, function(x) (x*1000000)/sum(x))
+hist(log2(CPM_aftersumlane), main = "CPM")
 ```
 
 ##Checking sex after combining replicates
 
 ```{r genderaftercombine, echo=FALSE}
-head(after2["XIST",1:5])
-sexRatio = log2(after2["XIST",]+1) - log2(after2["EIF1AY",]+1)
+head(aftersumlane["XIST",1:5])
+sexRatio = log2(aftersumlane["XIST",]+1) - log2(aftersumlane["EIF1AY",]+1)
 # if this is > 0, Female, < 0, male based on expression
 callSex= ifelse(sexRatio >0, "F", "M")
 table(callSex)
 
-findivs <- colnames(after2)
+findivs <- colnames(aftersumlane)
 names(sexRatio) <- findivs
 gender <- sapply(findivs, function(x) substr(x, nchar(x), nchar(x)))
 table(gender)
@@ -181,6 +286,7 @@ wrongsex
 a <- names(wrongsex[abs(wrongsex)>1])
 a
 largesex<- which(abs(wrongsex)>5)
+largesex
 ```
 
 * There are supposed to be: $`r length(which(callSex=="F"))`$ females and $`r length(which(callSex=="M"))`$ males.
@@ -194,8 +300,8 @@ largesex<- which(abs(wrongsex)>5)
 #values <- which(colnames(after2)%in%a)
 #after3 <- after2[,-c(values)]
 #CPM3 <- CPM2[,-c(values)]
-after3 <- after2
-CPM3 <- CPM2
+#after3 <- aftersumlane
+#CPM3 <- CPM2
 
 #valuec <- which(rownames(aftersumlanecov)%in%a)
 aftercovt <- aftersumlanecov[aftersumlanecov$afterWASPwithXY>10000000,]
@@ -203,17 +309,19 @@ aftercovt <- aftersumlanecov[aftersumlanecov$afterWASPwithXY>10000000,]
 aftercov <- aftercovt
 
 #valueb <- c(grep(a[1], colnames(beforesumlane)), grep(a[2], colnames(beforesumlane)))
-before2 <- beforesumlane
+#before2 <- beforesumlane
 #before2 <- beforesumlane[,-c(valueb)]
-before3 <- before2[,-c(grep(paste(toofewreads, collapse="|"), colnames(before2)))]
+#before3 <- before2
+#before3 <- before2[,-c(grep(paste(toofewreads, collapse="|"), colnames(before2)))]
 
-b <- colnames(before3)
+b <- colnames(beforesumlane)
 #beforecovt <- beforesumlanecov[-c(which(beforesumlanecov$FINDIV%in%a)),]
 beforecovt <- beforesumlanecov
 beforecov <- beforecovt[which(beforecovt$FC_findiv_lane%in%b),]
 
-CPMB2 <- CPM[,-c(grep(paste(a, collapse="|"), colnames(CPM)))]
-CPMB1 <- CPMB2[,-c(grep(paste(toofewreads, collapse="|"), colnames(CPMB2)))]
+CPM_beforesumlane_nowrongsex <- CPM_beforesumlane[,-c(grep(paste(a, collapse="|"), colnames(CPM_beforesumlane)))]
+CPM_beforesumlane <- CPM_beforesumlane_nowrongsex
+#CPMB1 <- CPMB2[,-c(grep(paste(toofewreads, collapse="|"), colnames(CPMB2)))]
 
 ```
 
@@ -242,28 +350,28 @@ chrX.genes<-unique(x.gene.list$V2)
 chrY.genes<-unique(y.gene.list$V2)
 chrM.genes<-unique(m.gene.list$V2)
 
-res.gx <- aftersumlane
-x.overlap<-intersect(rownames(res.gx), chrX.genes)
-y.overlap<-intersect(rownames(res.gx), chrY.genes)
-m.overlap<-intersect(rownames(res.gx), chrM.genes)
+#res.gx <- aftersumlane
+x.overlap<-intersect(rownames(aftersumlane), chrX.genes)
+y.overlap<-intersect(rownames(aftersumlane), chrY.genes)
+m.overlap<-intersect(rownames(aftersumlane), chrM.genes)
 
-inboth.xchr.a <-match(x.overlap, rownames(after3))
-inboth.ychr.a <- match(y.overlap, rownames(after3))
+inboth.xchr.a <-match(x.overlap, rownames(aftersumlane))
+inboth.ychr.a <- match(y.overlap, rownames(aftersumlane))
 
-inboth.xchr.b <-match(x.overlap, rownames(before3))
-inboth.ychr.b <- match(y.overlap, rownames(before3))
+inboth.xchr.b <-match(x.overlap, rownames(beforesumlane))
+inboth.ychr.b <- match(y.overlap, rownames(beforesumlane))
 
-res.gx.aa<-after3[-c(inboth.xchr.a, inboth.ychr.a),]
-res.gx.a <- res.gx.aa[rowSums(res.gx.aa)>10,]
+aftersumlane.y.x.all <-aftersumlane[-c(inboth.xchr.a, inboth.ychr.a),]
+aftersumlane.y.x <- aftersumlane.y.x.all[rowSums(aftersumlane.y.x.all)>10,]
 
-CPMAxy<-CPM3[-c(inboth.xchr.a, inboth.ychr.a),]
-CPMA<- CPMAxy[rowSums(res.gx.aa)>10,]
+CPM_aftersumlane.y.x.all <-CPM_aftersumlane[-c(inboth.xchr.a, inboth.ychr.a),]
+CPM_aftersumlane.y.x<- CPM_aftersumlane.y.x.all[rowSums(aftersumlane.y.x.all)>10,]
 
-res.gx.bb<-before3[-c(inboth.xchr.b, inboth.ychr.b),]
-res.gx.b <- res.gx.bb[rowSums(res.gx.bb)>1,]
+beforesumlane.y.x.all<-beforesumlane[-c(inboth.xchr.b, inboth.ychr.b),]
+beforesumlane.y.x <- beforesumlane[rowSums(beforesumlane.y.x.all)>1,]
 
-CPMBxy<-CPMB1[-c(inboth.xchr.b, inboth.ychr.b),]
-CPMB<- CPMBxy[rowSums(res.gx.bb)>1,]
+CPM_beforesumlane.y.x.all<-CPM_beforesumlane[-c(inboth.xchr.b, inboth.ychr.b),]
+CPM_beforesumlane.y.x<- CPM_beforesumlane.y.x.all[rowSums(CPM_beforesumlane.y.x.all)>1,]
 ```
 
 * Total number of chromosome X genes: $`r length(chrX.genes)`$, Y genes: $`r length(chrY.genes)`$, and mt genes: $`r length(chrM.genes)`$
@@ -274,138 +382,6 @@ CPMB<- CPMBxy[rowSums(res.gx.bb)>1,]
   * mt genes:  $`r length(m.overlap)`$
 
 
-
-```{r remove, echo = FALSE, eval=FALSE}
-##Removing lowly expressed genes 
-
-less.one<-NULL
-summary.low.count<-matrix(nrow=nrow(CPMA), ncol=1)
-for(i in 1:nrow(CPMA)){
-  less.one<-NULL
-  less.one<-which(CPMA[i,]<1)
-  summary.low.count[i,]<-length(less.one)
-  rm(less.one)
-}
-# Determine which samples have count <1 in at least 10 samples: 
-keep.genes<-summary.low.count[,1]<10
-#table(keep.genes)
-#keep.genes
-#FALSE  TRUE 
-#12045 10293 
-
-# Try with less strict: 20 samples
-keep.genes<-summary.low.count[,1]<100
-#table(keep.genes)
-#100:FALSE  TRUE 
-#8585 11334 
-
-#50: FALSE  TRUE 
-# 8978 10941 
-
-#20: FALSE  TRUE 
-#11798 10540
-
-#CPMA<-CPMA[keep.genes,]
-#res.gx.a<-res.gx.a[keep.genes,]
-
-
-less.one<-NULL
-summary.low.count<-matrix(nrow=nrow(CPMB), ncol=1)
-for(i in 1:nrow(CPMB)){
-  less.one<-NULL
-  less.one<-which(CPMB[i,]<1)
-  summary.low.count[i,]<-length(less.one)
-  rm(less.one)
-}
-# Determine which samples have count <1 in at least 10 samples: 
-keep.genes<-summary.low.count[,1]<10
-table(keep.genes)
-#FALSE  TRUE 
-# 5754  5366
-
-
-keep.genes<-summary.low.count[,1]<20
-#table(keep.genes)
-#FALSE  TRUE 
-#5636  5484 
-
-CPMB<-CPMB[keep.genes,]
-#res.gx.b<-res.gx.b[keep.genes,]
-
-```
-
-
-
-
-```{r qc, echo=FALSE, fig.height=5, fig.width=10, eval=FALSE}
-##Subsetting the 431 samples that passed Darren's qc
-
-
-#sed 's/FlowCell//g'  Downloads/hutt.500ht.qc_seq_lanes.txt |  awk '{print $3"_"$1"_"$2}' >Darrensqc
-qc <- read.table("~/Dropbox/Darrensqc")
-qccovt <- beforesumlanecov[which(beforesumlanecov$FC_findiv_lane%in%qc$V1),]
-qclane <- beforesumlane[,which(colnames(beforesumlane)%in%qccovt$FC_findiv_lane)]
-
-findivs <- sapply(strsplit(as.character(qccovt$findiv_lane), "_"), "[", 1)
-qccov <- t(as.matrix(qccovt[,3:8]))
-colnames(qccov) <- findivs
-nms <- colnames(qccov)
-combineqccov <- as.data.frame(t(qccov %*% sapply(unique(nms), "==", nms)))
-#dim(combineqccov)
-#combineqccov[1:5,1:5]
-
-beforesumlaneqc <- qclane
-var <- as.matrix(qclane)
-findivs <- sapply(strsplit(colnames(qclane), "_"), "[", 2)
-colnames(var) <- findivs
-nms <- colnames(var)
-aftersumlaneqc <- var %*% sapply(unique(nms), "==", nms)
-#dim(aftersumlaneqc)
-#aftersumlaneqc[1:5,1:5]
-
-#write.table(aftersumlaneqc, "Gene_expression_4.14.16.txt", row.names = T, col.names = T, quote= F)
-#write.table(combineqccov[,1:2], "Mappedreadcounts_4.14.16.txt", row.names = T, col.names = T, quote = F)
-
-CS=colSums(aftersumlaneqc)
-barplot(sort(CS), ylim=c(0, 50000000), main="Total mapped read counts")
-abline(h=5000000, col="red")
-
-
-counts1 = aftersumlaneqc+1
-CPMqc = apply(counts1, 2, function(x) (x*1000000)/sum(x))
-hist(log2(CPMqc), main = "CPM")
-```
-
-
-
-```{r CPMqc,  echo=FALSE, fig.height=5, fig.width=10, eval= FALSE}
-###Subset of Darren's QC-ed samples that did not have 10 million reads
-
-combineqccov[which(combineqccov$beforeWASP<10000000),]
-
-```
-
-
-
-```{r, echo=FALSE, fig.height=5, fig.width=10, eval=FALSE}
-####Still a lot below 10 million reads... if we subset the 431 individuals but combine technical replicates
-
-findivqc <- colnames(aftersumlaneqc)
-testtest <- aftersumlane[,which(colnames(aftersumlane)%in%findivqc)]
-#dim(testtest)
-#write.table(testtest, "Gene_expression_QC_4.14.16.txt", row.names = T, col.names = T, quote= F)
-testtestcov<- aftersumlanecov[findivqc,]
-#dim(testtestcov)
-testtestcov[which(testtestcov$beforeWASP<10000000),]
-
-counts1 = testtest+1
-CPMqctest = apply(counts1, 2, function(x) (x*1000000)/sum(x))
-hist(log2(CPMqctest), main = "CPM")
-
-#write.table(CPMqctest, "Gene_expression_QC_CPM_4.14.16.txt", row.names = T, col.names = T, quote= F)
-#file given to Xiang
-
-```
 
 
 
@@ -426,10 +402,77 @@ library(sva)
 #Analysis after combining replicates
 ###Adding up technical replicates after normalization okay?
 
-voom.after.CPM <- voom(CPMA,plot=TRUE, normalize="quantile")
+voom.after.CPM_aftersumlane.y.x <- voom(CPM_aftersumlane.y.x,plot=TRUE, normalize="quantile")
 #looks weird because low counts were not removed.
 #voom.after.res <- voom(res.gx.a ,plot=TRUE, normalize="quantile")
-v2<-as.matrix(voom.after.CPM)
+voom.matrix.CPM_aftersumlane.y.x<-as.matrix(voom.after.CPM_aftersumlane.y.x)
+
+
+```
+```{r cpmsumlane}
+cpm <- cpm(aftersumlane.y.x)
+lcpm <- cpm(aftersumlane.y.x, log=TRUE)
+table(rowSums(aftersumlane.y.x==0)==441)
+
+keep.exprs <- rowSums(cpm>1)>=10
+aftersumlane.y.x.nolowexpressed<- aftersumlane.y.x[keep.exprs, ]
+dim(aftersumlane.y.x.nolowexpressed)
+
+
+
+dge <- DGEList(counts=aftersumlane.y.x.nolowexpressed)
+dge <- calcNormFactors(dge)
+logCPM <- cpm(dge, log=TRUE, prior.count=3)
+ 
+x <- DGEList(counts=aftersumlane.y.x.nolowexpressed)
+```
+
+```{r notsure, eval=FALSE}
+library(RColorBrewer)
+nsamples <- ncol(x)
+col <- brewer.pal(nsamples, "Paired")
+par(mfrow=c(1,2))
+plot(density(lcpm[,1]), col=col[1], lwd=2, ylim=c(0,0.21), las=2, 
+     main="", xlab="")
+title(main="A. Raw data", xlab="Log-cpm")
+abline(v=0, lty=3)
+for (i in 2:nsamples){
+ den <- density(lcpm[,i])
+ lines(den$x, den$y, col=col[i], lwd=2)
+}
+legend("topright", samplenames, text.col=col, bty="n")
+lcpm <- cpm(x, log=TRUE)
+plot(density(lcpm[,1]), col=col[1], lwd=2, ylim=c(0,0.21), las=2, 
+     main="", xlab="")
+title(main="B. Filtered data", xlab="Log-cpm")
+abline(v=0, lty=3)
+for (i in 2:nsamples){
+   den <- density(lcpm[,i])
+   lines(den$x, den$y, col=col[i], lwd=2)
+}
+legend("topright", samplenames, text.col=col, bty="n")
+
+x <- calcNormFactors(x, method = "TMM")
+
+
+x2 <- x
+x2$samples$norm.factors <- 1
+x2$counts[,1] <- ceiling(x2$counts[,1]*0.05)
+x2$counts[,2] <- x2$counts[,2]*5
+
+par(mfrow=c(1,2))
+lcpm <- cpm(x2, log=TRUE)
+boxplot(lcpm, las=2, col=col, main="")
+title(main="A. Example: Unnormalised data",ylab="Log-cpm")
+x2 <- calcNormFactors(x2)  
+x2$samples$norm.factors
+
+## [1] 0.0547 6.1306 1.2293 1.1705 1.2149 1.0562 1.1459 1.2613 1.1170
+
+lcpm <- cpm(x2, log=TRUE)
+boxplot(lcpm, las=2, col=col, main="")
+title(main="B. Example: Normalised data",ylab="Log-cpm")
+
 
 ```
 
@@ -449,14 +492,22 @@ aftercombcov <- as.data.frame(t(combinecov %*% sapply(unique(nms), "==", nms)))
 aftercombcov$Findiv <- rownames(aftercombcov)
 #head(aftercombcov)
 
-col.order <- colnames(CPMA)
+col.order <- colnames(CPM_aftersumlane.y.x.all)
 covgood <- read.table("~/Dropbox/covariates.txt", header=T)
 covbad<- read.table("~/Dropbox/covariates_badsamples.txt", header = T)
 
 morecov<- rbind(covgood, covbad)
+morecov[which(morecov$Findiv=="106581"),"Findiv"]<- "s" 
+morecov[which(morecov$Findiv=="106451"),"Findiv"]<- "106581" 
+morecov[which(morecov$Findiv=="s"),"Findiv"]<- "106451" 
+
+#remove <- which(morecov$Findiv=="158841")
+#morecov <- morecov[-remove,]
 #morecov[1:5,1:5]
 
 bothcov <- merge(aftercombcov, morecov, by="Findiv")
+
+
 #dim(bothcov)
 gender <- sapply(bothcov$Findiv, function(x) substr(x, nchar(x), nchar(x)))
 new <- bothcov[match(col.order, bothcov$Findiv),]
@@ -464,11 +515,11 @@ aftercombcov <-  new
 flowlane <- paste(cov$Flowcell, cov$Lane, sep=".")
 ff<- cbind(findivs, flowlane)
 aggff <- aggregate(flowlane ~ findivs, data=ff, FUN=paste, collapse=",")
-afindiv <- colnames(CPMA)
+afindiv <- colnames(CPM_aftersumlane.y.x.all)
 new2 <- aggff[which(aggff$findivs%in%afindiv),]
 new3 <- new2[match(col.order, new2$findivs),]
 uflowcells <- unique(new3$flowlane)
-aa <- as.data.frame(cbind(uflowcells, c(1:96)))
+aa <- as.data.frame(cbind(uflowcells, c(1:98)))
 colnames(aa) <- c("flowlane", "code")
 a2 <- merge(new3, aa, by="flowlane")
 newa <- a2[match(col.order, a2$findivs),]
@@ -496,8 +547,9 @@ prep <- as.factor(cov2$LibraryPrepBy)
 conc <- as.numeric(cov2$LibraryConc)
 length <- as.numeric(cov2$FragmentLength)
 flowlane <- as.factor(cov2$flowlane)
-  
-gx.covars<-cbind.data.frame( sex,  readsafterWsex,  rnaconc, rin, batch, prep, conc, length, flowlane)
+index <- as.factor(cov2$Index)
+
+gx.covars<-data.frame(cbind( sex,  readsafterWsex,  rnaconc, rin, batch, prep, conc, length, flowlane, index))
 head(gx.covars)
 
 ```
@@ -505,7 +557,7 @@ head(gx.covars)
 
 * RIN, Batch and RNA concentration were significant, so plot by first two PC's:
 
-```{r pccombine_aftercombat, echo = FALSE}
+```{r pccombine_aftercombat, eval=FALSE, echo = FALSE}
 
 plot(sum.PC$x[,1], sum.PC$x[,2],
      pch=20,main=paste(title.PC, " colored by RIN"),
@@ -532,9 +584,9 @@ plot(sum.PC$x[,1], sum.PC$x[,2],
 
 ```{r sva_regress_out_Flowcell, echo = FALSE}
 
-my_DGEList = DGEList(counts=res.gx.a)
+my_DGEList = DGEList(counts=aftersumlane.y.x.nolowexpressed)
 my_DGEList_TMM = calcNormFactors(my_DGEList, method="TMM")
-my_data = cpm(my_DGEList_TMM, log=FALSE)
+my_data = cpm(my_DGEList_TMM, log=TRUE)
 #my_data = cpm(my_DGEList_TMM, log=TRUE, prior.count=1)
 #my_mod = model.matrix(~as.numeric(rin), data=gx.covars) #Use this only if you're going to protect something
 #batch= (gx.covars$batch)
@@ -655,12 +707,12 @@ head(pval.pca1)
 
 ##Using ComBat to regress out Flowcell/lane
 
-```{r pcacheck_after_batch, echo = FALSE}
+```{r pcacheck_after_batch, echo = FALSE, eval=FALSE}
 #source("https://bioconductor.org/biocLite.R")
 #biocLite("sva")
 library(sva)
 my_mod = model.matrix(~1, data=gx.covars) #Use this only if you're going to protect something
-batch= (gx.covars$flowlane)
+batch= (gx.covars$batch)
 #modcombat = model.matrix(~1, data=gx.covars)
 combat_batch = ComBat(r.residual.int2, batch=batch, mod=my_mod,  par.prior=TRUE, prior.plots=FALSE)
 
@@ -694,10 +746,10 @@ head(pval.pca2)
 
 ###Using combat to regress out batch
 
-```{r, correcting_batch, echo = FALSE}
+```{r, correcting_batch, echo = FALSE, eval=FALSE}
 
 my_mod = model.matrix(~1, data=gx.covars) #Use this only if you're going to protect something
-batch= (gx.covars$batch)
+batch= (gx.covars$flowlane)
 #modcombat = model.matrix(~1, data=gx.covars)
 combat_batch = ComBat(newdata, batch=batch, mod=my_mod,  par.prior=TRUE, prior.plots=FALSE)
 
@@ -731,12 +783,12 @@ head(pval.pca2)
 # 05-18-16 decided to only do TMM normalization but not regress out effects: 
 # So use my_data moving forward for now.
 
-```{r maternal and paternal, echo =FALSE}
+```{r maternal and paternal, echo =FALSE, eval=FALSE}
 #5-18-16 decided to only do TMM normalization but not regress out effects: 
 # SO use my_data moving forward for now.
-
-maternal<- read.table("~/star_overhang_genecount_genes_maternal", check.names = FALSE)
-paternal<- read.table("~/star_overhang_genecount_genes_paternal", check.names = FALSE)
+my_data <- r.residual.int2
+maternal<- read.table("~/star_overhang_v19_genecount_genes_maternal", check.names = FALSE)
+paternal<- read.table("~/star_overhang_v19_genecount_genes_paternal", check.names = FALSE)
 
 mat <- as.matrix(maternal)
 findivs <- sapply(strsplit(colnames(mat), "_"), "[", 2)
@@ -755,16 +807,14 @@ findivs<- colnames(aftersumlanepat)
 colnames(my_data)[which(!colnames(my_data)%in%findivs)]
 missing <- which(!colnames(my_data)%in%findivs)
 
-#None Removed from qc:
-#findivs[which(!findivs%in%colnames(my_data))]
-#removed <- which(!findivs%in%colnames(my_data))
+#Removed from qc:
+findivs[which(!findivs%in%colnames(my_data))]
+removed <- which(!findivs%in%colnames(my_data))
 
 newer <- my_data[,-c(missing)]
 genes<- rownames(newer)
-#newmat <- aftersumlanemat[genes,-c(removed)]
-#newpat <- aftersumlanepat[genes,-c(removed)]
-newmat <- aftersumlanemat[genes,]
-newpat <- aftersumlanepat[genes,]
+newmat <- aftersumlanemat[genes,-c(removed)]
+newpat <- aftersumlanepat[genes,-c(removed)]
 
 
 aftersumlaneprop <- aftersumlane[genes,colnames(newer)]
@@ -783,8 +833,8 @@ newerpat2 <- proppat*newer
 newermat2[is.na(newermat2)] <- 0
 newerpat2[is.na(newerpat2)] <- 0
 
-write.table(newerpat2, "Paternal_gene_normalized.txt", quote =F, row.names = T, col.names = T)
-write.table(newermat2, "Maternal_gene_normalized.txt", quote =F, row.names = T, col.names = T)
+write.table(newerpat2, "Paternal_gene_normalized_v19log.txt", quote =F, row.names = T, col.names = T)
+write.table(newermat2, "Maternal_gene_normalized_v19log.txt", quote =F, row.names = T, col.names = T)
 
 
 g <- c()
@@ -802,9 +852,9 @@ for (i in 1:dim(newermat2)[1]) {
 
 ```
 
-```{r unknown, echo = FALSE}
+```{r unknown, echo = FALSE, eval=FALSE}
 
-keep <- read.table("~/star_overhang_genecount_hom", check.names = F)
+keep <- read.table("~/star_overhang_v19_genecount_genes_hom", check.names = F)
 k <- as.matrix(keep)
 findivs <- sapply(strsplit(colnames(k), "_"), "[", 2)
 colnames(k) <- findivs
@@ -820,8 +870,8 @@ propkeep <- newkeep/aftersumlaneprop
 newerkeep <- propkeep*newer
 newerkeep[is.na(newerkeep)] <- 0
 
-write.table(newerkeep, "Unknown_gene_normalized.txt", quote =F, row.names = T, col.names = T)
-write.table(newer, "Total_gene_normalized.txt", quote = F, row.names = T, col.names = T)
+write.table(newerkeep, "Unknown_gene_normalized_v19log.txt", quote =F, row.names = T, col.names = T)
+write.table(newer, "Total_gene_normalized_v19log.txt", quote = F, row.names = T, col.names = T)
 
 ```
 
@@ -872,5 +922,4 @@ for(j in 1:dim(mat)[1]) {
 
 
 ```
-
 

@@ -5,21 +5,22 @@
 ## To get gene count matrix for gene count for components
 
 # Folder output of RNAseq data is in
-path="star_overhang"
+path="star_overhang_v19"
 
 # pattern = ending of file 
-patterns = c("withsex", "hom", "genes_maternal", "genes_paternal")
-ending = c(14, 17, 22, 22)
+patterns = c( "homaltcountReadsPerGene.out.tab", "maternalaltcountReadsPerGene.out.tab", "paternalaltcountReadsPerGene.out.tab", "allcountReadsPerGene.out.tab", "genesaltcountReadsPerGene.out.tab","withsexReadsPerGene.out.tab")
+ending = c( 17, 22, 22)
 
 for (val  in 1:length(patterns)) {
 #val <- 2
     	print (val);
 	print (patterns[val]);
 	file.names<-  list.files(path,recursive=T,pattern=patterns[val],full.names=T)
-	length(file.names)	
+#	print(length(file.names))
     	outputfile<- NULL
     	findiv<- c()
     	for(i in 1:length(file.names)) {
+	
 	     if (file.info(file.names[i])$size >0) {
     		file <- read.table(file.names[i], header=F)
 	      	if (!exists("outputfile")) {
