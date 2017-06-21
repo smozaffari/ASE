@@ -18,16 +18,6 @@
 inputFile=$(readlink -f $1)
 
 
-# this will change depending on how many people you are checking.
-jobsPerNode=30
-NNodes=1
-NCoresPerNode=32
-NInputFiles=30
-echo "Running all " $NInputFiles " fastq files in $inputFile:" | tee -a $setup_log
-filesPerNode=$(( ($NInputFiles+$NNodes-1)/$NNodes))
-echo "Running  $filesPerNode bam files per compute node for a total of " $(($filesPerNode*$NNodes))  | tee -a $setup_log
-
-
 scriptName=$(basename ${0})
 echo $scriptName
 scriptName=${scriptName%\.sh}
@@ -40,6 +30,22 @@ timeTag=$(date "+%y_%m_%d_%H_%M_%S")
 setup_log=${scriptName}_${LOGNAME}_${timeTag}.log
 echo $setup_log
 echo "RUNNING $scriptName as " $(readlink -f $0 ) " on " `date`  | tee  $setup_log
+
+
+# this will change depending on how many people you are checking.
+#jobsPerNode=25
+#NNodes=20
+#NCoresPerNode=32
+#NInputFiles=438
+
+jobsPerNode=30
+NNodes=33
+NCoresPerNode=32
+NInputFiles=989
+
+echo "Running all " $NInputFiles " fastq files in $inputFile:" | tee -a $setup_log
+filesPerNode=$(( ($NInputFiles+$NNodes-1)/$NNodes))
+echo "Running  $filesPerNode bam files per compute node for a total of " $(($filesPerNode*$NNodes))  | tee -a $setup_log
 
 nTotSubJobs=0
 count=0
