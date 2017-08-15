@@ -8,7 +8,7 @@
 path="star_overhang_v19"
 
 # pattern = ending of file 
-patterns = c( "homaltcountReadsPerGene.out.tab", "maternalaltcountReadsPerGene.out.tab", "paternalaltcountReadsPerGene.out.tab",  "genesaltcountReadsPerGene.out.tab","withsexReadsPerGene.out.tab")
+patterns = c( "homaltcount_nodupReadsPerGene.out.tab", "maternalaltcount_nodupReadsPerGene.out.tab", "paternalaltcount_nodupReadsPerGene.out.tab",  "genesaltcount_nodupReadsPerGene.out.tab","withsex_nodupReadsPerGene.out.tab")
 ending = c( 17, 22, 22)
 
 for (val  in 1:length(patterns)) {
@@ -43,5 +43,5 @@ for (val  in 1:length(patterns)) {
 	genes <- file$V1
 	rownames(outputfile) <- genes
 
-	write.table(outputfile, paste(path, "genecount", patterns[val], "170614", sep="_"), row.names = T, col.names = T, quote = F)
+	write.table(outputfile, paste(path, "genecount", patterns[val], "170814_nodup", sep="_"), row.names = T, col.names = T, quote = F)
 }
