@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l mppwidth=32
-#PBS -l walltime=12:00:00
+#PBS -l walltime=16:00:00
 #PBS -j oe 
 #PBS -N bamid_$FI
 ## Beagle specific

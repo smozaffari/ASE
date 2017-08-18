@@ -27,8 +27,12 @@ fi
 module load python/2.7.6-vanilla
 #loaded to run plink-1.99
 
+rm -r /tmp/sm
+ls -l /tmp/
+rm /tmp/*
 # mv to tmp because we are going to run against everyone, so better storage of file than to read it again and again
-dd bs=8M if=/lustre/beagle2/ober/users/smozaffari/ASE/results/verifybamid_v19/test.vcf of=/tmp/test.vcf
+#dd bs=8M if=/lustre/beagle2/ober/users/smozaffari/ASE/results/genotypecheck2/qc_to_vcf_kao_170615.vcf.gz of=/tmp/test.vcf.gz
+dd bs=8M if=/lustre/beagle2/ober/users/smozaffari/qc_to_vcf_kao_170621_0.1.vcf.gz of=/tmp/test.vcf.gz                                                                                                              
 
 F=$(echo $2 | tr ':' '\n' | sort -nu)
 echo $F
@@ -72,12 +76,12 @@ GENOTYPES() {
 #path to verifyBamID
 
 # To run one person against themselves:
-#    echo "/lustre/beagle2/ober/users/smozaffari/verifyBamID/verifyBamID/bin/verifyBamID --vcf /tmp/test.vcf --bam /lustre/beagle2/ober/users/smozaffari/ASE/results/star/$FC/$FINDIV/${FINDIV}_${LANE}.sorted.bam  --ignoreRG --smID HUTTERITES_${FINDIV} --self --verbose --out ${FINDIV}_${FC}_${LANE}_allself" | tee $plog
-#    /lustre/beagle2/ober/users/smozaffari/verifyBamID/verifyBamID/bin/verifyBamID --vcf /tmp/test.vcf --bam /lustre/beagle2/ober/users/smozaffari/ASE/results/star/$FC/$FINDIV/${FINDIV}_${LANE}.sorted.bam  --ignoreRG --smID HUTTERITES_${FINDIV} --self --verbose --out ${FINDIV}_${FC}_${LANE}_allself
+#    echo "/lustre/beagle2/ober/users/smozaffari/verifyBamID/bin/verifyBamID --vcf /tmp/test.vcf.gz --bam /lustre/beagle2/ober/users/smozaffari/ASE/results/star_overhang_v19/$FC/$FINDIV/${FINDIV}_${LANE}.sorted.bam  --ignoreRG --smID HUTTERITES_${FINDIV} --self --verbose --out ${FINDIV}_${FC}_${LANE}_allself" | tee $plog
+#    /lustre/beagle2/ober/users/smozaffari/verifyBamID/bin/verifyBamID --vcf /tmp/test.vcf.gz --bam /lustre/beagle2/ober/users/smozaffari/ASE/results/star_overhang_v19/$FC/$FINDIV/${FINDIV}_${LANE}.sorted.bam  --ignoreRG --smID HUTTERITES_${FINDIV} --self --verbose --out ${FINDIV}_${FC}_${LANE}_allself
 
 # To run one person against everybody:
-    echo "/lustre/beagle2/ober/users/smozaffari/verifyBamID/verifyBamID/bin/verifyBamID --vcf /tmp/test.vcf --bam /lustre/beagle2/ober/users/smozaffari/ASE/results/star_overhang_v19/$FC/$FINDIV/${FINDIV}_${LANE}.sorted.bam  --ignoreRG  --best --verbose --out ${FINDIV}_${FC}_${LANE}_allbest" | tee $plog
-    /lustre/beagle2/ober/users/smozaffari/verifyBamID/verifyBamID/bin/verifyBamID --vcf /tmp/test.vcf --bam /lustre/beagle2/ober/users/smozaffari/ASE/results/star_overhang_v19/$FC/$FINDIV/${FINDIV}_${LANE}.sorted.bam  --ignoreRG  --best --verbose --out ${FINDIV}_${FC}_${LANE}_allbest
+    echo "/lustre/beagle2/ober/users/smozaffari/verifyBamID/bin/verifyBamID --vcf /tmp/test.vcf.gz --bam /lustre/beagle2/ober/users/smozaffari/ASE/results/star_overhang_v19/$FC/$FINDIV/${FINDIV}_${LANE}.sorted.bam  --ignoreRG  --best --verbose --out ${FINDIV}_${FC}_${LANE}_allbest" | tee $plog
+    /lustre/beagle2/ober/users/smozaffari/verifyBamID/bin/verifyBamID --vcf /tmp/test.vcf.gz --bam /lustre/beagle2/ober/users/smozaffari/ASE/results/star_overhang_v19/$FC/$FINDIV/${FINDIV}_${LANE}.sorted.bam  --ignoreRG  --best --verbose --out ${FINDIV}_${FC}_${LANE}_allbest
 
 }
 
