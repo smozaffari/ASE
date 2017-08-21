@@ -37,6 +37,7 @@ bin/ref/hg38/analysisset/indexBowtie2.sh.o3577406
 bin/ref/info
 bin/scripts/#master2.sh#
 bin/tests/#*
+figures/*
 
 
 
