@@ -178,8 +178,8 @@ ASE() {
     findiv=$2
     scriptdir=$3
     sample=$4
-    echo "python $scriptdir/findsnps_new.py --is_sorted --max_snps 20 --snp_dir /lustre/beagle2/ober/users/smozaffari/genotypes/$findiv $read/${sample}.afterWASP.nodup.bam >$read/${sample}_ASE_info.nodup"
-    python $scriptdir/findsnps_new.py --is_sorted --max_snps 20 --snp_dir /lustre/beagle2/ober/users/smozaffari/genotypes/$findiv $read/${sample}.afterWASP.nodup.bam > $read/${sample}_ASE_info.nodup
+    echo "python $scriptdir/findsnps_new.py --is_sorted --max_snps 20 --snp_dir /lustre/beagle2/ober/users/smozaffari/po_genotypes/$findiv $read/${sample}.afterWASP.nodup.bam >$read/${sample}_ASE_info.nodup"
+    python $scriptdir/findsnps_new.py --is_sorted --max_snps 20 --snp_dir /lustre/beagle2/ober/users/smozaffari/po_genotypes/$findiv $read/${sample}.afterWASP.nodup.bam > $read/${sample}_ASE_info.nodup
 #     echo "python $scriptdir/findsnps_new.py  --is_sorted --max_snps 20 --snp_dir  /lustre/beagle2/ober/users/smozaffari/ASE_swappedgenotypes/$findiv $read/${sample}.keep.merged.sorted.bam > $read/${sample}_ASE_info"
 #     python $scriptdir/findsnps_new.py  --is_sorted --max_snps 20 --snp_dir  /lustre/beagle2/ober/users/smozaffari/ASE_swappedgenotypes/$findiv $read/${sample}.keep.merged.sorted.bam > $read/${sample}_ASE_info
 
@@ -200,14 +200,14 @@ SEXGENES() {
     samtools view $read/${sample}.afterWASP.nodup.bam chrM -b > $read/${sample}.chrM.nodup.bam
     echo "samtools view $read/${sample}.afterWASP.nodup.bam chrM -b > $read/${sample}.chrM.nodup.bam"
 
-#    rm $read/${sample}.withX.bam 
+    rm $read/${sample}.withX.nodup.bam 
 
     samtools merge $read/${sample}.withX.nodup.bam $read/${sample}.afterWASP.nodup.bam $read/${sample}.chrX.nodup.bam $read/${sample}.chrY.nodup.bam $read/${sample}.chrM.nodup.bam
     echo "samtools merge $read/${sample}.withX.nodup.bam $read/${sample}.afterWASP.nodup.bam $read/${sample}.chrX.nodup.bam $read/${sample}.chrY.nodup.bam $read/${sample}.chrM.nodup.bam"
 #    samtools sort $read/${sample}.withX.bam $read/${sample}.sort.withX
 #    echo "samtools sort $read/${sample}.withX.bam $read/${sample}.sort.withX"
 
-#    rm $read/${sample}.sort.withX.bam
+    rm $read/${sample}.sort.withX.nodup.bam
     samtools sort -o $read/${sample}.sort.withX.nodup.bam $read/${sample}.withX.nodup.bam
     echo "samtools sort -o $read/${sample}.sort.withX.nodup.bam $read/${sample}.withX.nodup.bam"
 
