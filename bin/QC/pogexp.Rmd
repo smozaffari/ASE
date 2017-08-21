@@ -1,0 +1,349 @@
+---
+title: "POgexpanalysis"
+author: "Sahar Mozaffari"
+date: "8/11/2017"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+###Testing for significant difference between maternal and paternal expression for genes across all individuals.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(scipen = 20)
+library(qqman)
+library(ggsci)
+library(ggplot2)
+
+library(doParallel)
+library(foreach)
+require(doParallel)
+require(foreach)
+
+registerDoParallel()
+getDoParWorkers()
+```
+Read in not normalized maternal and paternal expression matrixes. 
+Remove genes that are not expressed in maternal or paternal, and remove those genes expressed in less than 100 reads summed over all maternal and paternal for that gene.
+
+```{r genetest, echo=FALSE, include=FALSE}
+newmat2 <- read.table( "~/LCL/Maternal_notnormalized_08.16.17_nodup.txt", check.names = F)
+newpat2 <- read.table( "~/LCL/Paternal_notnormalized_08.16.17_nodup.txt", check.names = F)
+CS <- read.table("CS", check.names=F)
+
+pat0 <- which(rowSums(newpat2)==0)
+mat0 <- which(rowSums(newmat2)==0)
+both0 <- which(pat0%in%mat0)
+newmat3 <- newmat2[-both0,]
+newpat3 <- newpat2[-both0,]
+
+
+both <- which(colSums(rbind(rowSums(newpat3)), rowSums(newmat3))>100)
+newpat3 <- newpat3[both,]
+newmat3 <- newmat3[both,]
+genes <- rownames(newpat3)
+
+Zgene <- c()
+Zgene <- foreach(i=1:dim(newpat3)[1], .combine=c ) %dopar% {
+     Z <-  (rowSums(newpat3[i,])-rowSums(newmat3[i,]))/(sqrt(rowSums(newpat3[i,])+rowSums(newmat3[i,])))
+}
+
+```
+
+```{r plots, echo=FALSE}
+hist(Zgene, breaks=1000, prob=T,ylim=c(0,0.5))
+curve(dnorm(x, mean=0, sd=1), col="darkblue", lwd=2, add=TRUE, yaxt="n")
+
+hist(Zgene, prob=T, breaks=1000, ylim=c(0,0.5), xlim=c(-10,10))
+curve(dnorm(x, mean=0, sd=1), col="darkblue", lwd=2, add=TRUE, yaxt="n")
+```
+```{r pvalues, echo=FALSE}
+length(Zgene)
+BF <- 0.05/length(Zgene)
+
+Zpvals <- 2*pnorm(-abs(Zgene))
+hist(Zpvals, breaks=100)
+abline(v = BF, col="red")
+qqman::qq(Zpvals)
+```
+
+
+Genes, ordered by p-value then by Z score, top 50 each.
+
+
+```{r genenames, echo=FALSE}
+ensGene <- read.table("~/Dropbox/ensGene.txt-2")
+genenames <- read.table("~/Dropbox/ensemblToGeneName.txt")
+
+ensGene2 <- ensGene[,c("V2", "V13")]
+genenames2 <- merge(genenames, ensGene2, by.x="V1", by.y="V2")
+genenames2 <- unique(genenames2[,c(2,3)])
+
+Zgene2 <- as.data.frame(Zgene)
+Zgene2$genes <- rownames(Zgene2)
+colnames(Zgene2)[1] <- "Z"
+Zgene2$pvals <- Zpvals
+Zgenenames <- merge(Zgene2, genenames2, by.x="genes",  by.y="V13")
+colnames(Zgenenames)[4] <- "genename"
+head(Zgenenames[order(Zgenenames$pvals),], 50)
+
+head(Zgenenames[order(Zgenenames$Z),], 50)
+sortedZ <- Zgenenames[order(Zgenenames$pvals),]
+significant <- sortedZ[which(sortedZ$pvals<BF),]
+
+```
+
+###There are $`r dim(significant)[1]`$ significant genes.
+
+```{r singleplots, results="asis", echo=FALSE}
+i <- 1
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,]))~ as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(significant$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+i <- 2
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,]))~ as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(significant$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+i <- 3
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,]))~ as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(significant$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+i <- 4
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,]))~ as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(significant$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+
+i <- 5
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,]))~ as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(significant$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+i <- 6
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,]))~ as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(significant$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+i <- 7
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,]))~ as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(significant$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+
+i <- 8
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,]))~ as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(significant$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+i <- 9
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,]))~ as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(significant$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+
+i <- 10
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,]))~ as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(significant$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+```
+
+
+###Check how many of the significant ones are known imprinted genes: 16/105 (overlap of 105 with genes tested in our dataset ( e.g. expressed in LCLs, etc.)).
+
+
+```{r imprintedgenes, echo=FALSE}
+supp <- read.csv("~/Documents/Parent of Origin/ASHG2017abstract/supp3", header = T)
+significant[which(significant$genename%in%supp$Gene),]
+
+supp[which(supp$Gene%in%significant$genename),]
+
+```
+
+##Comparing old p-value with weighted p-values
+
+
+```{r weighted, echo=FALSE}
+CS2 <- CS$V2
+names(CS2) <- CS$V1
+weights <- 1/(CS2/(min(CS2)))
+head(weights)
+weightsordered <- weights[match(colnames(newpat3), names(weights))]
+
+Zweighted <- c()
+Znum <- c()
+Zden <- c()
+vec <- c()
+vec<- foreach(i=1:dim(newpat3)[1], .combine=c ) %dopar% {
+    for (j in 1:(dim(newpat3)[2])) {
+      Z <- weightsordered[j]*(newpat3[i,j]-newmat3[i,j])
+      Znum <- c(Znum, Z)   
+      Z2 <- (weightsordered[j])^2*(newpat3[i,j]+newmat3[i,j])
+      Zden <- c(Zden, Z2)
+    }
+    Z3 <- sum(Znum)/(sqrt(sum(Zden)))
+    Zweighted <- c(Zweighted, Z3)
+    Zweighted
+ }
+names(vec) <- genes
+ 
+Zwpvals <- 2*pnorm(-abs(vec))
+hist(Zwpvals, breaks=100)
+abline(v = BF, col="red")
+qqman::qq(Zwpvals)
+Zweighted <- cbind(genes, vec, Zwpvals)
+colnames(Zweighted) <- c("genes", "weightedZ", "weightedpval")
+
+tt <- merge(sortedZ, Zweighted, by="genes")
+
+significantweighted <- tt[which(as.numeric(as.character(tt$weightedpval))<BF),]
+#dim(significantweighted)
+sigsortedZweighted <- significantweighted[order(as.numeric(as.character(significantweighted$weightedpval))),]
+#head(sigsortedZweighted, 50)
+#head(significantweighted[order(as.numeric(as.character(significantweighted$weightedZ))),], 50)
+#tail(significantweighted[order(as.numeric(as.character(significantweighted$weightedZ))),], 50)
+
+plot(-log10(as.numeric(as.character(significantweighted$pvals))), -log10(as.numeric(as.character(significantweighted$weightedpval))), xlab="p-values", ylab="weighted pvalues")
+abline(a=0, b=1, col="red")
+abline(a=-log10(BF), b=0, col="blue")
+abline(v=-log10(BF), col="green")
+```
+
+
+#1. most significant by weighted p-value: (50)
+#2. smallest Zscore (50)
+#3. largest Zscore (50)
+
+
+```{r signtest, echo=FALSE}
+
+Zsign <- c()
+Z2 <- c()
+Zsign <- foreach(i=1:dim(newmat3)[1], .combine=rbind ) %dopar% {
+  n5 <- which((newpat3[i,]+newmat3[i,])>5)
+  Spp <- c()
+  if (length(n5 >5)) {
+    for (k in 1:length(n5)) {
+      j <- n5[k]
+      Z=(newpat3[i,j]-newmat3[i,j])/(sqrt(newpat3[i,j]+newmat3[i,j]))
+      if (Z!=0){
+        Spp <- c(Spp,Z)
+      }
+    }
+  } 
+  if (length(Spp)>0){
+    s <- binom.test(length(which(Spp>0)), length(Spp), 0.5)
+    list(length(which(Spp<0)),  length(which(Spp>0)), s$p.value)
+  } else {
+    list("NA", "NA", "NA")
+  }
+}
+
+Zsign2 <- as.data.frame(Zsign)
+colnames(Zsign2) <- c("less0", "greater0", "signpvalue")
+Zsign2$genes <- genes
+
+Zall3 <- merge(Zsign2, tt, by="genes")
+
+significantweighted <- Zall3[which(as.numeric(as.character(Zall3$weightedpval))<BF),]
+dim(significantweighted)
+sigsortedZweighted <- significantweighted[order(as.numeric(as.character(significantweighted$weightedpval))),]
+head(sigsortedZweighted, 50)
+head(significantweighted[order(as.numeric(as.character(significantweighted$weightedZ))),], 50)
+tail(significantweighted[order(as.numeric(as.character(significantweighted$weightedZ))),], 50)
+
+Zsignsorted <- Zall3[order(as.numeric(as.character(Zall3$signpvalue))),]
+
+sigsign <- Zsignsorted[which(Zsignsorted$signpvalue<BF),]
+df <- apply(sigsign,2,as.character)
+write.table(df, "Significantsigntest.txt", col.names=T, row.names=F, quote=F)
+imprintedsign <- merge(Zsignsorted, supp, by.x="genename", by.y="Gene", all.y=T)
+df2 <- apply(imprintedsign,2,as.character)
+write.table(df2, "Imprintedgenespvalues.txt", col.names=T, row.names=F, quote=F)
+
+```
+
+
+##Plots for the 10 most significant from weighted Zscore
+
+
+```{r singleplotsweighted, results="asis", echo=FALSE}
+i <- 1
+  n <- sigsortedZweighted$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,]))~ as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsortedZweighted$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+i <- 2
+  n <- sigsortedZweighted$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,]))~ as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsortedZweighted$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+i <- 3
+  n <- sigsortedZweighted$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,]))~ as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsortedZweighted$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+i <- 4
+  n <- sigsortedZweighted$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,]))~ as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsortedZweighted$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+
+i <- 5
+  n <- sigsortedZweighted$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,]))~ as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsortedZweighted$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+i <- 6
+  n <- sigsortedZweighted$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,]))~ as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsortedZweighted$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+i <- 7
+  n <- sigsortedZweighted$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,]))~ as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsortedZweighted$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+
+i <- 8
+  n <- sigsortedZweighted$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,]))~ as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsortedZweighted$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+i <- 9
+  n <- sigsortedZweighted$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,]))~ as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsortedZweighted$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+
+i <- 10
+  n <- sigsortedZweighted$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,]))~ as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsortedZweighted$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+```
+
+```{r sessioninfo, echo=FALSE}
+sessionInfo()
+```
+

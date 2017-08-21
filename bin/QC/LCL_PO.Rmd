@@ -12,20 +12,20 @@ R Markdown for RNA-seq data
 ##Genecount matrix:
 * genes in rows, individuals/samples by lane and flowcell in columns
 
-```{r Genecountmatrix, echo=FALSE}
+```{r Genecountmatrix, echo=FALSE, include = FALSE}
 library(plyr)
 library(dplyr)
 library(reshape2)
-run1 <- read.table("~/star_overhang_v19_genecount_withsexReadsPerGene.out.tab", check.names = F)
-maternalrun1  <- read.table("~/star_overhang_v19_genecount_maternalaltcountReadsPerGene.out.tab", check.names=F)
-paternalrun1  <- read.table("~/star_overhang_v19_genecount_paternalaltcountReadsPerGene.out.tab", check.names=F)
-homrun1  <- read.table("~/star_overhang_v19_genecount_homaltcountReadsPerGene.out.tab", check.names=F)
-genesrun1  <- read.table("~/star_overhang_v19_genecount_genesaltcountReadsPerGene.out.tab", check.names=F)
+run1 <- read.table("~/LCL/star_overhang_v19_genecount_withsexReadsPerGene.out.tab_170614", check.names = F, header = T)
+maternalrun1  <- read.table("~/LCL/star_overhang_v19_genecount_maternalaltcountReadsPerGene.out.tab_170614", check.names=F)
+paternalrun1  <- read.table("~/LCL/star_overhang_v19_genecount_paternalaltcountReadsPerGene.out.tab_170614", check.names=F)
+homrun1  <- read.table("~/LCL/star_overhang_v19_genecount_homaltcountReadsPerGene.out.tab_170614", check.names=F)
+genesrun1  <- read.table("~/LCL/star_overhang_v19_genecount_genesaltcountReadsPerGene.out.tab_170614", check.names=F)
 ```
-* There are a total of $`r dim(count)[1]-5`$ genes and $`r dim(count)[2]`$ samples
+* There are a total of $`r dim(run1)[1]-5`$ genes and $`r dim(run1)[2]`$ samples
 
-##Covariates
-* covariate file has number of reads from total, maternal, and paternal; flowcell, findiv, lane, and adaptor index
+verifyBAMid found some sample swaps:
+
 
 ```{r sampleswaps, echo = FALSE}
 run1names <- colsplit(string=colnames(homrun1), pattern="_", names=c("FC", "findiv", "lanetext","lane", "remainder"))
@@ -51,20 +51,10 @@ colnames(count)[which(colnames(count)=="7_106952_lane_8")]  <- "7_160591_lane_8"
 colnames(count)[which(colnames(count)=="7_158841_lane_5")]  <- "7_158471_lane_5"
 colnames(count)[which(colnames(count)=="7_158841_lane_6")]  <- "7_158471_lane_6"
 
-
-count[,which(colnames(count)=="11_108211_lane_3")]  <- NULL
-count[,which(colnames(count)=="11_108211_lane_4")]  <- NULL
-count[,which(colnames(count)=="9_108211_lane_4")]  <- NULL
-count[,which(colnames(count)=="9_108211_lane_5")]  <- NULL
-
-count[,which(colnames(count)=="4_160462_lane_1")]  <- NULL
-count[,which(colnames(count)=="4_160462_lane_2")]  <- NULL
-
-count[,which(colnames(count)=="3_173492_lane_1")]  <- NULL
-count[,which(colnames(count)=="3_173492_lane_2")]  <- NULL
-
-count[,which(colnames(count)=="11_110432_lane_3")]  <- NULL
-count[,which(colnames(count)=="11_110432_lane_4")]  <- NULL
+colnames(maternalrun1) <- colnames(count)
+colnames(paternalrun1) <- colnames(count)
+colnames(homrun1) <- colnames(count)
+colnames(genesrun1) <- colnames(count)
 
 
 ```
@@ -73,7 +63,7 @@ count[,which(colnames(count)=="11_110432_lane_4")]  <- NULL
 
 ```{r lane, echo=FALSE}
 #File that has flowcell, lane & adaptor index
-laneindex <- read.table("~/li_6_v19")
+laneindex <- read.table("~/LCL/li_6_v19")
 colnames(laneindex) <- c("Flowcell", "FINDIV", "Lane", "Adaptor_index")
 
 ```
@@ -95,18 +85,7 @@ laneindex[which(laneindex$Flowcell==7 & laneindex$FINDIV==106952 & laneindex$Lan
 laneindex[which(laneindex$Flowcell==7 & laneindex$FINDIV==158841 & laneindex$Lane==5),"FINDIV"] <- 158471
 laneindex[which(laneindex$Flowcell==7 & laneindex$FINDIV==158841 & laneindex$Lane==6),"FINDIV"] <- 158471
 
-remove <- c(which(laneindex$Flowcell==11 & laneindex$FINDIV==108211 & laneindex$Lane==3),
-            which(laneindex$Flowcell==11 & laneindex$FINDIV==108211 & laneindex$Lane==4),
-            which(laneindex$Flowcell==9 & laneindex$FINDIV==108211 & laneindex$Lane==4),
-            which(laneindex$Flowcell==9 & laneindex$FINDIV==108211 & laneindex$Lane==5),
-            which(laneindex$Flowcell==4 & laneindex$FINDIV==160462 & laneindex$Lane==1),
-            which(laneindex$Flowcell==4 & laneindex$FINDIV==160462 & laneindex$Lane==2),
-            which(laneindex$Flowcell==3 & laneindex$FINDIV==173492 & laneindex$Lane==1),
-            which(laneindex$Flowcell==3 & laneindex$FINDIV==173492 & laneindex$Lane==2),
-            which(laneindex$Flowcell==11 & laneindex$FINDIV==110432 & laneindex$Lane==3),
-            which(laneindex$Flowcell==11 & laneindex$FINDIV==110432 & laneindex$Lane==4))
 
-laneindex <- laneindex[-remove,]
 run1 <- count
 
 ```
@@ -156,9 +135,6 @@ names(sexRatio) <- findivs
 gender <- sapply(findivs, function(x) substr(x, nchar(x), nchar(x)))
 table(gender)
 plot( as.factor(gender), unlist(sexRatio), ylab = "log2(XIST)- log2(EIF1AY)", main = "Expression of gender assigning genes, vs gender")
-#colnames(callSex) <- names(gender)
-
-
 ```
 * There are supposed to be: $`r length(which(callSex=="2"))`$ females and $`r length(which(callSex=="1"))`$ males.
 * The samples misassigned are: $`r sexRatio[which((callSex=="F")&gender==1)]`$ 
@@ -168,6 +144,18 @@ plot( as.factor(gender), unlist(sexRatio), ylab = "log2(XIST)- log2(EIF1AY)", ma
 
 ```{r combinelanes1, echo=FALSE}
  #Combining gene count matrix
+beforesumlane <- run1
+res.matrix<- as.matrix(run1)
+findivs <- sapply(strsplit(colnames(res.matrix), "_"), "[", 2)
+colnames(res.matrix) <- findivs
+nms <- colnames(res.matrix)
+aftersumlane_mismatch <- res.matrix %*% sapply(unique(nms), "==", nms)
+aftersumlane<- aftersumlane_mismatch[,order(colnames(aftersumlane_mismatch))]
+aftersumlane[1:5,1:5]
+CS=colSums(aftersumlane)
+CSunique=colSums(aftersumlane[-c(1:4),])
+hist(CSunique/CS, main = "proportion of uniquely mapped reads out of total mapped reads")
+
 beforesumlane <- resrun1
 res.matrix<- as.matrix(resrun1)
 findivs <- sapply(strsplit(colnames(res.matrix), "_"), "[", 2)
@@ -183,6 +171,9 @@ abline(h=6000000, col="red")
 abline(h=10000000, col="green")
 text(50,2e07, "6,000,000", col="red")
 text(50,5e07, "10,000,000", col="green")
+
+
+
 ```
 
 * combine total number of read covariate value
@@ -237,29 +228,15 @@ largesex
 ```{r removesexgenes, echo=FALSE}
 ensGene<-read.table("~/Dropbox/ensGene.txt-2", sep="\t")
 ensToName<-read.table("~/Dropbox/ensemblToGeneName.txt", sep="\t")
-#table(ensGene$V3)
 
 x.genes<-ensGene[ensGene$V3=="chrX",13] # 6001
 y.genes<-ensGene[ensGene$V3=="chrY",13] # 731
 m.genes<-ensGene[ensGene$V3=="chrM",13] # 37
 
-# Get the subset in the ensToName sample 
-#ens.for.x<-intersect(x.genes$V2, ensToName$V1)
-#ens.for.y<-intersect(y.genes$V2, ensToName$V1)
-#ens.for.m<-intersect(m.genes$V2, ensToName$V1)
-
-#inboth.x<-match(ens.for.x, ensToName$V1)
-#x.gene.list<-ensToName[inboth.x,]
-#inboth.y<-match(ens.for.y, ensToName$V1)
-#y.gene.list<-ensToName[inboth.y,]
-#inboth.m<-match(ens.for.m, ensToName$V1)
-#m.gene.list<-ensToName[inboth.m,]
-
 chrX.genes<-unique(x.genes)
 chrY.genes<-unique(y.genes)
 chrM.genes<-unique(m.genes)
 
-#res.gx <- aftersumlane
 aftersumgenes <- gsub("\\..*","",rownames(aftersumlane))
 rownames(aftersumlane)<- aftersumgenes
 x.overlap<-intersect(aftersumgenes, chrX.genes)
@@ -293,17 +270,9 @@ CPM_beforesumlane.y.x<- CPM_beforesumlane.y.x.all[rowSums(CPM_beforesumlane.y.x.
   * mt genes:  $`r length(m.overlap)`$
 
 
-
-
-
 #Analysis after combining replicates
 ##Normalization mean-variance trend looks strange because I didn't remove lowly expressed genes. This is of the expression before combining lanes - but removing those with few reads and who didn't pass sex check.
 ```{r loadpackages, include=FALSE, cache=FALSE}
-#source("http://bioconductor.org/biocLite.R")
-#biocLite("edgeR")
-#source("https://bioconductor.org/biocLite.R")
-#biocLite("sva")
-
 library(limma)
 library(edgeR) 
 library(sva)
@@ -330,30 +299,15 @@ keep.exprs <- rowSums(cpm>1)>=10
 aftersumlane.y.x.nolowexpressed<- aftersumlane.y.x[keep.exprs, ]
 dim(aftersumlane.y.x.nolowexpressed)
 
-
-
-dge <- DGEList(counts=aftersumlane.y.x.nolowexpressed)
-dge <- calcNormFactors(dge)
-logCPM <- cpm(dge, log=TRUE, prior.count=3)
- 
-x <- DGEList(counts=aftersumlane.y.x.nolowexpressed)
+#dge <- DGEList(counts=aftersumlane.y.x.nolowexpressed)
+#dge <- calcNormFactors(dge)
+#logCPM <- cpm(dge, log=TRUE, prior.count=1)
+#x <- DGEList(counts=aftersumlane.y.x.nolowexpressed)
 ```
 
 ##Covariates:
 ```{r covariates, echo = FALSE}
 #Combining covariates - for reads only. 
-#cov <- run1names
-#findivs <- run1names$findiv
-#combinecov <- as.matrix(t(cov[,4:8]))
-#colnames(combinecov) <- findivs
-#nms <- colnames(combinecov)
-#aftercombcov <- as.data.frame(t(combinecov %*% sapply(unique(nms), "==", nms)))
-#dim(aftersumlanecov)
-#aftercombcov[1:5,c(2,4,5)]
-
-
-#aftercombcov$Findiv <- rownames(aftercombcov)
-#head(aftercombcov)
 
 col.order <- colnames(CPM_aftersumlane.y.x.all)
 covgood <- read.table("~/Dropbox/covariates.txt", header=T)
@@ -367,9 +321,6 @@ morecov[which(morecov$Findiv=="160591"),"Findiv"]<- "106972"
 morecov[which(morecov$Findiv=="106952"),"Findiv"]<- "160591" 
 morecov[which(morecov$Findiv=="158841"),"Findiv"]<- "158471" 
 
-toremove <- c(which(morecov$Findiv=="108211"), which(morecov$Findiv=="160462"), which(morecov$Findiv=="173492"), which(morecov$Findiv=="110432") )
-
-morecov <- morecov[-c(toremove),]
 
 run1names[which(run1names$findiv=="106581"),"findiv"]<- "s" 
 run1names[which(run1names$findiv=="106451"),"findiv"]<- "106581" 
@@ -378,17 +329,8 @@ run1names[which(run1names$findiv=="160591"),"findiv"]<- "106972"
 run1names[which(run1names$findiv=="106952"),"findiv"]<- "160591" 
 run1names[which(run1names$findiv=="158841"),"findiv"]<- "158471" 
 
-toremovename <- c(which(run1names$findiv=="108211"), which(run1names$findiv=="160462"), which(run1names$findiv=="173492"), which(run1names$findiv=="110432") )
-run1names1 <- run1names[-c(toremovename),]
-
-#remove <- which(morecov$Findiv=="158841")
-#morecov <- morecov[-remove,]
-#morecov[1:5,1:5]
-
-#bothcov <- merge(aftercombcov, morecov, by="Findiv")
 bothcov <-morecov
-cov <- run1names1 
-#dim(bothcov)
+cov <- run1names
 gender <- sapply(bothcov$Findiv, function(x) substr(x, nchar(x), nchar(x)))
 new <- bothcov[match(col.order, bothcov$Findiv),]
 aftercombcov <-  new
@@ -412,14 +354,6 @@ gender <- sapply(cov2$Findiv, function(x) substr(x, nchar(x), nchar(x)))
 
 indiv<-as.factor(cov2$Findiv)
 sex<-as.factor(gender)
-#can't check lane after combining across lanes
-#lane <- as.factor(bothcov$Lane)
-#index <- as.factor(cov$Index)
-#can't check lane after combining across lanes
-#Flowcell <- as.factor(cov$Flowcell)
-#readsbeforeW <- as.numeric(cov2$beforeWASP)
-#readsafterWsex <- as.numeric(cov2$TotalReads)
-#readsafterW <- as.numeric(cov2$afterWASP)
 rnaconc <- as.numeric(cov2$RNAConc)
 rin <- as.numeric(cov2$RIN)
 batch <- as.factor(cov2$LibPrepBatch)
@@ -437,37 +371,13 @@ head(gx.covars)
 
 * RIN, Batch and RNA concentration were significant, so plot by first two PC's:
 
-```{r pccombine_aftercombat, eval=FALSE, echo = FALSE}
-
-plot(sum.PC$x[,1], sum.PC$x[,2],
-     pch=20,main=paste(title.PC, " colored by RIN"),
-     xlab=paste("PC 1 -", (sumsum$importance[2,1]*100),"% of variance", sep=" "), 
-     ylab=paste("PC 2 -",(sumsum$importance[2,2]*100),"% of variance", sep=" "),
-     col=rin) 
-
-plot(sum.PC$x[,1], sum.PC$x[,2],
-     pch=20,main=paste(title.PC, " colored by Batch"),
-     xlab=paste("PC 1 -", (sumsum$importance[2,1]*100),"% of variance", sep=" "), 
-     ylab=paste("PC 2 -",(sumsum$importance[2,2]*100),"% of variance", sep=" "),
-     col=batch)
-
-plot(sum.PC$x[,1], sum.PC$x[,2],
-     pch=20,main=paste(title.PC, " colored by RNA concentration"),
-     xlab=paste("PC 1 -", (sumsum$importance[2,1]*100),"% of variance", sep=" "), 
-     ylab=paste("PC 2 -",(sumsum$importance[2,2]*100),"% of variance", sep=" "),
-     col=rnaconc)
-
-#write.table(pval.pca1, "50PCs_vs_covar_preAdj_TMMgx_41216.txt", sep="\t", quote=FALSE)
-```
 
 ### TMM Normalization
 
 ```{r sva_regress_out_Flowcell, echo = FALSE}
-
-
 my_DGEList = DGEList(counts=aftersumlane.y.x.nolowexpressed)
 my_DGEList_TMM = calcNormFactors(my_DGEList, method="TMM")
-my_data = cpm(my_DGEList_TMM, log=TRUE)
+my_data = cpm(my_DGEList_TMM, log=FALSE)
 #my_data = cpm(my_DGEList_TMM, log=TRUE, prior.count=1)
 #my_mod = model.matrix(~as.numeric(rin), data=gx.covars) #Use this only if you're going to protect something
 #batch= (gx.covars$batch)
@@ -582,92 +492,25 @@ for(j in 1:ncol(gx.covars))
 head(pval.pca1)
 
 ```
+#Looks good!
 
+```{r writefile, echo = FALSE}
 
-* Flowcell/lane next correlated covariate with PC3
-
-##Using ComBat to regress out Flowcell/lane
-
-```{r pcacheck_after_batch, echo = FALSE, eval=FALSE}
-#source("https://bioconductor.org/biocLite.R")
-#biocLite("sva")
-library(sva)
-my_mod = model.matrix(~1, data=gx.covars) #Use this only if you're going to protect something
-batch= (gx.covars$batch)
-#modcombat = model.matrix(~1, data=gx.covars)
-combat_batch = ComBat(r.residual.int2, batch=batch, mod=my_mod,  par.prior=TRUE, prior.plots=FALSE)
-
-
-newdata<- combat_batch
-sum.PC2 <- prcomp(t(newdata), scale=TRUE, center=FALSE, na.action=na.omit)
-sumsum2 <- summary(sum.PC2)
-prop.var2<-sumsum2$importance
-prop.var2[1:3,1:20] 
-title.PC<-"PCA 4"
-
-##To see if covariates are correlated with a PC (looking at PC1-50)
-pval.pca2=matrix(ncol=ncol(gx.covars), nrow=50)
-rownames(pval.pca2)=pc_list
-colnames(pval.pca2)=colnames(gx.covars)
-
-for(j in 1:ncol(gx.covars))
-{
-  for(i in 1:length(pc_list))
-  {
-    data2= lm(sum.PC2$x[,i]~gx.covars[,j])
-    pval.pca2[i,j]=anova(data2)$'Pr(>F)'[1]
-  }
-}
-head(pval.pca2)
+write.table(r.residual.int2, "GeneExpression_HutteriteLCL_20170802.txt", col.names=T, row.names=T)
 
 ```
 
 
-* Batch next correlated covariate
-
-###Using combat to regress out batch
-
-```{r, correcting_batch, echo = FALSE, eval=FALSE}
-
-my_mod = model.matrix(~1, data=gx.covars) #Use this only if you're going to protect something
-batch= (gx.covars$flowlane)
-#modcombat = model.matrix(~1, data=gx.covars)
-combat_batch = ComBat(newdata, batch=batch, mod=my_mod,  par.prior=TRUE, prior.plots=FALSE)
-
-
-newdata2<- combat_batch
-sum.PC2 <- prcomp(t(newdata2), scale=TRUE, center=FALSE, na.action=na.omit)
-sumsum2 <- summary(sum.PC2)
-prop.var2<-sumsum2$importance
-prop.var2[1:3,1:20] 
-title.PC<-"PCA 4"
-
-##To see if covariates are correlated with a PC (looking at PC1-50)
-pval.pca2=matrix(ncol=ncol(gx.covars), nrow=50)
-rownames(pval.pca2)=pc_list
-colnames(pval.pca2)=colnames(gx.covars)
-
-for(j in 1:ncol(gx.covars))
-{
-  for(i in 1:length(pc_list))
-  {
-    data2= lm(sum.PC2$x[,i]~gx.covars[,j])
-    pval.pca2[i,j]=anova(data2)$'Pr(>F)'[1]
-  }
-}
-head(pval.pca2)
-```
-
-* When Flowcell/Lane is regressed out, it seems that the covariate batch becomes signficantly correlated with PC3 and moreso than Flowcell/Lane was before it was regressed out. 
 
 
 # 05-18-16 decided to only do TMM normalization but not regress out effects: 
 # So use my_data moving forward for now.
 
-```{r maternal and paternal, echo =FALSE, eval=FALSE}
+```{r maternalandpaternalnocovariates}
 #5-18-16 decided to only do TMM normalization but not regress out effects: 
 # SO use my_data moving forward for now.
-my_data<- exp(r.residual.int2)
+
+#my_data<- r.residual.int2
 maternal <- maternalrun1[-c(1:4),]
 paternal <- paternalrun1[-c(1:4),]
 #maternal<- read.table("~/star_overhang_v19_genecount_maternalaltcountReadsPerGene.out.tab", check.names = FALSE)
@@ -705,23 +548,18 @@ removed <- which(!findivs%in%colnames(my_data))
 
 newer <- my_data
 genes<- rownames(newer)
-newmat <- aftersumlanemat[genes,-c(removed)]
-newpat <- aftersumlanepat[genes,-c(removed)]
+newmat <- aftersumlanemat[genes,]
+newpat <- aftersumlanepat[genes,]
 newmat2 <- newmat[,colnames(newer)]
 newpat2 <- newpat[,colnames(newer)]
 
 aftersumlaneprop <- aftersumlane[genes,colnames(newer)]
 
-#str(newmat2)
-#dim(newmat2)
-#str(aftersumlaneprop)
-#dim(aftersumlaneprop)
-
 propmat <- newmat2/aftersumlaneprop
 proppat <- newpat2/aftersumlaneprop
 
-newermat2 <- log((propmat*newer))
-newerpat2 <- log((proppat*newer))
+newermat2 <- (propmat*newer)
+newerpat2 <- (proppat*newer)
 
 newermat2[is.na(newermat2)] <- 0
 newerpat2[is.na(newerpat2)] <- 0
@@ -729,12 +567,83 @@ newerpat2[is.na(newerpat2)] <- 0
 newermat2[newermat2==-Inf] <- 0
 newerpat2[newerpat2==-Inf] <- 0
 
-write.table(newerpat2, "Paternal_gene_normalized_v19log.txt", quote =F, row.names = T, col.names = T)
-write.table(newermat2, "Maternal_gene_normalized_v19log.txt", quote =F, row.names = T, col.names = T)
+justnormalizedmat <- newermat2
+justnormalizedpat <- newerpat2
+#write.table(newerpat2, "~/Paternal_gene_normalized_v19_08.02.17.txt", quote =F, row.names = T, col.names = T)
+#write.table(newermat2, "~/Maternal_gene_normalized_v19_08.02.17.txt", quote =F, row.names = T, col.names = T)
+
 
 ```
 
-```{r unknown, echo = FALSE, eval=FALSE}
+```{r maternalandpaternalyescovariates}
+#5-18-16 decided to only do TMM normalization but not regress out effects: 
+# SO use my_data moving forward for now.
+my_data<- r.residual.int2
+maternal <- maternalrun1[-c(1:4),]
+paternal <- paternalrun1[-c(1:4),]
+#maternal<- read.table("~/star_overhang_v19_genecount_maternalaltcountReadsPerGene.out.tab", check.names = FALSE)
+#paternal<- read.table("~/star_overhang_v19_genecount_paternalaltcountReadsPerGene.out.tab", check.names = FALSE)
+
+mat <- as.matrix(maternal)
+findivs <- sapply(strsplit(colnames(mat), "_"), "[", 2)
+colnames(mat) <- findivs
+nms <- colnames(mat)
+aftersumlanemat <- as.data.frame(mat %*% sapply(unique(nms), "==", nms))
+aftersumgenes <- gsub("\\..*","",rownames(aftersumlanemat))
+rownames(aftersumlanemat) <- aftersumgenes 
+
+pat <- as.matrix(paternal)
+findivs <- sapply(strsplit(colnames(pat), "_"), "[", 2)
+colnames(pat) <- findivs
+nms <- colnames(pat)
+aftersumlanepat <- as.data.frame(pat %*% sapply(unique(nms), "==", nms))
+aftersumgenes <- gsub("\\..*","",rownames(aftersumlanemat))
+findivs<- colnames(aftersumlanepat)
+rownames(aftersumlanepat) <- aftersumgenes 
+
+
+#No parent of origin information for:
+colnames(my_data)[which(!colnames(my_data)%in%findivs)]
+missing <- which(!colnames(my_data)%in%findivs)
+#beforenames <- colsplit(string=colnames(my_data)[missing], pattern="_", names=c("FC", "findiv", "lanetext","lane"))
+#findivsmissing <- beforenames$findiv
+
+#Removed from qc:
+findivs[which(!findivs%in%colnames(my_data))]
+removed <- which(!findivs%in%colnames(my_data))
+#beforenames <- colsplit(string=findivs[removed], pattern="_", names=c("FC", "findiv", "lanetext","lane"))
+#findivstoremove <- beforenames$findiv
+
+newer <- my_data
+genes<- rownames(newer)
+newmat <- aftersumlanemat[genes,]
+newpat <- aftersumlanepat[genes,]
+newmat2 <- newmat[,colnames(newer)]
+newpat2 <- newpat[,colnames(newer)]
+
+aftersumlaneprop <- aftersumlane[genes,colnames(newer)]
+
+propmat <- newmat2/aftersumlaneprop
+proppat <- newpat2/aftersumlaneprop
+
+newermat2 <- (propmat*newer)
+newerpat2 <- (proppat*newer)
+
+newermat2[is.na(newermat2)] <- 0
+newerpat2[is.na(newerpat2)] <- 0
+
+newermat2[newermat2==-Inf] <- 0
+newerpat2[newerpat2==-Inf] <- 0
+
+
+#write.table(newerpat2, "~/Paternal_gene_normalized_v19_08.02.17.txt", quote =F, row.names = T, col.names = T)
+#write.table(newermat2, "~/Maternal_gene_normalized_v19_08.02.17.txt", quote =F, row.names = T, col.names = T)
+
+```
+
+
+
+```{r unknown, echo=FALSE}
 keep <- homrun1
 #keep <- read.table("~/star_overhang_v19_genecount_genes_hom", check.names = F)
 k <- as.matrix(keep)
@@ -750,14 +659,12 @@ findivs<- colnames(aftersumlanekeep)
 #No parent of origin information for:
 colnames(my_data)[which(!colnames(my_data)%in%findivs)]
 missing <- which(!colnames(my_data)%in%findivs)
-#beforenames <- colsplit(string=colnames(my_data)[missing], pattern="_", names=c("FC", "findiv", "lanetext","lane"))
-#findivsmissing <- beforenames$findiv
 
 #Removed from qc:
 findivs[which(!findivs%in%colnames(my_data))]
 removed <- which(!findivs%in%colnames(my_data))
 
-newkeep <- aftersumlanekeep[genes,-c(removed)]
+newkeep <- aftersumlanekeep[genes,]
 newkeep2 <- newkeep[,colnames(newer)]
 
 
@@ -765,61 +672,18 @@ newkeep2 <- newkeep[,colnames(newer)]
 aftersumlaneprop <- aftersumlane[genes,colnames(newer)]
 propkeep <- newkeep2/aftersumlaneprop
 
-newerkeep <- log(propkeep*newer)
+newerkeep <- propkeep*newer
 
 newerkeep[is.na(newerkeep)] <- 0
 newerkeep[newerkeep==-Inf] <- 0
 
-write.table(newerkeep, "Unknown_gene_normalized_v19log.txt", quote =F, row.names = T, col.names = T)
-write.table(log(newer), "Total_gene_normalized_v19log.txt", quote = F, row.names = T, col.names = T)
+#write.table(newerkeep, "~/Unknown_gene_normalized_v19_07.27.17.txt", quote =F, row.names = T, col.names = T)
+#write.table(my_data, "~/Total_gene_normalized_v19_07.27.17.txt", quote = F, row.names = T, col.names = T)
 
 ```
 
 
-
-```{r imprinted, echo = FALSE, eval=FALSE}
-
-
-#Imprinted Genes
-
-imprinted <- read.table("~/Imprintedgenenames.txt")
-genes<- rownames(mat)
-a <- c()
-imgenes<- c()
-for (i in 1:dim(imprinted)[1]) {
-    a <- c(a, grep(imprinted[i,1], genes))
-    imgenes <- c(imgenes, i)
-}
-length(imgenes)
-
-matim <- c()
-patim <- c()
-for(j in 1:dim(mat)[1]) {
-    if (sum(mat[j,]) < 1) {
-       if (sum(pat[j,]) > 5) {
-          matim <- c(matim, j)
-        }
-    }
-}
-for(j in 1:dim(pat)[1]) {
-    if (sum(pat[j,]) < 1) {
-       if (sum(mat[j,]) > 5) {
-          patim <- c(patim, j)
-        }
-    }
-}
-
-
-
-equal <- c()
-for(j in 1:dim(mat)[1]) {
-    if (sum(mat[j,]) >20) {
-        if (sum(mat[j,]) == sum(pat[j,])) {
-          equal <- c(equal, j)
-        }
-    }
-}
-
-
+```{r}
+sessionInfo()
 ```
 
