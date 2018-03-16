@@ -1,0 +1,1117 @@
+---
+title: "LCL_Imprintedgene"
+author: "Sahar Mozaffari"
+date: "2/7/2018"
+output: html_document
+---
+
+###Testing for significant difference between maternal and paternal expression for genes across all individuals.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(scipen = 3)
+library(qqman)
+library(ggsci)
+library(ggplot2)
+library(qvalue)
+library(cowplot)
+
+
+library(doParallel)
+library(foreach)
+require(doParallel)
+require(foreach)
+
+registerDoParallel()
+getDoParWorkers()
+theme_set(theme_cowplot(font_size = 18, line_size = 1))
+```
+Read in not normalized maternal and paternal expression matrixes. 
+Remove genes that are not expressed in maternal or paternal, and remove those genes expressed in less than 100 reads summed over all maternal and paternal for that gene.
+
+```{r genetest, echo=FALSE, include=FALSE}
+newmat2 <- read.table("~/Documents/POexpressionpaper/Analyses/Data/Maternal_gene_notnormalized_nodup_v19_20180206.txt", check.names = F)
+newpat2 <- read.table("~/Documents/POexpressionpaper/Analyses/Data/Paternal_gene_notnormalized_nodup_v19_20180206.txt", check.names = F)
+CS <- read.table("~/Documents/POexpressionpaper/Analyses/Data/CS", check.names=F)
+touse <- read.table("~/Documents/POexpressionpaper/Analyses/Data/findivs_touse_triosLCL")
+newmat1 <- newmat2[,which(colnames(newmat2)%in%touse$V1),]
+newpat1 <- newpat2[,which(colnames(newpat2)%in%touse$V1),]
+
+
+pat0 <- which(rowSums(newpat1)==0)
+mat0 <- which(rowSums(newmat1)==0)
+both0 <- which(pat0%in%mat0)
+newmat4 <- newmat1[-both0,]
+newpat4 <- newpat1[-both0,]
+dim(newmat4)
+
+
+both <- which(colSums(rbind(rowSums(newpat4)), rowSums(newmat4))>100)
+newpat3 <- newpat4[both,]
+newmat3 <- newmat4[both,]
+genes <- rownames(newpat3)
+dim(newmat3)
+
+Zgene <- c()
+Zgene <- foreach(i=1:dim(newpat3)[1], .combine=c ) %dopar% {
+     Z <-  (rowSums(newpat3[i,])-rowSums(newmat3[i,]))/(sqrt(rowSums(newpat3[i,])+rowSums(newmat3[i,])))
+}
+
+```
+
+```{r plots, echo=FALSE}
+hist(Zgene, breaks=1000, prob=T,ylim=c(0,0.5))
+curve(dnorm(x, mean=0, sd=1), col="darkblue", lwd=2, add=TRUE, yaxt="n")
+
+hist(Zgene, prob=T, breaks=1000, ylim=c(0,0.5), xlim=c(-10,10))
+curve(dnorm(x, mean=0, sd=1), col="darkblue", lwd=2, add=TRUE, yaxt="n")
+```
+
+```{r pvalues, echo=FALSE}
+length(Zgene)
+BF <- 0.05/length(Zgene)
+
+Zpvals <- 2*pnorm(-abs(Zgene))
+hist(Zpvals, breaks=100)
+abline(v = BF, col="red")
+qqman::qq(Zpvals)
+```
+
+
+Genes, ordered by p-value then by Z score, top 50 each.
+
+
+```{r genenames, echo=FALSE}
+ensGene <- read.table("~/Documents/POexpressionpaper/Analyses/Data/ensGene.txt-2")
+genenames <- read.table("~/Documents/POexpressionpaper/Analyses/Data/ensemblToGeneName.txt")
+
+ensGene2 <- ensGene[,c("V2", "V13")]
+genenames2 <- merge(genenames, ensGene2, by.x="V1", by.y="V2")
+genenames2 <- unique(genenames2[,c(2,3)])
+
+Zgene2 <- as.data.frame(Zgene)
+Zgene2$genes <- rownames(Zgene2)
+colnames(Zgene2)[1] <- "Z"
+Zgene2$pvals <- Zpvals
+Zgenenames <- merge(Zgene2, genenames2, by.x="genes",  by.y="V13")
+colnames(Zgenenames)[4] <- "genename"
+head(Zgenenames[order(Zgenenames$pvals),], 50)
+
+head(Zgenenames[order(Zgenenames$Z),], 50)
+sortedZ <- Zgenenames[order(Zgenenames$pvals),]
+significant <- sortedZ[which(sortedZ$pvals<BF),]
+
+```
+
+###There are $`r dim(significant)[1]`$ significant genes.
+
+```{r singleplots, results="asis", echo=FALSE}
+i <- 1
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,])), as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(significant$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+i <- 2
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,])), as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(significant$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+i <- 3
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,])), as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(significant$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+text(as.numeric(as.character(newpat3[v,])),as.numeric(as.character(newmat3[v,])),  labels=colnames(newpat3), pos=3)
+  
+i <- 4
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,])), as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(significant$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+text(as.numeric(as.character(newpat3[v,])),as.numeric(as.character(newmat3[v,])),  labels=colnames(newpat3), pos=3)
+
+
+i <- 5
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,])), as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(significant$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+ text(as.numeric(as.character(newpat3[v,])),as.numeric(as.character(newmat3[v,])),  labels=colnames(newpat3), pos=3)
+ 
+i <- 6
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,])), as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(significant$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+ text(as.numeric(as.character(newpat3[v,])),as.numeric(as.character(newmat3[v,])),  labels=colnames(newpat3), pos=3)
+ 
+i <- 7
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,])), as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(significant$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+ text(as.numeric(as.character(newpat3[v,])),as.numeric(as.character(newmat3[v,])),  labels=colnames(newpat3), pos=3)
+
+i <- 8
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,])), as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(significant$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+   text(as.numeric(as.character(newpat3[v,])),as.numeric(as.character(newmat3[v,])),  labels=colnames(newpat3), pos=3)
+
+i <- 9
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,])), as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(significant$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+pgen0 <- c("26002", "107091", "108801", "108821", "109962", "121171", "156151", "156751", "161251", "161871", "162101", "162132")
+mgen0 <- c("26002", "107322", "108801", "108821", "109962", "112722", "121171", "154042", "156151", "156751", "161251", "161871", "162101", "162132")
+newpat4 <- newpat3[,which(colnames(newpat3)%in%pgen0)]
+newmat4 <- newmat3[,which(colnames(newmat3)%in%pgen0)]
+points(as.numeric(as.character(newpat4[v,])),as.numeric(as.character(newmat4[v,])), col="blue")
+#text(as.numeric(as.character(newpat4[v,])),as.numeric(as.character(newmat4[v,])),  labels=colnames(newpat4), pos=3)
+newpat4 <- newpat3[,which(colnames(newpat3)%in%mgen0)]
+newmat4 <- newmat3[,which(colnames(newmat3)%in%mgen0)]
+points(as.numeric(as.character(newpat4[v,])),as.numeric(as.character(newmat4[v,])), col="red")
+#text(as.numeric(as.character(newpat4[v,])),as.numeric(as.character(newmat4[v,])),  labels=colnames(newpat4), pos=2)
+
+t <- pgen0[which(pgen0%in%mgen0)]
+newpat4 <- newpat3[,which(colnames(newpat3)%in%t)]
+newmat4 <- newmat3[,which(colnames(newmat3)%in%t)]
+points(as.numeric(as.character(newpat4[v,])),as.numeric(as.character(newmat4[v,])), col="purple")
+text(as.numeric(as.character(newpat4[v,])),as.numeric(as.character(newmat4[v,])),  labels=colnames(newpat4), cex.lab=0.5, pos=4)
+
+i <- 10
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,])), as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(significant$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+ text(as.numeric(as.character(newpat3[v,])),as.numeric(as.character(newmat3[v,])),  labels=colnames(newpat3), pos=3)
+
+for (i in 1:10) {
+  n <- significant$genes[i]
+  v <- grep(n, genes)
+  write.table(colnames(newmat3)[which(as.numeric(as.character(newmat3[v,]))<as.numeric(as.character(newpat3[v,])))],paste("good_",significant$genename[i], sep=""), row.names=F, col.names=F, quote = F)
+  write.table(colnames(newmat3)[which(as.numeric(as.character(newmat3[v,]))>as.numeric(as.character(newpat3[v,])))],paste("bad_",significant$genename[i], sep=""), row.names=F, col.names=F, quote = F)
+
+}
+  
+```
+
+
+###Check how many of the significant ones are known imprinted genes: 
+
+
+```{r imprintedgenes, echo=FALSE}
+supp <- read.csv("~/Documents/POexpressionpaper/Analyses/Data/supp4", header = T)
+significant[which(significant$genename%in%supp$Gene),]
+
+supp[which(supp$Gene%in%significant$genename),]
+
+```
+
+$`dim(supp)[1]`$/$`length(which(supp$Gene%in%Zgenenames$genename))`$ (overlap of $`length(which(supp$Gene%in%Zgenenames$genename))`$ with genes tested in our dataset ( e.g. expressed in LCLs, etc.)).
+
+
+##Comparing old p-value with weighted p-values
+
+
+```{r weighted, echo=FALSE}
+CS <- read.table("~/Documents/POexpressionpaper/Analyses/Data/CS", check.names=F)
+CS2 <- CS$V2
+names(CS2) <- CS$V1
+weights <- 1/(CS2/(min(CS2)))
+head(weights)
+weightsordered <- weights[match(colnames(newpat3), names(weights))]
+
+Zweighted <- c()
+Znum <- c()
+Zden <- c()
+vec <- c()
+vec<- foreach(i=1:dim(newpat3)[1], .combine=c ) %dopar% {
+    for (j in 1:(dim(newpat3)[2])) {
+      Z <- weightsordered[j]*(newpat3[i,j]-newmat3[i,j])
+      Znum <- c(Znum, Z)   
+      Z2 <- (weightsordered[j])^2*(newpat3[i,j]+newmat3[i,j])
+      Zden <- c(Zden, Z2)
+    }
+    Z3 <- sum(Znum)/(sqrt(sum(Zden)))
+    Zweighted <- c(Zweighted, Z3)
+    Zweighted
+ }
+names(vec) <- genes
+ 
+Zwpvals <- 2*pnorm(-abs(vec))
+hist(Zwpvals, breaks=100)
+abline(v = BF, col="red")
+qqman::qq(Zwpvals)
+Zweighted <- cbind(genes, vec, Zwpvals)
+colnames(Zweighted) <- c("genes", "weightedZ", "weightedpval")
+
+tt <- merge(sortedZ, Zweighted, by="genes")
+
+significantweighted <- tt[which(as.numeric(as.character(tt$weightedpval))<BF),]
+#dim(significantweighted)
+sigsortedZweighted <- significantweighted[order(as.numeric(as.character(significantweighted$weightedpval))),]
+#head(sigsortedZweighted, 50)
+#head(significantweighted[order(as.numeric(as.character(significantweighted$weightedZ))),], 50)
+#tail(significantweighted[order(as.numeric(as.character(significantweighted$weightedZ))),], 50)
+
+plot(-log10(as.numeric(as.character(significantweighted$pvals))), -log10(as.numeric(as.character(significantweighted$weightedpval))), xlab="p-values", ylab="weighted pvalues")
+abline(a=0, b=1, col="red")
+abline(a=-log10(BF), b=0, col="blue")
+abline(v=-log10(BF), col="green")
+plot(-log10(as.numeric(as.character(significantweighted$pvals))), -log10(as.numeric(as.character(significantweighted$weightedpval))), xlab="p-values", ylab="weighted pvalues",
+     xlim=c(-5,40), ylim=c(-5,40))
+abline(a=0, b=1, col="red")
+abline(a=-log10(BF), b=0, col="blue")
+abline(v=-log10(BF), col="green")
+```
+
+
+#1. most significant by weighted p-value: (50)
+#2. smallest Zscore (50)
+#3. largest Zscore (50)
+
+
+```{r signtest, echo=FALSE}
+
+Zsign <- c()
+Z2 <- c()
+Zsign <- foreach(i=1:dim(newmat3)[1], .combine=rbind ) %dopar% {
+  n5 <- which((newpat3[i,]+newmat3[i,])>5)
+  Spp <- c()
+  if (length(n5 >5)) {
+    for (k in 1:length(n5)) {
+      j <- n5[k]
+      Z=(newpat3[i,j]-newmat3[i,j])/(sqrt(newpat3[i,j]+newmat3[i,j]))
+      if (Z!=0){
+        Spp <- c(Spp,Z)
+      }
+    }
+  } 
+  if (length(Spp)>0){
+    s <- binom.test(length(which(Spp>0)), length(Spp), 0.5)
+    list(length(which(Spp<0)),  length(which(Spp>0)), s$p.value)
+  } else {
+    list("NA", "NA", "NA")
+  }
+}
+
+Zsign2 <- as.data.frame(Zsign)
+colnames(Zsign2) <- c("less0", "greater0", "signpvalue")
+Zsign2$genes <- genes
+
+Zall3 <- merge(Zsign2, tt, by="genes")
+Zall3$signFDR <- qvalue(as.numeric(as.character(Zall3$signpval)))$qvalues
+
+significantweighted <- Zall3[which(as.numeric(as.character(Zall3$weightedpval))<BF),]
+dim(significantweighted)
+sigsortedZweighted <- significantweighted[order(as.numeric(as.character(significantweighted$weightedpval))),]
+head(sigsortedZweighted, 20)
+head(Zall3[order(as.numeric(as.character(Zall3$signpval))),], 20)
+tail(Zall3[order(as.numeric(as.character(Zall3$signpval))),], 20)
+
+Zsignsorted <- Zall3[order(as.numeric(as.character(Zall3$signpvalue))),]
+
+df3 <- apply(Zsignsorted,2,as.character)
+#write.table(df3, "~/LCL/Significantsigntest_triosonly.txt", col.names=T, row.names=F, quote=F)
+
+sigsign <- Zsignsorted[which(Zsignsorted$signFDR<0.05),]
+df <- apply(sigsign,2,as.character)
+#write.table(df, "~/LCL/Significantsigntest.txt", col.names=T, row.names=F, quote=F)
+imprintedsign <- merge(Zsignsorted, supp, by.x="genename", by.y="Gene", all.y=T)
+df2 <- apply(imprintedsign,2,as.character)
+df2
+#write.table(df2, "~/LCL/Imprintedgenespvalues.txt", col.names=T, row.names=F, quote=F)
+
+```
+
+
+##Plots for the 10 most significant from weighted Zscore
+
+
+```{r singleplotsweighted, results="asis", echo=FALSE}
+
+#touse <- read.table("~findivs_touse_triosLCL")
+#newmat4 <- newmat3[,which(colnames(newmat3)%in%touse$V1),]
+#newpat4 <- newpat3[,which(colnames(newpat3)%in%touse$V1),]
+newpat4 <- newpat3
+newmat4 <- newmat3
+i <- 1
+  n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+i <- 2
+  n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+i <- 3
+  n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+i <- 4
+  n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+
+i <- 5
+  n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+i <- 6
+  n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+i <- 7
+  n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+
+i <- 8
+  n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+  
+i <- 9
+  n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+
+i <- 10
+  n <- sigsortedZweighted$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat3[v,])), as.numeric(as.character(newpat3[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+
+
+  
+```
+
+```{r}
+weights2 <- weights[which(names(weights)%in%colnames(newmat4))]
+weights3 <- weights2[match(names(weights2), colnames(newmat4))]
+i <- 1
+n <- sigsign$genes[i]
+  v <- grep(n, rownames(newmat4))
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), xlim=c(-5,70), ylim=c(-5,70))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent),alpha=0.2)+
+  geom_point(aes(size=1/weights3))+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,80), ylim=c(-1,80))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.2),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+
+
+i <- 2
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), xlim=c(-5,120), ylim=c(-5,120))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="red")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,100), ylim=c(-1,100))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.2),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+
+
+i <- 3
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), xlim=c(-1,35), ylim=c(-1,35))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,80), ylim=c(-1,80))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.2),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+i <- 4
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), xlim=c(-5,100), ylim=c(-5,100))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,120), ylim=c(-1,120))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.2),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+i <- 5
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), xlim=c(-5,70), ylim=c(-5,70))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,50), ylim=c(-1,50))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.2),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+i <- 6
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), xlim=c(-5,70), ylim=c(-5,70))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,80), ylim=c(-1,80))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.2),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+
+i <- 7 
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), xlim=c(-5,120), ylim=c(-5,120))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,50), ylim=c(-1,50))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.1, 0.6),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+i <- 8
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), xlim=c(-1,50), ylim=c(-1,50))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,30), ylim=c(-1,30))+
+ scale_color_manual(values=c("#616530CC" ,  "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.2),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+i <- 9
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), xlim=c(-1,30), ylim=c(-1,30))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,50), ylim=c(-1,50))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.2, 0.8),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+
+i <- 10
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), xlim=c(-1,30), ylim=c(-1,30))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,30), ylim=c(-1,30))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.2),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+
+i <- 11
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), xlim=c(-1,30), ylim=c(-1,30))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,40), ylim=c(-1,40))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.2),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+
+i <- 12
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), xlim=c(-1,15), ylim=c(-1,15))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,20), ylim=c(-1,20))+
+ scale_color_manual(values=c("#616530CC" ,  "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.2),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+
+i <- 13
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), xlim=c(-1,80), ylim=c(-1,80))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,80), ylim=c(-1,80))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.05, 0.85),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+
+i <- 14
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,40), ylim=c(-1,40))+
+ scale_color_manual(values=c("#616530CC" ,  "#800000CC","#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.2),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+
+i <- 15
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,50), ylim=c(-1,50))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.2),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+
+i <- 16
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,60), ylim=c(-1,60))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.4),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+
+i <- 17
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,60), ylim=c(-1,60))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.2),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+i <- 18
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,40), ylim=c(-1,40))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.3),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+i <- 19
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,50), ylim=c(-1,50))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.2),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+i <- 20
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,100), ylim=c(-1,100))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.2),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+i <- 21
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,80), ylim=c(-1,80))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.2),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+i <- 22
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,50), ylim=c(-1,50))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.45),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+i <- 23
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,200), ylim=c(-1,200))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.05, 0.9),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+i <- 24
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,250), ylim=c(-1,250))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC",  "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.2),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+i <- 25
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,100), ylim=c(-1,100))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC" ,  "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.2),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+i <- 26
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,150), ylim=c(-1,150))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC" , "#0F425CCC"))+
+  theme(legend.position = c(0.05, 0.8),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+i <- 27
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,20), ylim=c(-1,20))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC" , "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.2),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+i <- 28
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,400), ylim=c(-1,400))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC" , "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.3),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+
+```
+
+
+```{r signtestweighted, echo=FALSE}
+
+names(CS2) <- CS$V1
+weights <- 1/(CS2/(min(CS2)))
+head(weights)
+weightsordered <- weights[match(colnames(newpat3), names(weights))]
+
+weightsordered <- weights[match(colnames(newpat3), names(weights))]
+
+
+Z2 <- c()
+w <- c()
+Zp <- c()
+Zsweight <- c()
+Zsign5 <- c()
+Zsign5 <- foreach(i=1:dim(newmat3)[1], .combine=rbind ) %dopar% {
+  n5 <- which((newpat3[i,]+newmat3[i,])>5)
+  Spp <- c()
+  w <- c()
+  if (length(n5 >5)) {
+    for (k in 1:length(n5)) {
+      j <- n5[k]
+      Z=(newpat3[i,j]-newmat3[i,j])/(sqrt(newpat3[i,j]+newmat3[i,j]))
+      if (Z!=0){
+        Spp <- c(Spp,Z)
+        w <- c(w, (newpat3[i,j] +newmat3[i,j])/(weightsordered[j]))
+      }
+    }
+  } 
+  if (length(Spp)>0){
+    Spp[Spp<0]<- -1
+    Spp[Spp>0]<- 1
+    Zsweight <- (sum((w)*Spp))/sqrt(sum((w*w)))
+    Zp <- c(Zp, 2*pnorm(-abs(Zsweight)))
+    Z2 <- c(Z2, Zsweight)
+    #s <- binom.test(length(which(Spp>0)), length(Spp), 0.5)
+    list(length(which(Spp<0)),  length(which(Spp>0)), Zp)
+  } else {
+    list("NA", "NA", "NA")
+  }
+}
+
+Zsign5df <- as.data.frame(Zsign5)
+colnames(Zsign5df) <- c("less0w", "greater0w", "signpvaluew")
+Zsign5df$genes <- genes
+
+Zall5dfm <- merge(Zsign5df, Zall3, by="genes")
+Zall5dfm$signFDRw <- qvalue(as.numeric(as.character(Zall5dfm$signpvaluew)))$qvalues
+
+#significantweighted5dfm <- Zall5dfm[which(as.numeric(as.character(Zall5dfm$weightedpval))<BF),]
+#dim(significantweighted5dfm)
+#sigsortedZweighted5dfm <- significantweighted5dfm[order(as.numeric(as.character(significantweighted5dfm$weightedpval))),]
+#head(sigsortedZweighted5dfm, 20)
+head(Zall5dfm[order(as.numeric(as.character(Zall5dfm$signpvaluew))),], 20)
+tail(Zall5dfm[order(as.numeric(as.character(Zall5dfm$signpvaluew))),], 20)
+
+Zsignsorted5dfm <- Zall5dfm[order(as.numeric(as.character(Zall5dfm$signpvaluew))),]
+
+df3 <- apply(Zsignsorted,2,as.character)
+#write.table(df3, "~/LCL/Significantsigntest_triosonly.txt", col.names=T, row.names=F, quote=F)
+
+sigsign <- Zsignsorted[which(Zsignsorted$signFDR<0.05),]
+df <- apply(sigsign,2,as.character)
+#write.table(df, "~/LCL/Significantsigntest.txt", col.names=T, row.names=F, quote=F)
+imprintedsign <- merge(Zsignsorted, supp, by.x="genename", by.y="Gene", all.y=T)
+df2 <- apply(imprintedsign,2,as.character)
+df2
+#write.table(df2, "~/LCL/Imprintedgenespvalues.txt", col.names=T, row.names=F, quote=F)
+
+```
+
+```{r sessioninfo, echo=FALSE}
+sessionInfo()
+```
+
