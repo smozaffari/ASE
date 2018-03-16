@@ -25,7 +25,7 @@ while (my $fileline = <FILES>) {
     my $fc = $findiv_lane[1];
     chomp $name;
     my $outfile = "out_${fc}_${name}.txt";
-    open (OUT, ">summarystats_v19/$outfile") || die "nope: $!";
+    open (OUT, ">ASE_info/$outfile") || die "nope: $!";
     open (ASE, $fileline) || die "nope: $!";
 #open (ASE, "/lustre/beagle2/ober/users/smozafari/ASE/results/withoutsaved/FlowCell8/122462/122462_lane_5_ASE_info") || die "nope: $!";
 #open (ASE, "test_5") || die "nope: $!";                                                                                                        

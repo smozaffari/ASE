@@ -1,0 +1,30 @@
+#!/bin/bash
+#PBS -l mppwidth=32
+#PBS -l walltime=05:00:00
+#PBS -j oe 
+#PBS -A CI-MCB000155
+
+# Author: Sahar Mozaffari
+# Date: 09/20/16
+# Purpose: get ASE for all individuals and put it together
+# Usage: qsubbed from ASE_master.sh (look there for usage)
+
+cd $PBS_O_WORKDIR
+echo $PBS_O_WORKDIR
+. /opt/modules/default/init/bash
+
+umask 022
+
+echo "%%% Begin at " $(date)
+export WHOAMI=$(whoami)
+echo "Submitted as:" $WHOAMI
+echo "running jobs in "$PWD
+#echo "$SCRIPTDIR"
+echo "$FILE"
+
+
+aprun -n1 -N1 -d 1 -b /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/ASE_count.sh 
+echo "aprun -n1 -N1 -d 1 -b /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/ASE_count.sh"
+
+echo "%%% Ending at "$(date)
+#done
