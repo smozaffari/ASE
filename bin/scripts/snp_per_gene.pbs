@@ -1,0 +1,28 @@
+#!/bin/bash
+#PBS -l mppwidth=32
+#PBS -l walltime=24:00:00
+#PBS -j oe 
+#PBS -A CI-MCB000155
+
+# Author: Sahar Mozaffari
+# Date: 10/10/17
+# Purpose: get snps per gene
+
+cd $PBS_O_WORKDIR
+echo $PBS_O_WORKDIR
+. /opt/modules/default/init/bash
+
+umask 022
+
+echo "%%% Begin at " $(date)
+export WHOAMI=$(whoami)
+echo "Submitted as:" $WHOAMI
+echo "running jobs in "$PWD
+#echo "$SCRIPTDIR"
+echo "$FILE"
+
+echo "aprun -n1 -N1 -d 1 -b /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/snp_per_gene.sh"
+aprun -n1 -N1 -d 1 -b /lustre/beagle2/ober/users/smozaffari/ASE/bin/scripts/snp_per_gene.sh
+
+echo "%%% Ending at "$(date)
+#done
