@@ -178,10 +178,10 @@ ASE() {
     findiv=$2
     scriptdir=$3
     sample=$4
-    echo "python $scriptdir/findsnps_new.py --is_sorted --max_snps 20 --snp_dir /lustre/beagle2/ober/users/smozaffari/po_genotypes/$findiv $read/${sample}.afterWASP.nodup.bam >$read/${sample}_ASE_info.nodup"
-    python $scriptdir/findsnps_new.py --is_sorted --max_snps 20 --snp_dir /lustre/beagle2/ober/users/smozaffari/po_genotypes/$findiv $read/${sample}.afterWASP.nodup.bam > $read/${sample}_ASE_info.nodup
-#     echo "python $scriptdir/findsnps_new.py  --is_sorted --max_snps 20 --snp_dir  /lustre/beagle2/ober/users/smozaffari/ASE_swappedgenotypes/$findiv $read/${sample}.keep.merged.sorted.bam > $read/${sample}_ASE_info"
-#     python $scriptdir/findsnps_new.py  --is_sorted --max_snps 20 --snp_dir  /lustre/beagle2/ober/users/smozaffari/ASE_swappedgenotypes/$findiv $read/${sample}.keep.merged.sorted.bam > $read/${sample}_ASE_info
+    echo "python $scriptdir/findsnps_new.py --is_sorted --max_snps 20 --snp_dir /lustre/beagle2/ober/users/smozaffari/po_het_genotypes/$findiv $read/${sample}.afterWASP.nodup.bam >$read/${sample}_ASE_info.nodup"
+    python $scriptdir/findsnps_new.py --is_sorted --max_snps 20 --snp_dir /lustre/beagle2/ober/users/smozaffari/po_het_genotypes/$findiv $read/${sample}.afterWASP.nodup.bam > $read/${sample}_ASE_info.nodup
+#     echo "python $scriptdir/findsnps_new.py  --is_sorted --max_snps 20 --snp_dir  /lustre/beagle2/ober/users/smozaffari/ASE_swapped_het_genotypes/$findiv $read/${sample}.keep.merged.sorted.bam > $read/${sample}_ASE_info"
+#     python $scriptdir/findsnps_new.py  --is_sorted --max_snps 20 --snp_dir  /lustre/beagle2/ober/users/smozaffari/ASE_swapped_het_genotypes/$findiv $read/${sample}.keep.merged.sorted.bam > $read/${sample}_ASE_info
 
 #ASE_swappedgenotypes
 }
