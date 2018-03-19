@@ -98,8 +98,8 @@ MAP_AND_SAM() {   # map files using bowtie
     sample=$4
     echo "$input"
     
-    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $input  --outFileNamePrefix $read/$sample"
-    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/ --readFilesIn $input --outFileNamePrefix $read/$sample
+    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19_2018/  --readFilesIn $input  --outFileNamePrefix $read/$sample"
+    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19_2018/ --readFilesIn $input --outFileNamePrefix $read/$sample
 
     echo "samtools view -q 10 -b $read/${sample}Aligned.out.sam > $read/${sample}.bam"
     samtools view -q 10 -b $read/${sample}Aligned.out.sam > $read/${sample}.bam
@@ -122,49 +122,49 @@ WASP() { # use WASP to remove mapping bias
     sample=$4
     lane=$5
     #first part of WASP:
-#    python $WASP/mapping/find_intersecting_snps.py  --snp_dir $snp_dir $read/${sample}.sorted.bam
+    python $WASP/mapping/find_intersecting_snps.py  --snp_dir $snp_dir $read/${sample}.sorted.bam
     echo "python $WASP/mapping/find_intersecting_snps.py --snp_dir  $snp_dir $read/${sample}.sorted.bam"
 
     #remap files:
-    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/  --readFilesIn $read/${sample}.sorted.remap.fq.gz --readFilesCommand zcat --outFileNamePrefix $read/${sample}.sorted.map2"
-#    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/ --readFilesIn $read/${sample}.sorted.remap.fq.gz --readFilesCommand zcat --outFileNamePrefix $read/${sample}.sorted.map2
+    echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19_2018/  --readFilesIn $read/${sample}.sorted.remap.fq.gz --readFilesCommand zcat --outFileNamePrefix $read/${sample}.sorted.map2"
+    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/ --readFilesIn $read/${sample}.sorted.remap.fq.gz --readFilesCommand zcat --outFileNamePrefix $read/${sample}.sorted.map2
    wait
    
 #    rm $read/${sample}.sorted.remap.bam
 
     echo "samtools view -q 10 -b $read/${sample}.sorted.map2Aligned.out.sam > $read/${sample}.sorted.remap.bam"
-#    samtools view -q 10 -b $read/${sample}.sorted.map2Aligned.out.sam > $read/${sample}.sorted.remap.bam
+    samtools view -q 10 -b $read/${sample}.sorted.map2Aligned.out.sam > $read/${sample}.sorted.remap.bam
 
 
 #    rm $read/${sample}.sorted.remap.sorted.bam
     echo "samtools sort $read/${sample}.sorted.remap.sorted.bam $read/${sample}.sorted.remap.bam"
-#    samtools sort -o  $read/${sample}.sorted.remap.sorted.bam $read/${sample}.sorted.remap.bam
+    samtools sort -o  $read/${sample}.sorted.remap.sorted.bam $read/${sample}.sorted.remap.bam
     
     
     echo "samtools index $read/${sample}.sorted.remap.sorted.bam"
-#    samtools index $read/${sample}.sorted.remap.sorted.bam
+    samtools index $read/${sample}.sorted.remap.sorted.bam
 
 
 
     #WASP:
 
-#    python $WASP/mapping/filter_remapped_reads.py $read/${sample}.sorted.to.remap.bam $read/${sample}.sorted.remap.sorted.bam $read/${sample}.sorted.remap.keep.bam #$read/${sample}.sorted.to.remap.num.gz
+    python $WASP/mapping/filter_remapped_reads.py $read/${sample}.sorted.to.remap.bam $read/${sample}.sorted.remap.sorted.bam $read/${sample}.sorted.remap.keep.bam #$read/${sample}.sorted.to.remap.num.gz
     echo "python $WASP/mapping/filter_remapped_reads.py $read/${sample}.sorted.to.remap.bam $read/${sample}.sorted.remap.sorted.bam $read/${sample}.sorted.remap.keep.bam #$read/${sample}.sorted.to.remap.num.gz"
     wait
     
  #   rm $read/${sample}.keep.merged.bam
 
     #merged bamfile:
- #   samtools merge $read/${sample}.keep.merged.bam $read/${sample}.sorted.keep.bam $read/${sample}.sorted.remap.keep.bam
+    samtools merge $read/${sample}.keep.merged.bam $read/${sample}.sorted.keep.bam $read/${sample}.sorted.remap.keep.bam
     echo "samtools merge $read/${sample}.keep.merged.bam $read/${sample}.sorted.keep.bam $read/${sample}.sorted.remap.keep.bam"
 
 
  #   rm $read/${sample}.keep.merged.sorted.bam
- #   samtools sort -o $read/${sample}.keep.merged.sorted.bam $read/${sample}.keep.merged.bam
+    samtools sort -o $read/${sample}.keep.merged.sorted.bam $read/${sample}.keep.merged.bam
     echo "samtools -o sort $read/${sample}.keep.merged.sorted.bam $read/${sample}.keep.merged.bam"
 
 
- #   samtools index $read/${sample}.keep.merged.sorted.bam
+    samtools index $read/${sample}.keep.merged.sorted.bam
     echo "samtools index $read/${sample}.keep.merged.sorted.bam"
 
     python $WASP/mapping/rmdup.py $read/${sample}.keep.merged.sorted.bam $read/${sample}.afterWASP.nodup.bam
@@ -299,12 +299,12 @@ echo $SCRIPTDIR
 echo $lane
 echo $LANEWASP
 
-#TRIM_READ $READ $FINDIV $FILE $adaptor $SAMPLE >>$plog 2>&1 
+TRIM_READ $READ $FINDIV $FILE $adaptor $SAMPLE >>$plog 2>&1 
 echo "TRIM_READ $READ $FINDIV $FILE $adaptor $SAMPLE  >>$plog 2>&1"
 
 input=$(echo "$FILE" | sed 's/txt.gz/trim.txt/g')
 echo "$input"
-#MAP_AND_SAM $READ $FINDIV $input $SAMPLE >>$plog 2>&1
+MAP_AND_SAM $READ $FINDIV $input $SAMPLE >>$plog 2>&1
 echo "MAP_AND_SAM $READ $FINDIV $SAMPLE  >>$plog 2>&1"
 
 WASP $READ $FINDIV $SNP_DIR $SAMPLE $LANEWASP>>$plog 2>&1
