@@ -127,7 +127,7 @@ WASP() { # use WASP to remove mapping bias
 
     #remap files:
     echo "/lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19_2018/  --readFilesIn $read/${sample}.sorted.remap.fq.gz --readFilesCommand zcat --outFileNamePrefix $read/${sample}.sorted.map2"
-    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19/ --readFilesIn $read/${sample}.sorted.remap.fq.gz --readFilesCommand zcat --outFileNamePrefix $read/${sample}.sorted.map2
+    /lustre/beagle2/ober/users/smozaffari/STAR//STAR-2.5.2a/bin/Linux_x86_64/STAR --genomeDir /lustre/beagle2/ober/users/smozaffari/ASE/bin/ref/star/overhang_v19_2018/ --readFilesIn $read/${sample}.sorted.remap.fq.gz --readFilesCommand zcat --outFileNamePrefix $read/${sample}.sorted.map2
    wait
    
 #    rm $read/${sample}.sorted.remap.bam
