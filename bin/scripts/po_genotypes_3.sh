@@ -27,7 +27,7 @@ while read LINE; do
     echo "qsub -v FINDIV=$LINE SCRIPTDIR=$scriptDir -N $LINE $scriptDir/po_genotypes_2.pbs" | tee -a $setup_log
     qsub -v FINDIV=$LINE,SCRIPTDIR=$scriptDir -N $LINE $scriptDir/po_genotypes_2.pbs 2>&1
     sleep 3
-done < /lustre/beagle2/ober/users/smozaffari/POeQTL/results/gexp/justfindivs
+done < justfindivs
 
 
 
