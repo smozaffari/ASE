@@ -110,4 +110,4 @@ Zall3$signFDR <- qvalue(as.numeric(as.character(Zall3$signpval)))$qvalues
 
 x <- apply(head(Zall3[order(Zall3$signFDR),],28), 2,as.character)
 write.table(x, "Zall3.txt", col.names=T, row.names=F, quote=F)
-head(x)
+x
