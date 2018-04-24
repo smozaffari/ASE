@@ -292,12 +292,13 @@ voom.matrix.CPM_aftersumlane.y.x<-as.matrix(voom.after.CPM_aftersumlane.y.x)
 ```
 
 ```{r cpmsumlane}
-cpm <- cpm(aftersumlane.y.x)
-lcpm <- cpm(aftersumlane.y.x, log=TRUE)
-table(rowSums(aftersumlane.y.x==0)==441)
+#subset on 306 individuals
+cpm <- cpm(aftersumlane.y.x[, which(colnames(aftersumlane.y.x)%in%touse$V1)])
+lcpm <- cpm(aftersumlane.y.x[, which(colnames(aftersumlane.y.x)%in%touse$V1)], log=TRUE)
+table(rowSums(aftersumlane.y.x==0)==306)
 
-keep.exprs <- rowSums(cpm>1)>=20
-aftersumlane.y.x.nolowexpressed<- aftersumlane.y.x[keep.exprs, ]
+keep.exprs <- rowSums(lcpm>1)>=20
+aftersumlane.y.x.nolowexpressed<- aftersumlane.y.x[keep.exprs, which(colnames(aftersumlane.y.x)%in%touse$V1) ]
 dim(aftersumlane.y.x.nolowexpressed)
 voom.after.CPM_aftersumlane.y.x.nolowexpressed <- voom(cpm(aftersumlane.y.x.nolowexpressed),plot=TRUE, normalize="quantile")
 
@@ -365,8 +366,10 @@ length <- as.numeric(cov2$FragmentLength)
 flowlane <- as.factor(cov2$flowlane)
 index <- as.factor(cov2$Index)
 
-gx.covars<-data.frame(cbind( sex, indiv, rnaconc, rin, batch, prep, conc, length, flowlane, index))
+gx.covars2<-data.frame(cbind( sex, indiv, rnaconc, rin, batch, prep, conc, length, flowlane, index))
+gx.covars <- gx.covars2[which(rownames(gx.covars2)%in%touse$V1),]
 head(gx.covars)
+
 
 ```
 
@@ -458,16 +461,16 @@ head(pval.pca1)
 
 ```
 
-* RNA concentration correlated with PC1, regress that out:
+* Length correlated with PC1, regress that out:
 
-### Regress out RNA concentration
+### Regress out Length
 
-```{r regress_out_rnaconcentration, echo = FALSE}
+```{r regress_out_length, echo = FALSE}
 r.residual.int2 = matrix(nrow= nrow(r.residual.int), ncol = ncol(r.residual.int))
 rownames(r.residual.int2) = rownames(r.residual.int)
 colnames(r.residual.int2) = colnames(r.residual.int)
 for (i in 1:nrow(r.residual.int)) {
-  model.i= lm(r.residual.int[i,]~ gx.covars[,3])
+  model.i= lm(r.residual.int[i,]~ gx.covars[,8])
   r.residual.int2[i,] = resid(model.i) + model.i$coefficients[1]
 }
 
@@ -500,12 +503,12 @@ head(pval.pca1)
 
 ### Regress out RNA concentration
 
-```{r regress_out_batch, echo = FALSE}
+```{r regress_out_rnaconc, echo = FALSE}
 r.residual.int3 = matrix(nrow= nrow(r.residual.int2), ncol = ncol(r.residual.int2))
 rownames(r.residual.int3) = rownames(r.residual.int2)
 colnames(r.residual.int3) = colnames(r.residual.int2)
 for (i in 1:nrow(r.residual.int2)) {
-  model.i= lm(r.residual.int2[i,]~ gx.covars[,5])
+  model.i= lm(r.residual.int2[i,]~ gx.covars[,3])
   r.residual.int3[i,] = resid(model.i) + model.i$coefficients[1]
 }
 
@@ -534,9 +537,50 @@ head(pval.pca1)
 ```
 
 
-```{r writefile, echo = FALSE}
+#Looks good!
 
-write.table(r.residual.int3, paste("GeneExpression_HutteriteLCL_", date,".txt", sep=""), col.names=T, row.names=T)
+* batch correlated with PC6 & PC4 , regress that out:
+
+### Regress out Batch
+
+```{r regress_out_batch, echo = FALSE}
+r.residual.int4 = matrix(nrow= nrow(r.residual.int3), ncol = ncol(r.residual.int3))
+rownames(r.residual.int4) = rownames(r.residual.int3)
+colnames(r.residual.int4) = colnames(r.residual.int3)
+for (i in 1:nrow(r.residual.int3)) {
+  model.i= lm(r.residual.int3[i,]~ gx.covars[,5])
+  r.residual.int4[i,] = resid(model.i) + model.i$coefficients[1]
+}
+
+sum.PC <- prcomp(t(r.residual.int4), scale=FALSE, center=TRUE)
+sumsum <- summary(sum.PC)
+prop.var<-sumsum$importance
+prop.var[1:3,1:20] 
+title.PC<-"PCA 4"
+
+##To see if covariates are correlated with a PC (looking at PC1-50)
+pval.pca1=matrix(ncol=ncol(gx.covars), nrow=50)
+rownames(pval.pca1)=pc_list
+colnames(pval.pca1)=colnames(gx.covars)
+
+for(j in 1:ncol(gx.covars))
+{
+  for(i in 1:length(pc_list))
+  {
+    data1= lm(sum.PC$x[,i]~gx.covars[,j])
+    pval.pca1[i,j]=anova(data1)$'Pr(>F)'[1]
+  }
+}
+
+head(pval.pca1)
+
+```
+
+
+
+```{r writefile, echo = FALSE}
+date="20180423"
+write.table(r.residual.int4, paste("GeneExpression_HutteriteLCL_", date,".txt", sep=""), col.names=T, row.names=T)
 
 ```
 
@@ -545,7 +589,7 @@ write.table(r.residual.int3, paste("GeneExpression_HutteriteLCL_", date,".txt", 
 
 
 ```{r maternalandpaternalnocovariates}
-my_data<- r.residual.int3
+my_data<- r.residual.int4
 maternal <- maternalrun1[-c(1:4),]
 paternal <- paternalrun1[-c(1:4),]
 
@@ -591,6 +635,18 @@ write.table(newmat2, paste("~/Documents/POexpressionpaper/Analyses/Data/Maternal
 ```{r, summarystats}
 mean((rowSums(newmat2)+rowSums(newpat2))/rowSums(aftersumlane.y.x.nolowexpressed))
 mean((colSums(newmat2)+colSums(newpat2))/colSums(aftersumlane.y.x.nolowexpressed))
+ff2 <- read.table("~/Documents/POexpressionpaper/Analyses/Data/findivs_touse_triosLCL")
+ff <- as.data.frame(ff2)
+newpatff <- newpat2[,which(colnames(newpat2)%in%ff$V1)]
+newmatff <- newmat2[,which(colnames(newmat2)%in%ff$V1)]
+hh <- aftersumlane.y.x.nolowexpressed[,which(colnames(aftersumlane.y.x.nolowexpressed)%in%ff$V1)]
+
+
+mean((rowSums(newmatff)+rowSums(newpatff))/rowSums(hh))
+mean((colSums(newmatff)+colSums(newpatff))/colSums(hh))
+range((rowSums(newmatff)+rowSums(newpatff))/rowSums(hh))
+range((colSums(newmatff)+colSums(newpatff))/colSums(hh))
+
 ```
 
 
@@ -628,8 +684,20 @@ newerkeep <- propkeep*newer
 newerkeep[is.na(newerkeep)] <- 0
 newerkeep[newerkeep==-Inf] <- 0
 
+
+mean((rowSums(newkeep2))/rowSums(aftersumlane.y.x.nolowexpressed))
+
+newkeepff <- newkeep2[,which(colnames(newerkeep)%in%unique(ff$V1))]
+
+
+
+mean((rowSums(newkeepff))/rowSums(hh))
+mean((colSums(newkeepff))/colSums(hh))
+range((rowSums(newkeepff))/rowSums(hh))
+range((colSums(newkeepff))/colSums(hh))
 #write.table(newerkeep, "~/Unknown_gene_normalized_v19_07.27.17.txt", quote =F, row.names = T, col.names = T)
 #write.table(my_data, "~/Total_gene_normalized_v19_07.27.17.txt", quote = F, row.names = T, col.names = T)
+write.table(CS, "~/Documents/POexpressionpaper/Analyses/Data/CS_04.23.txt", quote=F, col.names=T, row.names=F)
 
 ```
 
