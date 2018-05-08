@@ -1,3 +1,6 @@
+##Code from WASP : https://github.com/bmvdgeijn/WASP
+##Adapted by Sahar to count PO reads
+
 import sys
 import numpy as np
 import gzip
