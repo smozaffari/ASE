@@ -58,7 +58,6 @@ dim(newmat3)
 
 
 
-
 ```{r genes, echo=FALSE}
 ensGene <- read.table("~/Documents/POexpressionpaper/Analyses/Data/ensGene.txt-2")
 genenames <- read.table("~/Documents/POexpressionpaper/Analyses/Data/ensemblToGeneName.txt")
@@ -69,8 +68,53 @@ genenames2 <- unique(genenames2[,c(2,3)])
 
 ```
 
+
 ```{r imprintedgenes, echo=FALSE}
 supp <- read.csv("~/Documents/POexpressionpaper/Analyses/Data/supp4", header = T)
+
+```
+
+
+
+```{r matpatonly}
+# grab genes that are expressed maternally and not paternally.
+monly <- as.data.frame((pat0[(which(!names(pat0)%in%names(mat0)))]))
+monly$genes <- rownames(monly)
+mgenes <- monly$genes
+mm <- newmat2[c(mgenes),]
+dim(monly)
+mcounts <- as.data.frame((apply(mm, 1,function(x) length(which(x>0)))))
+mcounts$genes <- rownames(mcounts)
+rownames(mcounts) <- NULL
+
+monlygg <- merge(monly, mcounts, by="genes")
+monlygenenames <- merge(monlygg, genenames2, by.x="genes", by.y="V13")
+monlyimp <- merge(monlygenenames, supp, by.x="V2", by.y="Gene" )
+print(monlyimp)
+
+supmtable <- monlygenenames[,c(1,3,4)]
+colnames(supmtable)[2] <- "individuals"
+write.table(supmtable, "S1Table_mat.txt", quote=F, col.names=T, row.names = F, sep="\t")
+
+ponly <- as.data.frame((mat0[(which(!names(mat0)%in%names(pat0)))]))
+dim(ponly)
+ponly$genes <- rownames(ponly)
+pgenes <- ponly$genes
+pp <- newpat2[c(pgenes),]
+dim(ponly)
+pcounts <- as.data.frame((apply(pp, 1,function(x) length(which(x>0)))))
+pcounts$genes <- rownames(pcounts)
+rownames(pcounts) <- NULL
+ponlygg <- merge(ponly, pcounts, by="genes")
+ponlygenenames <- merge(ponlygg, genenames2, by.x="genes", by.y="V13")
+ponlyimp <- merge(ponlygenenames, supp, by.x="V2", by.y="Gene" )
+print(ponlyimp)
+
+
+supptable <- ponlygenenames[,c(1,3,4)]
+colnames(supptable)[2] <- "individuals"
+write.table(supptable, "S1Table_pat.txt", quote=F, col.names=T, row.names = F, sep="\t")
+
 
 ```
 
@@ -148,8 +192,12 @@ ggplot(gg2, aes(V1, V2, color=Parent,alpha=0.2))+
 pdf("ZDBF2.pdf", height=6, width=6)
 plotparent(1)
 dev.off()
+pdf("PEG10.pdf", height=6, width=6)
 plotparent(2)
+dev.off()
+pdf("SNHG14.pdf", height=6, width=6)
 plotparent(3)
+dev.off()
 
 plotparent2 <- function(i, lim=100){
 n <- sigsign$genes[i]
@@ -175,10 +223,15 @@ ggplot(gg2, aes(V1, V2, color=Parent,alpha=0.2))+
 
 
 }
-
+pdf("NHP2L1.pdf", height=6, width=6)
 plotparent2(4, lim=150)
+dev.off()
+pdf("L3MBTL1.pdf", height=6, width=6)
 plotparent(5, lim=50)
+dev.off()
+pdf("ZNF331.pdf", height=6, width=6)
 plotparent2(6)
+dev.off()
 
 
 plotparent3 <- function(i, lim=100){
@@ -205,14 +258,19 @@ ggplot(gg2, aes(V1, V2, color=Parent,alpha=0.2))+
 
 
 }
+pdf("LPAR6.pdf", height=6, width=6)
 plotparent3(7, lim=50)
+dev.off()
 
+pdf("FAM50B.pdf", height=6, width=6)
 plotparent3(8, lim=50)
+dev.off()
+
 pdf("KCNQ1.pdf", height=6, width=6)
 plotparent2(9, lim=50)
 dev.off()
-pdf("PXDC1.pdf", height=6, width=6)
 
+pdf("PXDC1.pdf", height=6, width=6)
 plotparent2(10, lim=50)
 dev.off()
 
@@ -220,10 +278,105 @@ pdf("PWAR6.pdf", height=6, width=6)
 plotparent3(11, lim=50)
 dev.off()
 
+pdf("NAP1L5.pdf", height=6, width=6)
+plotparent3(12, lim=20)
+dev.off()
+pdf("SNHG17.pdf", height=6, width=6)
+plotparent2(13)
+dev.off()
+pdf("ZNF813.pdf", height=6, width=6)
+plotparent2(14, lim=50)
+dev.off()
+pdf("IGF1R.pdf", height=6, width=6)
+plotparent2(15, lim=50)
+dev.off()
+pdf("DAAM1.pdf", height=6, width=6)
+plotparent2(16)
+dev.off()
+pdf("RP11-379H18.1.pdf", height=6, width=6)
+plotparent2(17, lim=75)
+dev.off()
+pdf("HMGN1P38.pdf", height=6, width=6)
+plotparent(18, lim=50)
+dev.off()
+
+
+plotparent4 <- function(i, lim=100){
+n <- sigsign$genes[i]
+  v <- grep(n, genes)
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat3[v,])), as.numeric(as.character(newpat3[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+gg2 <- gg[which((gg$V1+gg$V2)>5),]
+gg2$Parent[gg2$V3==0] <- paste("Equal", ":", length((which(gg2$V1==gg2$V2))))
+ggplot(gg2, aes(V1, V2, color=Parent,alpha=0.2))+
+  geom_point(size=3, alpha=0.5)+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,lim), ylim=c(-1,lim))+
+ scale_color_manual(values=c( "#616530CC","#0F425CCC" ))+
+  theme(legend.position = c(0.6, 0.3),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+
+
+}
+
+
+pdf("MTX2.pdf", height=6, width=6)
+plotparent4(19, lim=50)
+dev.off()
+
+pdf("ZNF714.pdf", height=6, width=6)
+plotparent2(20, lim=75)
+dev.off()
 
 
 pdf("MAF1.pdf", height=6, width=6)
 plotparent2(21, lim=150)
 dev.off()
+
+
+
+
+pdf("PRIM2.pdf", height=6, width=6)
+plotparent2(22, lim=50)
+dev.off()
+
+
+
+pdf("IL16.pdf", height=6, width=6)
+plotparent2(23, lim=200)
+dev.off()
+
+
+pdf("CPNE1.pdf", height=6, width=6)
+plotparent2(24, lim=200)
+dev.off()
+
+pdf("ATP6V0D1.pdf", height=6, width=6)
+plotparent2(25)
+dev.off()
+
+
+pdf("FAHD1.pdf", height=6, width=6)
+plotparent2(26, lim=150)
+dev.off()
+
+
+pdf("CNN2.pdf", height=6, width=6)
+plotparent2(27, lim=400)
+dev.off()
+
+
+pdf("HSP90AB3P.pdf", height=6, width=6)
+plotparent2(28, lim=20)
+dev.off()
+
+
 ```
 
