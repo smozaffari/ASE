@@ -580,7 +580,7 @@ head(pval.pca1)
 
 ```{r writefile, echo = FALSE}
 date="20180423"
-write.table(r.residual.int4, paste("GeneExpression_HutteriteLCL_", date,".txt", sep=""), col.names=T, row.names=T)
+#write.table(r.residual.int4, paste("GeneExpression_HutteriteLCL_", date,".txt", sep=""), col.names=T, row.names=T)
 
 ```
 
@@ -629,8 +629,8 @@ newmat <- aftersumlanemat[genes,]
 newpat <- aftersumlanepat[genes,]
 newmat2 <- newmat[,colnames(newer)]
 newpat2 <- newpat[,colnames(newer)]
-write.table(newpat2, paste("~/Documents/POexpressionpaper/Analyses/Data/Paternal_gene_notnormalized_nodup_v19_",date,".txt", sep=""), quote =F, row.names = T, col.names = T)
-write.table(newmat2, paste("~/Documents/POexpressionpaper/Analyses/Data/Maternal_gene_notnormalized_nodup_v19_",date,".txt", sep=""), quote =F, row.names = T, col.names = T)
+#write.table(newpat2, paste("~/Documents/POexpressionpaper/Analyses/Data/Paternal_gene_notnormalized_nodup_v19_",date,".txt", sep=""), quote =F, row.names = T, col.names = T)
+#write.table(newmat2, paste("~/Documents/POexpressionpaper/Analyses/Data/Maternal_gene_notnormalized_nodup_v19_",date,".txt", sep=""), quote =F, row.names = T, col.names = T)
 ```
 ```{r, summarystats}
 mean((rowSums(newmat2)+rowSums(newpat2))/rowSums(aftersumlane.y.x.nolowexpressed))
@@ -646,6 +646,8 @@ mean((rowSums(newmatff)+rowSums(newpatff))/rowSums(hh))
 mean((colSums(newmatff)+colSums(newpatff))/colSums(hh))
 range((rowSums(newmatff)+rowSums(newpatff))/rowSums(hh))
 range((colSums(newmatff)+colSums(newpatff))/colSums(hh))
+sd((rowSums(newmatff)+rowSums(newpatff))/rowSums(hh))
+sd((colSums(newmatff)+colSums(newpatff))/colSums(hh))
 
 ```
 
@@ -695,9 +697,11 @@ mean((rowSums(newkeepff))/rowSums(hh))
 mean((colSums(newkeepff))/colSums(hh))
 range((rowSums(newkeepff))/rowSums(hh))
 range((colSums(newkeepff))/colSums(hh))
+sd((rowSums(newkeepff))/rowSums(hh))
+sd((colSums(newkeepff))/colSums(hh))
 #write.table(newerkeep, "~/Unknown_gene_normalized_v19_07.27.17.txt", quote =F, row.names = T, col.names = T)
 #write.table(my_data, "~/Total_gene_normalized_v19_07.27.17.txt", quote = F, row.names = T, col.names = T)
-write.table(CS, "~/Documents/POexpressionpaper/Analyses/Data/CS_04.23.txt", quote=F, col.names=T, row.names=F)
+#write.table(CS, "~/Documents/POexpressionpaper/Analyses/Data/CS_04.23.txt", quote=F, col.names=T, row.names=F)
 
 ```
 

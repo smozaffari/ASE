@@ -4,11 +4,11 @@ library(cowplot2)
 theme_set(theme_cowplot(font_size = 18, line_size = 1))
 
 
-LCL <- read.table("LCL/Significantsigntest.txt", header=T)
-WB <- read.table("WB_LCLsiggenes.txt", header = T)
-
+LCL <- read.table("Zall3.txt", header=T)
+WB <- read.table("WB_Zall3.txt", header = T)
+colnames(LCL)[5] <- "genename"
 LCL$diff=LCL$greater0-LCL$less0
-LCL2 <- LCL[,c(2,3,7)]
+LCL2 <- LCL[,c(2,3,5)]
 LCL3 <- melt(LCL2, id="genename")
 LCL3$diff=LCL$diff
 LCL3$genename <- reorder(LCL3$genename, LCL3$diff)
@@ -24,7 +24,7 @@ ggplot(LCL3, aes(genename, value, fill=variable))+
 dev.off()
 
 WB$diff=WB$greater0-WB$less0
-WB2 <- WB[,c(2,3,7)]
+WB2 <- WB[,c(2,3,5)]
 WB3 <- WB2[match(LCL$genename,WB2$genename ),]
 WB4 <- melt(WB3, id="genename")
 WB4$diff <- LCL3$diff
