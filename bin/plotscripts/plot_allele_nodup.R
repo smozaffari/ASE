@@ -19,7 +19,7 @@ genes <- rownames(maternal)
 #total <- read.table("/group/ober-resources/users/smozaffari/ASE/data/expression/Total_gene_normalized.txt", check.names = F)
 
 maternalfindivs <- cbind("HUTTERITES", paste(colnames(maternal),"2", sep=""))
-paternalfindivs <- cbind("HUTTERITES", paste(colnames(paternal),"2", sep=""))
+paternalfindivs <- cbind("HUTTERITES", paste(colnames(paternal),"1", sep=""))
 write.table(maternalfindivs, "Maternalfindivs", quote=F, row.names=F, col.names=F)
 write.table(paternalfindivs, "Paternalfindivs", quote=F, row.names=F, col.names=F)
 
