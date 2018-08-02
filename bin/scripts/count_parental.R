@@ -5,10 +5,10 @@
 ## To get gene count matrix for gene count for components
 
 # Folder output of RNAseq data is in
-path="star_overhang_v19"
+path="star_overhang_v19_2018"
 
 # pattern = ending of file 
-patterns = c( "homaltcount_nodupReadsPerGene.out.tab", "maternalaltcount_nodupReadsPerGene.out.tab", "paternalaltcount_nodupReadsPerGene.out.tab",  "genesaltcount_nodupReadsPerGene.out.tab","withsex_nodupReadsPerGene.out.tab")
+patterns = c("homaltcount_nodupReadsPerGene.out.tab", "maternalaltcount_nodupReadsPerGene.out.tab", "paternalaltcount_nodupReadsPerGene.out.tab",  "genesaltcount_nodupReadsPerGene.out.tab","withsex_nodupReadsPerGene.out.tab")
 ending = c( 17, 22, 22)
 
 for (val  in 1:length(patterns)) {

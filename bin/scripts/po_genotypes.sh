@@ -38,8 +38,8 @@ rm *.tfam
 rm *.log
 for i in `seq 1 22`
 do
-   awk -v chr="chr$i" '$1 == chr {print $2 " " $3 " " $4}' ${FINDIV}_het_SNPs > chr${i}.het.snps.txt
+   awk -v chr="chr$i" '$1 == chr {print $2 " " $3 " " $4}' ${FINDIV}_het_SNPs > chr${i}.snps.txt
    wait
-   gzip chr${i}.het.snps.txt
-   rm chr${i}.het.snps.txt
+   gzip chr${i}.snps.txt
+   rm chr${i}.snps.txt
 done
