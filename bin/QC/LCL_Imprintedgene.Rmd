@@ -2,7 +2,9 @@
 title: "LCL_Imprintedgene"
 author: "Sahar Mozaffari"
 date: "2/7/2018"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ###Testing for significant difference between maternal and paternal expression for genes across all individuals.
@@ -31,9 +33,9 @@ Read in not normalized maternal and paternal expression matrixes.
 Remove genes that are not expressed in maternal or paternal, and remove those genes expressed in less than 100 reads summed over all maternal and paternal for that gene.
 
 ```{r genetest, echo=FALSE, include=FALSE}
-newmat2 <- read.table("~/Documents/POexpressionpaper/Analyses/Data/Maternal_gene_notnormalized_nodup_v19_20180206.txt", check.names = F)
-newpat2 <- read.table("~/Documents/POexpressionpaper/Analyses/Data/Paternal_gene_notnormalized_nodup_v19_20180206.txt", check.names = F)
-CS <- read.table("~/Documents/POexpressionpaper/Analyses/Data/CS", check.names=F)
+newmat2 <- read.table("~/Documents/POexpressionpaper/Analyses/Data/Maternal_gene_notnormalized_nodup_v19_20180423.txt", check.names = F)
+newpat2 <- read.table("~/Documents/POexpressionpaper/Analyses/Data/Paternal_gene_notnormalized_nodup_v19_20180423.txt", check.names = F)
+CS <- read.table("~/Documents/POexpressionpaper/Analyses/Data/CS_04.23.txt", check.names=F)
 touse <- read.table("~/Documents/POexpressionpaper/Analyses/Data/findivs_touse_triosLCL")
 newmat1 <- newmat2[,which(colnames(newmat2)%in%touse$V1),]
 newpat1 <- newpat2[,which(colnames(newpat2)%in%touse$V1),]
@@ -52,7 +54,9 @@ newpat3 <- newpat4[both,]
 newmat3 <- newmat4[both,]
 genes <- rownames(newpat3)
 dim(newmat3)
+```
 
+```{r Zscore}
 Zgene <- c()
 Zgene <- foreach(i=1:dim(newpat3)[1], .combine=c ) %dopar% {
      Z <-  (rowSums(newpat3[i,])-rowSums(newmat3[i,]))/(sqrt(rowSums(newpat3[i,])+rowSums(newmat3[i,])))
@@ -60,7 +64,7 @@ Zgene <- foreach(i=1:dim(newpat3)[1], .combine=c ) %dopar% {
 
 ```
 
-```{r plots, echo=FALSE}
+```{r plots, echo=FALSE, eval=FALSE}
 hist(Zgene, breaks=1000, prob=T,ylim=c(0,0.5))
 curve(dnorm(x, mean=0, sd=1), col="darkblue", lwd=2, add=TRUE, yaxt="n")
 
@@ -205,7 +209,7 @@ for (i in 1:10) {
 ###Check how many of the significant ones are known imprinted genes: 
 
 
-```{r imprintedgenes, echo=FALSE}
+```{r imprintedgenes, echo=FALSE, eval=TRUE}
 supp <- read.csv("~/Documents/POexpressionpaper/Analyses/Data/supp4", header = T)
 significant[which(significant$genename%in%supp$Gene),]
 
@@ -219,8 +223,8 @@ $`dim(supp)[1]`$/$`length(which(supp$Gene%in%Zgenenames$genename))`$ (overlap of
 ##Comparing old p-value with weighted p-values
 
 
-```{r weighted, echo=FALSE}
-CS <- read.table("~/Documents/POexpressionpaper/Analyses/Data/CS", check.names=F)
+```{r weighted, echo=FALSE, eval=FALSE}
+CS <- read.table("~/Documents/POexpressionpaper/Analyses/Data/CS_04.23.txt", check.names=F, header=F)
 CS2 <- CS$V2
 names(CS2) <- CS$V1
 weights <- 1/(CS2/(min(CS2)))
@@ -304,10 +308,44 @@ Zsign <- foreach(i=1:dim(newmat3)[1], .combine=rbind ) %dopar% {
 Zsign2 <- as.data.frame(Zsign)
 colnames(Zsign2) <- c("less0", "greater0", "signpvalue")
 Zsign2$genes <- genes
+Zsign3 <- merge(Zsign2, genenames2, by.x="genes", by.y="V13")
 
-Zall3 <- merge(Zsign2, tt, by="genes")
+#Zall3 <- merge(Zsign2, tt, by="genes")
+Zall3 <- Zsign3
 Zall3$signFDR <- qvalue(as.numeric(as.character(Zall3$signpval)))$qvalues
 
+x <- apply(head(Zall3[order(Zall3$signFDR),],28), 2,as.character)
+write.table(x, "Zall3.txt", col.names=T, row.names=F, quote=F)
+```
+
+```{r newplots, echo=FALSE}
+
+i <- 1
+n <- x$genes[i]
+  v <- grep(n, rownames(newmat4))
+  plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), xlim=c(-5,70), ylim=c(-5,70))
+abline(a=0, b=1, col="red")
+gg <- as.data.frame(cbind(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,]))))
+gg$V3 <- gg$V2-gg$V1
+gg$Parent =gg$V3>0
+gg$Parent[gg$V3>0] <- paste("Paternal", ":", sigsign$greater0[i])
+gg$Parent[gg$V3<0] <- paste("Maternal", ":", sigsign$less0[i])
+gg$Parent[gg$V3==0] <- "Equal"
+ggplot(gg, aes(V1, V2, color=Parent),alpha=0.2)+
+  geom_point(aes(size=1/weights3))+
+  geom_abline(slope=1, color="grey")+
+  labs(title=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), 
+       x="Maternal Expression", 
+       y="Paternal Expression")+
+  coord_cartesian(xlim=c(-1,80), ylim=c(-1,80))+
+ scale_color_manual(values=c("#616530CC" , "#800000CC", "#0F425CCC"))+
+  theme(legend.position = c(0.6, 0.2),
+        legend.background = element_rect(color = "black", size = 0.5, linetype = 1))
+```
+
+
+
+```{r moreeval, echo=FALSE, eval=FALSE}
 significantweighted <- Zall3[which(as.numeric(as.character(Zall3$weightedpval))<BF),]
 dim(significantweighted)
 sigsortedZweighted <- significantweighted[order(as.numeric(as.character(significantweighted$weightedpval))),]
@@ -334,7 +372,7 @@ df2
 ##Plots for the 10 most significant from weighted Zscore
 
 
-```{r singleplotsweighted, results="asis", echo=FALSE}
+```{r singleplotsweighted, results="asis", echo=FALSE, echo=FALSE}
 
 #touse <- read.table("~findivs_touse_triosLCL")
 #newmat4 <- newmat3[,which(colnames(newmat3)%in%touse$V1),]
@@ -405,11 +443,11 @@ abline(a=0, b=1, col="red")
   
 ```
 
-```{r}
+```{r plotsold, eval=FALSE, echo=FALSE}
 weights2 <- weights[which(names(weights)%in%colnames(newmat4))]
 weights3 <- weights2[match(names(weights2), colnames(newmat4))]
 i <- 1
-n <- sigsign$genes[i]
+n <- x$genes[i]
   v <- grep(n, rownames(newmat4))
   plot(as.numeric(as.character(newmat4[v,])), as.numeric(as.character(newpat4[v,])), xlab= "Maternal expression", ylab="Paternal expression", main=paste(sigsign$genename[i], "Maternal vs. Paternal Expression"), xlim=c(-5,70), ylim=c(-5,70))
 abline(a=0, b=1, col="red")
